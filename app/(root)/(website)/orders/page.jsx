@@ -86,7 +86,7 @@ const Orders = () => {
                             <td className="p-3 font-medium text-primary">
                               <Link
                                 href={WEBSITE_ORDER_DETAILS(order._id)}
-                                className="hover:underline hover:text-orange-500"
+                                className="hover:underline hover:text-yellow-500"
                               >
                                 {order._id}
                               </Link>

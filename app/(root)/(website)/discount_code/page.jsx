@@ -1,279 +1,224 @@
 'use client'
 
 import { IMAGES } from '@/routes/AllImages'
-import React, { useState } from 'react'
-import { ChevronLeft, ChevronRight, Tag, ArrowUpRight } from 'lucide-react'
 
-const slides = [
+const offers = [
   {
-    title: '10% off First Order',
-    img: IMAGES.Who_are_we,
-    p1: 'New to BuildRush?',
-    p2: 'Get 10% off your first material delivery order when you register a business account. Use code FIRST10 at checkout.',
+    title: '10% Off First Order',
+    subtitle: 'New to Constructezy?',
+    description:
+      'Get 10% off your first construction material order when you register and place your first eligible order. Use code FIRST10 at checkout.',
   },
   {
     title: 'Free Delivery',
-    img: IMAGES.Who_are_we,
-    p1: 'On orders over £150',
-    p2: 'Place a single material order over £150 and get free 30-minute delivery to your site — no code needed, applied automatically.',
+    subtitle: 'On eligible orders',
+    description:
+      'Get free delivery on eligible construction material orders. Delivery availability may depend on your location and order value.',
   },
   {
-    title: '15% off Labour Hire',
-    img: IMAGES.Who_are_we,
-    p1: 'For registered contractors',
-    p2: 'Verified construction contractors and principal contractors get 15% off their first labour hire booking. Apply via your account dashboard.',
+    title: 'Labour Hire Discount',
+    subtitle: 'For eligible customers',
+    description:
+      'Eligible customers may receive a discount on their first labour hire booking through Constructezy.',
   },
   {
     title: 'Bulk Order Discount',
-    img: IMAGES.Who_are_we,
-    p1: 'Save more when you order more',
-    p2: 'Order materials worth £500 or more in a single delivery and receive an automatic 8% bulk discount. Ideal for large site restocks.',
+    subtitle: 'Save on larger orders',
+    description:
+      'Eligible bulk orders may receive additional discounts, helping you reduce costs on larger construction material purchases.',
   },
   {
-    title: 'Site Manager Deal',
-    img: IMAGES.Who_are_we,
-    p1: 'For site managers & foremen',
-    p2: 'Verified site managers get a dedicated account manager, priority dispatch and an exclusive 12% discount on recurring material orders.',
+    title: 'Site Manager Benefits',
+    subtitle: 'For construction professionals',
+    description:
+      'Eligible site managers and construction professionals may receive special offers and account benefits.',
   },
   {
     title: 'Refer & Earn',
-    img: IMAGES.Who_are_we,
-    p1: 'Refer a business, earn £50 credit',
-    p2: 'Refer another contractor or construction business to BuildRush and earn £50 platform credit when they complete their first order.',
+    subtitle: 'Refer a business',
+    description:
+      'Refer a new customer to Constructezy and receive platform credit when the referral completes an eligible order.',
   },
 ]
 
-/* ── Blueprint grid overlay ── */
-const BlueprintGrid = ({ opacity = 0.1 }) => (
-  <div
-    className="pointer-events-none absolute inset-0"
-    style={{
-      opacity,
-      backgroundImage:
-        'linear-gradient(#4A7A96 1px, transparent 1px), linear-gradient(90deg, #4A7A96 1px, transparent 1px)',
-      backgroundSize: '36px 36px',
-    }}
-  />
-)
-
-/* ── Scrolling hazard ticker ── */
-const Ticker = () => {
-  const items = ['CODE: FIRST10', 'FREE DELIVERY OVER £150', 'BULK ORDER SAVINGS', 'REFER & EARN £50']
-  const row = (
-    <>
-      {items.map((t, i) => (
-        <span key={i} className="flex items-center gap-4 mx-4">
-          <span>{t}</span>
-          <span className="h-1.5 w-1.5 rounded-full bg-[#14161A]/60" />
-        </span>
-      ))}
-    </>
-  )
-  return (
-    <div className="relative overflow-hidden bg-[#F97316] text-[#14161A] py-3 whitespace-nowrap">
-      <div className="offers-marquee flex text-sm font-bold uppercase tracking-[0.2em]">
-        <div className="flex shrink-0">{row}{row}</div>
-        <div className="flex shrink-0" aria-hidden="true">{row}{row}</div>
-      </div>
-      <style>{`
-        .offers-marquee { animation: offers-scroll 20s linear infinite; width: max-content; }
-        @keyframes offers-scroll {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .offers-marquee { animation: none; }
-        }
-      `}</style>
-    </div>
-  )
-}
-
 const DiscountCode = () => {
-  const [index, setIndex] = useState(0)
-  const visibleCards = 2
-
-  const next = () => {
-    if (index < slides.length - visibleCards) {
-      setIndex(index + 1)
-    }
-  }
-
-  const prev = () => {
-    if (index > 0) {
-      setIndex(index - 1)
-    }
-  }
-
   return (
-    <div className="w-full bg-[#F5F3EF] text-[#14161A]">
+    <div className="min-h-screen bg-white text-gray-900">
 
-      {/* ---------- HERO BANNER ---------- */}
-      <section className="relative h-[60vh] w-full overflow-hidden bg-[#0F1114]">
+      {/* HERO BANNER */}
+      <section className="relative h-[55vh] min-h-[400px] overflow-hidden bg-gray-900">
         <img
           src={IMAGES.discount_code}
-          alt="BuildRush Offers & Discounts"
-          className="w-full h-full object-cover opacity-60"
+          alt="Constructezy Offers and Discounts"
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0F1114] via-[#0F1114]/60 to-[#0F1114]/10" />
-        <BlueprintGrid />
-        <div className="absolute inset-0 flex items-end">
-          <div className="max-w-7xl mx-auto px-6 pb-14 w-full">
-            <div className="inline-flex items-center gap-2 text-[#F97316] text-xs font-mono uppercase tracking-[0.3em] mb-5">
-              <Tag size={16} strokeWidth={2.5} />
-              Exclusive Rates
-            </div>
-            <h1 className="text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-[0.95]">
-              Offers &amp; Discounts
+
+        <div className="absolute inset-0 bg-black/55" />
+
+        <div className="relative z-10 h-full flex items-end">
+          <div className="max-w-5xl mx-auto w-full px-6 pb-14">
+            <p className="text-yellow-500 text-sm font-medium mb-4">
+              Exclusive Offers
+            </p>
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white">
+              Offers & Discounts
             </h1>
+
+            <p className="mt-4 text-gray-200 text-lg max-w-2xl">
+              Save more on construction materials and services with
+              Constructezy offers.
+            </p>
           </div>
         </div>
       </section>
 
-      <Ticker />
-
-      {/* ---------- INTRO ---------- */}
-      <section className="max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
-        <h2 className="text-4xl lg:text-5xl font-black tracking-tight leading-[1.05]">
-          Save on Every Build with BuildRush Exclusive Offers
+      {/* INTRO */}
+      <section className="max-w-4xl mx-auto px-6 py-16">
+        <h2 className="text-3xl font-bold mb-5">
+          Save More With Constructezy
         </h2>
 
-        <div className="border-l-2 border-[#F97316] pl-6">
-          <p className="text-lg leading-relaxed text-[#3A3D42]">
-            We know that keeping project costs down matters. That's why BuildRush
-            offers a range of exclusive discounts for contractors, site managers
-            and construction businesses across the UK.
-            <br /><br />
-            New customers can unlock a{' '}
-            <strong className="text-[#14161A] font-semibold">10% discount on their first delivery</strong> — and returning
-            customers can take advantage of bulk order savings, labour hire
-            discounts and our Refer &amp; Earn programme.
-            <br /><br />
-            All offers are applied automatically or via simple codes at checkout.
-            No hoops to jump through — just great value, delivered in 30 minutes.
+        <div className="space-y-4 text-gray-600 leading-7">
+          <p>
+            Constructezy provides offers and discounts to help customers save
+            on construction materials and services.
+          </p>
+
+          <p>
+            New customers may receive introductory offers, while eligible
+            customers may receive additional benefits on bulk orders, labour
+            services, and referrals.
+          </p>
+
+          <p>
+            Offer availability and eligibility may vary depending on the
+            specific offer and order.
           </p>
         </div>
       </section>
 
-      {/* ---------- OFFERS SLIDER ---------- */}
-      <section className="bg-[#14161A] py-20 relative overflow-hidden">
-        <BlueprintGrid opacity={0.06} />
-        <div className="relative max-w-7xl mx-auto px-6">
+      {/* OFFERS */}
+      <section className="bg-gray-50 border-y border-gray-200">
+        <div className="max-w-5xl mx-auto px-6 py-16">
 
-          {/* HEADER + CONTROLS */}
-          <div className="flex justify-between items-center mb-10">
+          <div className="mb-10">
+            <p className="text-yellow-500 text-sm font-medium mb-2">
+              Current Offers
+            </p>
+
+            <h2 className="text-3xl font-bold">
+              Available Discounts
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {offers.map((offer) => (
+              <div
+                key={offer.title}
+                className="bg-white border border-gray-200 rounded-lg p-6"
+              >
+                <h3 className="text-xl font-semibold mb-2">
+                  {offer.title}
+                </h3>
+
+                <p className="text-gray-900 font-medium mb-3">
+                  {offer.subtitle}
+                </p>
+
+                <p className="text-gray-600 leading-7">
+                  {offer.description}
+                </p>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="max-w-4xl mx-auto px-6 py-16">
+
+        <h2 className="text-3xl font-bold mb-10">
+          How to Redeem an Offer
+        </h2>
+
+        <div className="space-y-8">
+
+          <div className="flex gap-5">
+            <span className="text-yellow-500 font-bold text-xl">
+              01
+            </span>
+
             <div>
-              <span className="text-xs font-mono uppercase tracking-[0.3em] text-[#F97316]">Live Now</span>
-              <h2 className="text-3xl font-black uppercase tracking-tight text-white mt-2">Current Offers</h2>
-            </div>
+              <h3 className="text-xl font-semibold mb-2">
+                Create Your Account
+              </h3>
 
-            <div className="flex gap-3">
-              <button
-                onClick={prev}
-                disabled={index === 0}
-                className="p-2.5 border border-white/20 text-white hover:bg-[#F97316] hover:border-[#F97316] hover:text-[#14161A] disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white transition-colors"
-              >
-                <ChevronLeft size={20} />
-              </button>
-
-              <button
-                onClick={next}
-                disabled={index >= slides.length - visibleCards}
-                className="p-2.5 border border-white/20 text-white hover:bg-[#F97316] hover:border-[#F97316] hover:text-[#14161A] disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white transition-colors"
-              >
-                <ChevronRight size={20} />
-              </button>
+              <p className="text-gray-600 leading-7">
+                Create your Constructezy account and provide the required
+                information.
+              </p>
             </div>
           </div>
 
-          {/* SLIDER */}
-          <div className="overflow-hidden">
-            <div
-              className="flex gap-8 transition-transform duration-500 ease-in-out"
-              style={{
-                transform: `translateX(-${index * 50}%)`,
-              }}
-            >
-              {slides.map((item, i) => (
-                <div
-                  key={i}
-                  className="min-w-full lg:min-w-[31%] bg-[#F5F3EF] overflow-hidden group"
-                >
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={item.img}
-                      alt={item.title}
-                      className="w-full h-64 object-cover grayscale-[15%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700"
-                    />
-                    <div className="absolute top-4 left-4 bg-[#14161A] text-[#F97316] text-[10px] font-mono uppercase tracking-[0.25em] px-3 py-1.5">
-                      Offer
-                    </div>
-                  </div>
+          <div className="flex gap-5">
+            <span className="text-yellow-500 font-bold text-xl">
+              02
+            </span>
 
-                  <div className="p-8 border-t-2 border-[#F97316]">
-                    <h3 className="text-2xl font-extrabold mb-2 uppercase tracking-tight">
-                      {item.title}
-                    </h3>
+            <div>
+              <h3 className="text-xl font-semibold mb-2">
+                Place Your Order
+              </h3>
 
-                    <p className="text-[#14161A] font-semibold text-lg mb-3">
-                      {item.p1}
-                    </p>
+              <p className="text-gray-600 leading-7">
+                Select your required construction materials or services and
+                place your order.
+              </p>
+            </div>
+          </div>
 
-                    <p className="text-[#3A3D42] text-base mb-6 leading-relaxed">
-                      {item.p2}
-                    </p>
+          <div className="flex gap-5">
+            <span className="text-yellow-500 font-bold text-xl">
+              03
+            </span>
 
-                    <button className="inline-flex items-center gap-2 bg-[#14161A] text-white font-bold uppercase tracking-wide text-sm px-6 py-3 hover:bg-[#F97316] hover:text-[#14161A] cursor-pointer transition-colors">
-                      Claim Offer <ArrowUpRight size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div>
+              <h3 className="text-xl font-semibold mb-2">
+                Apply the Offer
+              </h3>
+
+              <p className="text-gray-600 leading-7">
+                Enter the applicable discount code during checkout or receive
+                the eligible discount automatically.
+              </p>
             </div>
           </div>
 
         </div>
       </section>
 
-      {/* ---------- HOW IT WORKS ---------- */}
-      <section className="max-w-7xl mx-auto px-6 py-24">
-        <div className="text-center mb-16">
-          <span className="text-xs font-mono uppercase tracking-[0.3em] text-[#F97316]">The Process</span>
-          <h2 className="text-3xl lg:text-4xl font-black uppercase tracking-tight mt-2">How to Redeem Your Discount</h2>
-        </div>
+      {/* TERMS */}
+      <section className="max-w-4xl mx-auto px-6 pb-16">
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-[#14161A]/10">
+        <div className="border border-gray-200 rounded-lg p-6 sm:p-8">
 
-          <div className="bg-[#F5F3EF] p-8 text-center flex flex-col items-center">
-            <div className="text-5xl font-black text-[#F97316] mb-4 font-mono">01</div>
-            <h3 className="text-xl font-extrabold uppercase tracking-tight mb-3">Register Your Account</h3>
-            <p className="text-[#3A3D42] leading-relaxed">
-              Create a free BuildRush business account. Verified contractors and
-              site managers unlock additional exclusive rates automatically.
-            </p>
-          </div>
+          <h2 className="text-2xl font-semibold mb-5">
+            Offer Terms
+          </h2>
 
-          <div className="bg-[#F5F3EF] p-8 text-center flex flex-col items-center">
-            <div className="text-5xl font-black text-[#F97316] mb-4 font-mono">02</div>
-            <h3 className="text-xl font-extrabold uppercase tracking-tight mb-3">Place Your Order</h3>
-            <p className="text-[#3A3D42] leading-relaxed">
-              Add materials or book labour hire through the platform. Eligible
-              discounts are applied at checkout — no manual codes needed in
-              most cases.
-            </p>
-          </div>
-
-          <div className="bg-[#F5F3EF] p-8 text-center flex flex-col items-center">
-            <div className="text-5xl font-black text-[#F97316] mb-4 font-mono">03</div>
-            <h3 className="text-xl font-extrabold uppercase tracking-tight mb-3">Delivered in 30 Minutes</h3>
-            <p className="text-[#3A3D42] leading-relaxed">
-              Sit back while we handle the rest. Your materials arrive on site
-              within 30 minutes — saving you time and keeping your project on
-              schedule.
-            </p>
-          </div>
+          <ul className="list-disc pl-6 space-y-2 text-gray-600 leading-7">
+            <li>Offers are subject to availability.</li>
+            <li>Some offers may only be available to eligible customers.</li>
+            <li>Discounts may not be combined with other offers.</li>
+            <li>Discount codes must be entered correctly during checkout.</li>
+            <li>Offers may have additional terms or expiry dates.</li>
+            <li>Constructezy may modify or withdraw offers when required.</li>
+          </ul>
 
         </div>
+
       </section>
 
     </div>

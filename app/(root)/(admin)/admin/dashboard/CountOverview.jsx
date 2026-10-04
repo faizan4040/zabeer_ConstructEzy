@@ -12,7 +12,7 @@ const MiniCard = ({ title, value, percent, period, icon, isPositive = true, link
     <div className="bg-white dark:bg-card border rounded-2xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-1 cursor-pointer h-full flex flex-col justify-between">
       
       <div className="flex sm:items-center gap-4 p-5 flex-col sm:flex-row">
-        <div className="w-12 h-12 rounded-xl text-orange-500 bg-[#ffe2d5] dark:bg-orange-500 flex items-center justify-center text-xl shrink-0">
+        <div className="w-12 h-12 rounded-xl text-yellow-500 bg-[#ffe2d5] dark:bg-orange-500 flex items-center justify-center text-xl shrink-0">
           {icon}
         </div>
 

@@ -22,7 +22,7 @@ const ShopownerTrackerDetails = () => {
       .finally(() => setLoading(false))
   }, [shop_owner_id])
 
-  if (loading) return <div className="py-40 flex justify-center"><Loader2 className="animate-spin text-orange-500" size={28} /></div>
+  if (loading) return <div className="py-40 flex justify-center"><Loader2 className="animate-spin text-yellow-500" size={28} /></div>
   if (!data) return <div className="py-40 text-center text-gray-400">Shop not found.</div>
 
   const { owner, shop, productCount, orderCount, earnings, itemsSold, products, recentOrders } = data
@@ -52,7 +52,7 @@ const ShopownerTrackerDetails = () => {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
         <Card className="rounded-2xl"><CardContent className="p-4 text-center">
-          <Package className="mx-auto text-orange-500 mb-1" size={18} />
+          <Package className="mx-auto text-yellow-500 mb-1" size={18} />
           <p className="text-xl font-bold">{productCount}</p><p className="text-xs text-gray-400">Products</p>
         </CardContent></Card>
         <Card className="rounded-2xl"><CardContent className="p-4 text-center">
@@ -70,7 +70,7 @@ const ShopownerTrackerDetails = () => {
       </div>
 
       <div className="bg-white border rounded-2xl shadow-sm p-5 mt-4">
-        <h4 className="font-semibold mb-4 flex items-center gap-2"><Package size={16} className="text-orange-500" />Products ({products.length})</h4>
+        <h4 className="font-semibold mb-4 flex items-center gap-2"><Package size={16} className="text-yellow-500" />Products ({products.length})</h4>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {products.map((p) => (
             <div key={p._id} className="flex items-center gap-3 border rounded-xl p-3">
@@ -88,7 +88,7 @@ const ShopownerTrackerDetails = () => {
       </div>
 
       <div className="bg-white border rounded-2xl shadow-sm p-5 mt-4">
-        <h4 className="font-semibold mb-4 flex items-center gap-2"><ShoppingCart size={16} className="text-orange-500" />Recent Orders</h4>
+        <h4 className="font-semibold mb-4 flex items-center gap-2"><ShoppingCart size={16} className="text-yellow-500" />Recent Orders</h4>
         <div className="space-y-2">
           {recentOrders.map((o) => (
             <div key={o._id} className="flex justify-between items-center border rounded-xl p-3 text-sm">

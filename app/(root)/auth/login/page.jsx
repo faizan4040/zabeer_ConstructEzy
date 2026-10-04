@@ -254,7 +254,7 @@ const LoginPage = () => {
                               <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-orange-500 transition-colors"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-yellow-500 transition-colors"
                               >
                                 {showPassword ? <FaRegEye size={16} /> : <FaRegEyeSlash size={16} />}
                               </button>

@@ -106,17 +106,17 @@ const DragDropUpload = ({ selectedMedia, setSelectedMedia }) => {
           {uploading ? (
             <>
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-300 border-t-orange-500" />
-              <p className="text-sm font-semibold text-orange-500">Uploading to Cloudinary…</p>
+              <p className="text-sm font-semibold text-yellow-500">Uploading to Cloudinary…</p>
             </>
           ) : (
             <>
               <div className="rounded-full bg-orange-100 dark:bg-orange-900/40 p-3">
                 {dragging ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 3v13m0-13l-3 3m3-3l3 3" />
                   </svg>
                 )}

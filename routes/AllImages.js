@@ -11,6 +11,7 @@ export const IMAGES = {
   loading: '/assets/images/loading.gif',
   login: '/assets/images/login.jpg',
   loginfail: '/assets/images/login_fail.jpg',
+  homebanner: '/assets/images/homebanner.png',
    
   // New in Footwear
   shoes_1: "/assets/images/shoes_1.avif",

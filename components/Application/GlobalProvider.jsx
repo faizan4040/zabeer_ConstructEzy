@@ -1,40 +1,52 @@
-'use client'
+"use client"
 
-import { persistor, store } from '@/store/store'
-import React from 'react'
-import { Provider, useSelector } from 'react-redux'
-import { PersistGate } from 'redux-persist/integration/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { usePathname } from 'next/navigation'
-import Loading from './Loading'
-import { ChatProvider } from '../Chat/ChatProvider'
-import ChatWidget from '../Chat/ChatWidget'
+import { persistor, store } from "@/store/store"
+import React from "react"
+import { Provider } from "react-redux"
+import { PersistGate } from "redux-persist/integration/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import Loading from "./Loading"
+import { BsWhatsapp } from "react-icons/bs"
 
 const queryClient = new QueryClient()
 
-function ChatWrapper({ children }) {
-  const userId   = useSelector((state) => state.authStore?.auth?._id ?? null)
-  const pathname = usePathname()
-
-  // Hide ChatWidget on any /admin/* page
-  const isAdminPage = pathname?.startsWith("/admin")
-
-  return (
-    <ChatProvider userId={userId}>
-      {children}
-      {userId && !isAdminPage && <ChatWidget />}
-    </ChatProvider>
-  )
-}
-
 const GlobalProvider = ({ children }) => {
+  const whatsappNumber = "911234567890"
+
   return (
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
         <PersistGate persistor={persistor} loading={<Loading />}>
-          <ChatWrapper>
-            {children}
-          </ChatWrapper>
+          {children}
+
+          {/* WhatsApp Floating Button */}
+          <a
+            href={`https://wa.me/${whatsappNumber}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Contact us on WhatsApp"
+            className="
+              fixed
+              bottom-6
+              right-6
+              z-[9999]
+              w-14
+              h-14
+              rounded-full
+              bg-[#25D366]
+              text-white
+              flex
+              items-center
+              justify-center
+              shadow-lg
+              hover:scale-110
+              hover:shadow-xl
+              transition-all
+              duration-300
+            "
+          >
+            <BsWhatsapp size={28} />
+          </a>
         </PersistGate>
       </Provider>
     </QueryClientProvider>
@@ -44,32 +56,3 @@ const GlobalProvider = ({ children }) => {
 export default GlobalProvider
 
 
-
-
-
-
-// 'use client'
-// import { persistor, store } from '@/store/store'
-// import React, { Suspense } from 'react'
-// import { Provider } from 'react-redux'
-// import { PersistGate } from 'redux-persist/integration/react'
-// import Loading from './Loading'
-// import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-
-
-
-// const queryClient = new QueryClient()
-
-// const GlobalProvider = ({ children }) => {
-//   return (
-//     <QueryClientProvider client={queryClient}>
-//         <Provider store={store}>
-//             <PersistGate persistor={persistor} loading={<Loading/>}>
-//               {children}
-//             </PersistGate>
-//         </Provider>
-//     </QueryClientProvider>
-//   )
-// }
-
-// export default GlobalProvider

@@ -72,7 +72,7 @@ const ShopOwnerManualOrderDetails = () => {
 
       <div className="bg-white border rounded-2xl shadow-sm p-6 mt-4">
         <div className="flex items-center gap-3">
-          <FiShoppingBag className="text-orange-500" size={22} />
+          <FiShoppingBag className="text-yellow-500" size={22} />
           <h2 className="text-xl font-bold">#{order.order_id}</h2>
         </div>
         <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
@@ -104,7 +104,7 @@ const ShopOwnerManualOrderDetails = () => {
       </div>
 
       <div className="bg-white border rounded-2xl shadow-sm p-6 mt-4">
-        <h4 className="font-semibold mb-4 flex items-center gap-2"><FiUser className="text-orange-500" /> Customer</h4>
+        <h4 className="font-semibold mb-4 flex items-center gap-2"><FiUser className="text-yellow-500" /> Customer</h4>
         <div className="grid sm:grid-cols-2 gap-4 text-sm">
           <div><span className="text-gray-400 text-xs uppercase font-semibold flex items-center gap-1"><FiUser size={11} />Name</span><p>{order.name}</p></div>
           <div><span className="text-gray-400 text-xs uppercase font-semibold flex items-center gap-1"><FiMail size={11} />Email</span><p>{order.email || '—'}</p></div>
@@ -114,7 +114,7 @@ const ShopOwnerManualOrderDetails = () => {
       </div>
 
       <div className="bg-white border rounded-2xl shadow-sm overflow-hidden mt-4">
-        <h4 className="font-semibold p-5 border-b flex items-center gap-2"><BsBoxSeam className="text-orange-500" /> Products</h4>
+        <h4 className="font-semibold p-5 border-b flex items-center gap-2"><BsBoxSeam className="text-yellow-500" /> Products</h4>
         {order.products.map((p, i) => (
           <div key={i} className="flex items-center gap-4 p-4 border-b last:border-0">
             <div className="relative w-14 h-14 rounded-lg border overflow-hidden shrink-0 bg-gray-100">
@@ -134,7 +134,7 @@ const ShopOwnerManualOrderDetails = () => {
       </div>
 
       <div className="bg-white border rounded-2xl shadow-sm p-6 mt-4 flex justify-between items-center">
-        <div className="flex items-center gap-2"><BsCashCoin className="text-orange-500" /><span className="font-semibold">Grand Total</span></div>
+        <div className="flex items-center gap-2"><BsCashCoin className="text-yellow-500" /><span className="font-semibold">Grand Total</span></div>
         <span className="text-2xl font-bold text-orange-600">₹{inr(order.totalAmount)}</span>
       </div>
     </div>

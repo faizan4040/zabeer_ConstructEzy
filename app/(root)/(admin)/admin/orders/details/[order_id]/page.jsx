@@ -601,7 +601,7 @@ const timeline = [
       {/* NAME & EMAIL */}
       <div className="flex flex-col">
         <p className="font-semibold text-gray-900 text-lg">{orderData.name}</p>
-        <p className="text-sm text-orange-500">{orderData.email}</p>
+        <p className="text-sm text-yellow-500">{orderData.email}</p>
       </div>
     </div>
 
@@ -706,7 +706,7 @@ const timeline = [
         <div className="font-semibold">Vendor</div>
         <div>{orderData.vendor}</div>
         <span className="text-gray-400 text-lg mt-1">
-          <TbHomeFilled className='text-orange-500 h-10 w-10 bg-gray-100 rounded-xl'/> </span>
+          <TbHomeFilled className='text-yellow-500 h-10 w-10 bg-gray-100 rounded-xl'/> </span>
       </div>
 
       {/* Divider */}
@@ -717,7 +717,7 @@ const timeline = [
         <div className="font-semibold">Date</div>
         <div>{formatDate(orderData?.createdAt)}</div>
         <span className="text-gray-400 text-lg mt-1">
-          <IoCalendarNumber className='text-orange-500 h-10 w-10 bg-gray-100 rounded-xl'/>
+          <IoCalendarNumber className='text-yellow-500 h-10 w-10 bg-gray-100 rounded-xl'/>
         </span>
       </div>
 
@@ -729,7 +729,7 @@ const timeline = [
         <div className="font-semibold">Paid By</div>
         <div className="bg-green-300 p-1 rounded">{orderData.name}</div>
         <span className="text-gray-400 text-lg mt-1">
-          <FaCircleUser className='text-orange-500 h-10 w-10 bg-gray-100 rounded-xl'/>
+          <FaCircleUser className='text-yellow-500 h-10 w-10 bg-gray-100 rounded-xl'/>
         </span>
       </div>
 
@@ -741,7 +741,7 @@ const timeline = [
         <div className="font-semibold">Reference</div>
         <div>{orderData.refNumber}</div>
         <span className="text-gray-400 text-lg mt-1">
-          <PiNotepadFill className='text-orange-500 h-10 w-10 bg-gray-100 rounded-xl'/>
+          <PiNotepadFill className='text-yellow-500 h-10 w-10 bg-gray-100 rounded-xl'/>
 
         </span>
       </div>

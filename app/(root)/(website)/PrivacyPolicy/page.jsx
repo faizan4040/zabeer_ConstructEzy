@@ -1,468 +1,231 @@
 'use client'
 
-import React, { useState } from 'react'
-import { ShieldCheck } from 'lucide-react'
-
-const sections = [
-  { key: 'promise', label: 'Our Privacy Promise' },
-  { key: 'collect', label: 'What Kind of Personal Information Do We Collect?' },
-  { key: 'legal', label: 'The Legal Bases for Using Your Personal Information' },
-  { key: 'when', label: 'When Do We Collect Your Data?' },
-  { key: 'how', label: 'How and Why We Use Your Personal Data' },
-  { key: 'sharing', label: 'Sharing Your Data with Third Parties' },
-  { key: 'protect', label: 'How We Protect Your Data' },
-  { key: 'where', label: 'Where Your Data May Be Stored and Processed' },
-  { key: 'retain', label: 'How Long Do We Keep Your Data?' },
-  { key: 'rights', label: 'Your Rights Relating to Your Data' },
-  { key: 'children', label: 'Privacy of Children On Our Website' },
-  { key: 'changes', label: 'Changes to Our Privacy Statement' },
-  { key: 'contact', label: 'Contact Us' },
-]
-
-/* ── Blueprint grid overlay ── */
-const BlueprintGrid = ({ opacity = 0.08 }) => (
-  <div
-    className="pointer-events-none absolute inset-0"
-    style={{
-      opacity,
-      backgroundImage:
-        'linear-gradient(#4A7A96 1px, transparent 1px), linear-gradient(90deg, #4A7A96 1px, transparent 1px)',
-      backgroundSize: '36px 36px',
-    }}
-  />
-)
-
-/* ── Corner-bracket frame ── */
-const CornerBrackets = ({ color = '#F97316' }) => (
-  <>
-    <span className="absolute -top-px -left-px h-5 w-5 border-t-2 border-l-2" style={{ borderColor: color }} />
-    <span className="absolute -top-px -right-px h-5 w-5 border-t-2 border-r-2" style={{ borderColor: color }} />
-    <span className="absolute -bottom-px -left-px h-5 w-5 border-b-2 border-l-2" style={{ borderColor: color }} />
-    <span className="absolute -bottom-px -right-px h-5 w-5 border-b-2 border-r-2" style={{ borderColor: color }} />
-  </>
-)
-
 const PrivacyPolicy = () => {
-  const [active, setActive] = useState('promise')
-  const activeIndex = sections.findIndex((s) => s.key === active) + 1
-
   return (
-    <div className="w-full bg-[#F5F3EF] text-[#14161A]">
+    <div className="min-h-screen bg-white text-gray-900">
+      <main className="max-w-4xl mx-auto px-6 py-16">
 
-      {/* ---------- HEADER ---------- */}
-      <section className="relative bg-[#14161A] text-white py-20 overflow-hidden">
-        <BlueprintGrid />
-        <div
-          className="absolute bottom-0 left-0 right-0 h-1.5"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(135deg, #F97316 0 14px, transparent 14px 28px)',
-          }}
-        />
-        <div className="relative max-w-7xl mx-auto px-6">
-          <div className="inline-flex items-center gap-2 text-[#F97316] text-xs font-mono uppercase tracking-[0.3em] mb-5">
-            <ShieldCheck size={16} strokeWidth={2.5} />
-            Legal Document
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tight leading-[1.02]">
-            Privacy &amp; Data Policy
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold mb-4">
+            Privacy & Data Policy
           </h1>
-          <p className="mt-4 text-[#C9CCD1] text-lg max-w-2xl">
-            How Constructezy collects, uses, and protects your personal
-            information across our delivery and labour hire services.
+
+          <p className="text-gray-600 text-lg leading-7">
+            This Privacy Policy explains how Constructezy collects, uses,
+            stores, and protects your personal information.
           </p>
         </div>
-      </section>
 
-      {/* ---------- BODY ---------- */}
-      <section className="py-16 px-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-10">
+        <div className="space-y-12">
 
-          {/* LEFT SIDEBAR */}
-          <aside className="lg:col-span-1">
-            <div className="lg:sticky lg:top-8">
-              <h3 className="text-xs font-mono uppercase tracking-[0.3em] text-[#9098A0] mb-6">
-                Table of Contents
-              </h3>
+          {/* 1 */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              1. Our Privacy Promise
+            </h2>
 
-              <ul className="space-y-1">
-                {sections.map((item, i) => {
-                  const isActive = active === item.key
-                  return (
-                    <li key={item.key}>
-                      <button
-                        onClick={() => setActive(item.key)}
-                        className={`w-full flex items-start gap-3 text-left py-2.5 pl-4 border-l-2 transition-colors duration-200
-                          ${isActive
-                            ? 'border-[#F97316] bg-[#F97316]/10 text-[#14161A] font-semibold'
-                            : 'border-transparent text-[#6C7278] hover:text-[#14161A] hover:border-[#D8D4CC]'
-                          }
-                        `}
-                      >
-                        <span
-                          className={`text-[11px] font-mono pt-0.5 shrink-0 ${
-                            isActive ? 'text-[#F97316]' : 'text-[#9098A0]'
-                          }`}
-                        >
-                          {String(i + 1).padStart(2, '0')}
-                        </span>
-                        <span className="text-[15px] leading-snug">{item.label}</span>
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
+            <p className="text-gray-600 leading-7">
+              At Constructezy, we respect your privacy and are committed to
+              protecting your personal information. We use your information
+              only when it is necessary to provide and improve our services,
+              process orders, manage bookings, and communicate with you.
+            </p>
+
+            <p className="text-gray-600 leading-7 mt-4">
+              We do not sell your personal information to third parties.
+            </p>
+          </section>
+
+          {/* 2 */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              2. Information We Collect
+            </h2>
+
+            <p className="text-gray-600 leading-7 mb-4">
+              Depending on how you use Constructezy, we may collect:
+            </p>
+
+            <ul className="list-disc pl-6 space-y-2 text-gray-600">
+              <li>Name and contact information</li>
+              <li>Email address and phone number</li>
+              <li>Delivery or service location</li>
+              <li>Order and booking information</li>
+              <li>Payment-related information</li>
+              <li>Account and profile information</li>
+              <li>Communication and support information</li>
+              <li>Device and website usage information</li>
+              <li>Location information when required for service delivery</li>
+            </ul>
+          </section>
+
+          {/* 3 */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              3. How We Use Your Information
+            </h2>
+
+            <ul className="list-disc pl-6 space-y-2 text-gray-600">
+              <li>To create and manage your account</li>
+              <li>To process orders and service requests</li>
+              <li>To coordinate workers, deliveries, and services</li>
+              <li>To process payments and refunds</li>
+              <li>To provide customer support</li>
+              <li>To improve our website and services</li>
+              <li>To prevent fraud and protect platform security</li>
+              <li>To send important service-related communications</li>
+              <li>To comply with applicable legal requirements</li>
+            </ul>
+          </section>
+
+          {/* 4 */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              4. When We Collect Information
+            </h2>
+
+            <ul className="list-disc pl-6 space-y-2 text-gray-600">
+              <li>When you create an account</li>
+              <li>When you place an order</li>
+              <li>When you request a service or worker</li>
+              <li>When you contact customer support</li>
+              <li>When you submit feedback or reviews</li>
+              <li>When you use our website or application</li>
+            </ul>
+          </section>
+
+          {/* 5 */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              5. Sharing Your Information
+            </h2>
+
+            <p className="text-gray-600 leading-7">
+              We may share necessary information with trusted service
+              providers and partners when required to provide our services.
+              This may include delivery partners, payment processors, cloud
+              service providers, and other technology or operational
+              providers.
+            </p>
+
+            <p className="text-gray-600 leading-7 mt-4">
+              We do not sell your personal information to third parties.
+            </p>
+          </section>
+
+          {/* 6 */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              6. How We Protect Your Data
+            </h2>
+
+            <p className="text-gray-600 leading-7">
+              We use reasonable technical and organisational measures to
+              protect your personal information from unauthorised access,
+              misuse, loss, or disclosure.
+            </p>
+          </section>
+
+          {/* 7 */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              7. Data Storage and Retention
+            </h2>
+
+            <p className="text-gray-600 leading-7">
+              Your information may be stored on secure servers operated by
+              Constructezy or trusted service providers. We retain personal
+              information only for as long as necessary to provide our
+              services, fulfil legal obligations, resolve disputes, and
+              maintain business records.
+            </p>
+          </section>
+
+          {/* 8 */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              8. Your Rights
+            </h2>
+
+            <p className="text-gray-600 leading-7 mb-4">
+              Depending on applicable law, you may have rights regarding your
+              personal information, including the right to:
+            </p>
+
+            <ul className="list-disc pl-6 space-y-2 text-gray-600">
+              <li>Request access to your personal information</li>
+              <li>Request correction of inaccurate information</li>
+              <li>Request deletion of your information</li>
+              <li>Request restriction of certain processing</li>
+              <li>Withdraw consent where applicable</li>
+              <li>Contact us regarding privacy concerns</li>
+            </ul>
+          </section>
+
+          {/* 9 */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              9. Children&apos;s Privacy
+            </h2>
+
+            <p className="text-gray-600 leading-7">
+              Constructezy is not intended for children. We do not knowingly
+              collect personal information from children. If you believe that
+              a child has provided personal information to us, please contact
+              us so that we can take appropriate action.
+            </p>
+          </section>
+
+          {/* 10 */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              10. Changes to This Privacy Policy
+            </h2>
+
+            <p className="text-gray-600 leading-7">
+              We may update this Privacy Policy from time to time to reflect
+              changes to our services, technology, or legal requirements. Any
+              updated version will be published on this page.
+            </p>
+          </section>
+
+          {/* 11 */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              11. Contact Us
+            </h2>
+
+            <p className="text-gray-600 leading-7">
+              If you have questions about this Privacy Policy or how we
+              handle your information, please contact us.
+            </p>
+
+            <div className="mt-4 space-y-1">
+              <p className="font-medium">
+                Email:{' '}
+                <a
+                  href="mailto:privacy@constructezy.com"
+                  className="text-yellow-500 hover:text-orange-600"
+                >
+                  privacy@constructezy.com
+                </a>
+              </p>
+
+              <p className="font-medium">
+                Phone:{' '}
+                <a
+                  href="tel:+916375380848"
+                  className="text-yellow-500 hover:text-orange-600"
+                >
+                  +91 6375380848
+                </a>
+              </p>
             </div>
-          </aside>
+          </section>
 
-          {/* RIGHT CONTENT */}
-          <main className="lg:col-span-3 relative bg-white border border-black/5 p-8 lg:p-14">
-            <CornerBrackets />
-
-            <span className="block text-[11px] font-mono uppercase tracking-[0.3em] text-[#F97316] mb-6">
-              Section {String(activeIndex).padStart(2, '0')} / {sections.length}
-            </span>
-
-            <div className="prose-content [&_a]:text-[#F97316] [&_a]:underline [&_a:hover]:text-[#14161A] [&_strong]:text-[#14161A] [&_strong]:font-semibold">
-
-              {/* PROMISE */}
-              {active === 'promise' && (
-                <>
-                  <h1 className="text-3xl font-extrabold mb-6 tracking-tight">Our Privacy Promise</h1>
-                  <p className="text-[#3A3D42] leading-relaxed mb-4">
-                    At BuildRush, trust is the foundation of everything we do — and that includes how
-                    we handle your personal information. Whether you're booking a 30-minute material
-                    delivery to your construction site or hiring skilled labour for your next project,
-                    we want you to have complete confidence in how your data is managed.
-                  </p>
-                  <p className="text-[#3A3D42] leading-relaxed mb-4">
-                    We are committed to managing your personal information with great care and in full
-                    compliance with data protection legislation, including the UK General Data
-                    Protection Regulation (UK GDPR) and the Privacy and Electronic Communications
-                    Regulations (PECR).
-                  </p>
-                  <p className="text-[#3A3D42] leading-relaxed">
-                    We do not and will never sell your data to third parties. Your information exists
-                    solely to help us deliver fast, reliable construction services to you — and to keep
-                    improving them.
-                  </p>
-                </>
-              )}
-
-              {/* COLLECT */}
-              {active === 'collect' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">
-                    What Kind of Personal Information Do We Collect?
-                  </h2>
-
-                  <h4 className="font-semibold mt-6 mb-2 text-[#14161A]">Information You Provide Directly</h4>
-                  <ul className="list-disc pl-6 text-[#3A3D42] space-y-2 marker:text-[#F97316]">
-                    <li>Full name, company/business name, address, phone number and email</li>
-                    <li>Delivery site address and access instructions</li>
-                    <li>Payment information (processed securely via our payment provider)</li>
-                    <li>Labour hire requirements — job role, trade, skills, duration and site conditions</li>
-                    <li>Order and booking history</li>
-                    <li>Customer service communications, complaints and feedback</li>
-                    <li>Marketing and communication preferences</li>
-                  </ul>
-
-                  <h4 className="font-semibold mt-6 mb-2 text-[#14161A]">Information Collected Automatically</h4>
-                  <ul className="list-disc pl-6 text-[#3A3D42] space-y-2 marker:text-[#F97316]">
-                    <li>IP address and device, browser and operating system details</li>
-                    <li>GPS and location data (used to coordinate 30-minute deliveries)</li>
-                    <li>Delivery tracking data — driver routes, dispatch timestamps and proof of delivery</li>
-                    <li>App usage and website browsing activity</li>
-                    <li>Cookie-based analytics</li>
-                  </ul>
-
-                  <h4 className="font-semibold mt-6 mb-2 text-[#14161A]">Information About Workers (Labour Hire)</h4>
-                  <ul className="list-disc pl-6 text-[#3A3D42] space-y-2 marker:text-[#F97316]">
-                    <li>Trade qualifications, certifications, licences and skills</li>
-                    <li>Work history, references and availability</li>
-                    <li>Right-to-work documentation</li>
-                    <li>DBS/background check results (where applicable)</li>
-                    <li>Health and safety induction and training records</li>
-                    <li>Bank account details for payroll processing</li>
-                    <li>Emergency contact information</li>
-                    <li>National Insurance number and tax information</li>
-                  </ul>
-                </>
-              )}
-
-              {/* LEGAL */}
-              {active === 'legal' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">
-                    The Legal Bases for Using Your Personal Information
-                  </h2>
-
-                  <p className="text-[#3A3D42] mb-4">
-                    <strong>Performance of a Contract:</strong> To process and fulfil your material
-                    delivery orders, coordinate labour hire bookings, manage payments, and provide
-                    our core construction services.
-                  </p>
-                  <p className="text-[#3A3D42] mb-4">
-                    <strong>Legal Obligation:</strong> To comply with employment law, right-to-work
-                    verification, health and safety regulations, HMRC tax reporting, employer's
-                    liability insurance requirements, and anti-money laundering obligations.
-                  </p>
-                  <p className="text-[#3A3D42] mb-4">
-                    <strong>Legitimate Interests:</strong> To optimise delivery routing and response
-                    times, improve our platform, prevent fraud, ensure site safety, and send relevant
-                    service communications.
-                  </p>
-                  <p className="text-[#3A3D42]">
-                    <strong>Consent:</strong> To send you marketing emails, promotional offers and
-                    newsletters. You may withdraw your consent at any time by unsubscribing or
-                    contacting us directly.
-                  </p>
-                </>
-              )}
-
-              {/* WHEN */}
-              {active === 'when' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">When Do We Collect Your Data?</h2>
-                  <ul className="list-disc pl-6 text-[#3A3D42] space-y-2 marker:text-[#F97316]">
-                    <li>When you browse or use our website or mobile app</li>
-                    <li>When you create an account or business profile</li>
-                    <li>When you place a material delivery order</li>
-                    <li>When you submit a labour hire request or book a worker</li>
-                    <li>When a worker registers on our platform and completes onboarding</li>
-                    <li>When you track a live delivery via our app</li>
-                    <li>When you contact our customer support team</li>
-                    <li>When you complete a review, survey or feedback form</li>
-                    <li>When you sign up for our newsletter or marketing communications</li>
-                  </ul>
-                </>
-              )}
-
-              {/* HOW */}
-              {active === 'how' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">How and Why We Use Your Personal Data</h2>
-
-                  <h4 className="font-semibold mt-6 mb-2 text-[#14161A]">30-Minute Delivery Services</h4>
-                  <ul className="list-disc pl-6 text-[#3A3D42] space-y-2 marker:text-[#F97316]">
-                    <li>Processing and dispatching your material orders within 30 minutes</li>
-                    <li>Sharing your site address and delivery instructions with our drivers</li>
-                    <li>Sending real-time delivery tracking updates via SMS or app notification</li>
-                    <li>Generating proof of delivery and order documentation</li>
-                    <li>Handling returns, disputes and refunds</li>
-                  </ul>
-
-                  <h4 className="font-semibold mt-6 mb-2 text-[#14161A]">Labour Hire Services</h4>
-                  <ul className="list-disc pl-6 text-[#3A3D42] space-y-2 marker:text-[#F97316]">
-                    <li>Matching workers to your project's trade and skill requirements</li>
-                    <li>Conducting right-to-work, DBS and qualification verification checks</li>
-                    <li>Processing timesheets, payroll and tax documentation</li>
-                    <li>Maintaining health and safety induction and compliance records</li>
-                    <li>Managing worker scheduling, availability and deployment</li>
-                  </ul>
-
-                  <h4 className="font-semibold mt-6 mb-2 text-[#14161A]">General Platform Operations</h4>
-                  <ul className="list-disc pl-6 text-[#3A3D42] space-y-2 marker:text-[#F97316]">
-                    <li>Fraud prevention and platform security</li>
-                    <li>Improving our services through usage analytics</li>
-                    <li>Personalising your dashboard and showing relevant offers</li>
-                    <li>Communicating important changes to our services or policies</li>
-                    <li>Responding to legal requests or enforcing our terms</li>
-                  </ul>
-                </>
-              )}
-
-              {/* SHARING */}
-              {active === 'sharing' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">Sharing Your Data with Third Parties</h2>
-                  <p className="text-[#3A3D42] leading-relaxed mb-4">
-                    We do not sell your personal data. We share it only where strictly necessary with
-                    the following trusted categories of third party:
-                  </p>
-                  <ul className="list-disc pl-6 text-[#3A3D42] space-y-2 marker:text-[#F97316]">
-                    <li><strong>Delivery drivers and logistics partners</strong> — to fulfil your orders on time</li>
-                    <li><strong>Payment processors</strong> — for secure transaction and refund handling</li>
-                    <li><strong>Payroll and HR providers</strong> — for worker payment, tax and compliance</li>
-                    <li><strong>Background check providers</strong> — for right-to-work and DBS screening</li>
-                    <li><strong>Insurance providers</strong> — for employer's liability and public liability cover</li>
-                    <li><strong>HMRC and regulatory authorities</strong> — where legally required</li>
-                    <li><strong>IT infrastructure and cloud providers</strong> — for secure data hosting</li>
-                    <li><strong>Analytics platforms</strong> — for anonymised, aggregate usage data only</li>
-                  </ul>
-                  <p className="text-[#3A3D42] leading-relaxed mt-4">
-                    All third-party data processors are bound by data processing agreements and are
-                    required to handle your data in accordance with UK GDPR.
-                  </p>
-                </>
-              )}
-
-              {/* PROTECT */}
-              {active === 'protect' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">How We Protect Your Data</h2>
-                  <p className="text-[#3A3D42] leading-relaxed mb-4">
-                    We take the security of your personal information seriously. Our safeguards include:
-                  </p>
-                  <ul className="list-disc pl-6 text-[#3A3D42] space-y-2 marker:text-[#F97316]">
-                    <li>End-to-end encryption for all data transmitted through our platform</li>
-                    <li>Encrypted storage for sensitive data at rest</li>
-                    <li>Strict role-based access controls — only authorised staff can access your data</li>
-                    <li>Regular security audits and vulnerability assessments</li>
-                    <li>Secure, GDPR-compliant cloud infrastructure</li>
-                    <li>Staff training on data protection, confidentiality and GDPR compliance</li>
-                    <li>Documented incident response procedures in the event of a data breach</li>
-                  </ul>
-                  <p className="text-[#3A3D42] leading-relaxed mt-4">
-                    In the unlikely event of a data breach that poses a risk to your rights and freedoms,
-                    we will notify the ICO within 72 hours and inform affected individuals without
-                    undue delay.
-                  </p>
-                </>
-              )}
-
-              {/* WHERE */}
-              {active === 'where' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">Where Your Data May Be Stored and Processed</h2>
-                  <p className="text-[#3A3D42] leading-relaxed mb-4">
-                    Your data is primarily stored on servers located within the <strong>United Kingdom
-                    and the European Economic Area (EEA)</strong>.
-                  </p>
-                  <p className="text-[#3A3D42] leading-relaxed">
-                    Where data is transferred outside the UK or EEA — for example, to certain cloud
-                    service providers — we ensure that appropriate safeguards are in place, such as
-                    the UK International Data Transfer Agreement (IDTA) or Standard Contractual
-                    Clauses approved by the Information Commissioner's Office (ICO).
-                  </p>
-                </>
-              )}
-
-              {/* RETAIN */}
-              {active === 'retain' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">How Long Do We Keep Your Data?</h2>
-                  <p className="text-[#3A3D42] mb-4">
-                    We retain personal data only for as long as necessary for the purposes it was
-                    collected or as required by law:
-                  </p>
-                  <ul className="list-disc pl-6 text-[#3A3D42] space-y-2 marker:text-[#F97316]">
-                    <li><strong>Customer account data</strong> — retained for the lifetime of your account plus 6 years</li>
-                    <li><strong>Delivery and order records</strong> — 6 years (in line with HMRC requirements)</li>
-                    <li><strong>Worker employment records</strong> — 6 years after the working relationship ends</li>
-                    <li><strong>Right-to-work documents</strong> — 2 years after employment ends (as required by the Immigration, Asylum and Nationality Act 2006)</li>
-                    <li><strong>Payroll and tax records</strong> — 6 years (HMRC requirement)</li>
-                    <li><strong>Health and safety records</strong> — up to 40 years for certain exposure records</li>
-                    <li><strong>Marketing preferences</strong> — until you unsubscribe or withdraw consent</li>
-                    <li><strong>CCTV footage (depots/warehouses)</strong> — overwritten after 30 days unless required for an investigation</li>
-                  </ul>
-                  <p className="text-[#3A3D42] mt-4">
-                    After the applicable retention period, data is securely deleted or anonymised.
-                  </p>
-                </>
-              )}
-
-              {/* RIGHTS */}
-              {active === 'rights' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">Your Rights Relating to Your Data</h2>
-                  <p className="text-[#3A3D42] mb-4">
-                    Under UK GDPR, you have the following rights:
-                  </p>
-                  <ul className="list-disc pl-6 text-[#3A3D42] space-y-2 marker:text-[#F97316]">
-                    <li><strong>Right of access</strong> — request a copy of the personal data we hold about you</li>
-                    <li><strong>Right to rectification</strong> — ask us to correct inaccurate or incomplete data</li>
-                    <li><strong>Right to erasure</strong> — request deletion of your data where there is no lawful reason to retain it</li>
-                    <li><strong>Right to restriction</strong> — ask us to limit how we process your data in certain circumstances</li>
-                    <li><strong>Right to data portability</strong> — receive your data in a structured, machine-readable format</li>
-                    <li><strong>Right to object</strong> — object to processing based on legitimate interests or for direct marketing</li>
-                    <li><strong>Right to withdraw consent</strong> — at any time for marketing and non-essential processing</li>
-                  </ul>
-                  <p className="text-[#3A3D42] mt-4">
-                    To exercise any of these rights, please contact us using the details in the Contact
-                    Us section. We will respond within <strong>30 days</strong>. If you are unsatisfied with our
-                    response, you have the right to lodge a complaint with the{' '}
-                    <strong>Information Commissioner's Office (ICO)</strong> at{' '}
-                    <a href="https://ico.org.uk">ico.org.uk</a>{' '}
-                    or by calling <strong>0303 123 1113</strong>.
-                  </p>
-                </>
-              )}
-
-              {/* CHILDREN */}
-              {active === 'children' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">Privacy of Children On Our Website</h2>
-                  <p className="text-[#3A3D42] leading-relaxed mb-4">
-                    Our platform and services are designed exclusively for businesses, contractors
-                    and adult professionals in the construction industry. We do not knowingly collect
-                    or process personal data from anyone under the age of 18.
-                  </p>
-                  <p className="text-[#3A3D42] leading-relaxed">
-                    If you believe a minor has submitted personal data through our platform, please
-                    contact us immediately at the details below and we will take prompt steps to
-                    delete that information.
-                  </p>
-                </>
-              )}
-
-              {/* CHANGES */}
-              {active === 'changes' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">Changes to Our Privacy Statement</h2>
-                  <p className="text-[#3A3D42] leading-relaxed mb-4">
-                    We may update this Privacy Statement from time to time to reflect changes in our
-                    services, legal obligations, or best practices. The date of the most recent update
-                    is shown at the top of this page.
-                  </p>
-                  <p className="text-[#3A3D42] leading-relaxed mb-4">
-                    When we make material changes, we will notify you by email or via an in-app
-                    notification at least <strong>14 days</strong> before the changes take effect.
-                  </p>
-                  <p className="text-[#3A3D42] leading-relaxed">
-                    Continued use of our services after the effective date of any changes constitutes
-                    your acceptance of the updated Privacy Statement. We encourage you to review this
-                    page periodically to stay informed.
-                  </p>
-                </>
-              )}
-
-              {/* CONTACT */}
-              {active === 'contact' && (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-6 tracking-tight">Contact Us</h2>
-                  <p className="text-[#3A3D42] mb-3">
-                    If you have any questions about this Privacy Statement, wish to exercise your
-                    data rights, or have a concern about how your data has been handled, please
-                    contact our Data Protection Officer:
-                  </p>
-                  <p className="text-[#3A3D42] mb-2">
-                    <strong>Email:</strong>{' '}
-                    <a href="mailto:privacy@buildrush.co.uk">
-                      privacy@buildrush.co.uk
-                    </a>
-                  </p>
-                  <p className="text-[#3A3D42] mb-2">
-                    <strong>Post:</strong> Data Protection Officer, BuildRush Ltd,
-                    [Your Office Address], United Kingdom
-                  </p>
-                  <p className="text-[#3A3D42] mb-6">
-                    <strong>Response time:</strong> We aim to respond within 5 business days and no
-                    later than 30 days as required by UK GDPR.
-                  </p>
-                  <p className="text-[#3A3D42]">
-                    You also have the right to raise a concern directly with the{' '}
-                    <strong>Information Commissioner's Office (ICO)</strong>:{' '}
-                    <a href="https://ico.org.uk">ico.org.uk</a>{' '}
-                    or call <strong>0303 123 1113</strong>.
-                  </p>
-                </>
-              )}
-
-            </div>
-          </main>
         </div>
-      </section>
+      </main>
     </div>
   )
 }

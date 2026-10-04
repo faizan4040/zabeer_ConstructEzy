@@ -84,7 +84,7 @@ const LatestOrder = () => {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-sm text-orange-500 font-medium">#{order._id?.slice(-6)}</TableCell>
+                <TableCell className="text-sm text-yellow-500 font-medium">#{order._id?.slice(-6)}</TableCell>
                 <TableCell className="font-mono text-xs text-gray-500 truncate">{order.payment_id || "—"}</TableCell>
                 <TableCell>{statusBadge(order.status)}</TableCell>
                 <TableCell className="text-right font-semibold pr-6 tabular-nums text-gray-800 dark:text-gray-100">

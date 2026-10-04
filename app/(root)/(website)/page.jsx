@@ -4,16 +4,13 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
-import BuyerSupplierSection from "@/components/Website/BuyerSupplierSection";
 import CuponBanner from "@/components/Website/CuponBanner";
 import FeatureProduct from "@/components/Website/FeatureProduct";
-import JustDropped from "@/components/Website/JustDropped";
 import LabourSlider from "@/components/Website/LabourSlider";
 import ShopBySlider from "@/components/Website/ShopBySlider";
 import PartnerDashboard from "@/components/Application/Labour/PartnerDashboard";
-import BookNow from "@/components/Application/Labour/BookNow";
 import GeoUpdater from "@/components/Application/Labour/GeoUpdater";
-import DeliveryDashboard from "@/components/Application/Delivery/DeliveryDashboard"; // ✅ NEW
+import DeliveryDashboard from "@/components/Application/Delivery/DeliveryDashboard"; //  NEW
 import Testimonial from '@/components/Website/Testimonial'
 import ProductBox from "@/components/Website/ProductBox";
 import { WEBSITE_SHOP, WEBSITE_HOME } from "@/routes/WebsiteRoute";
@@ -79,7 +76,7 @@ const Home = () => {
           <div className="flex items-center gap-3">
             <Link
               href={`${WEBSITE_SHOP}?category=${category}`}
-              className="text-sm text-orange-500 font-medium hover:underline"
+              className="text-sm text-yellow-500 font-medium hover:underline"
             >
               View all with filters &amp; sorting
             </Link>
@@ -125,9 +122,6 @@ const Home = () => {
       <CuponBanner />
     </section>
 
-    <section className="w-full py-10">
-      <BookNow />
-    </section>
 
     <section className="w-full py-10">
       <LabourSlider />
@@ -139,14 +133,6 @@ const Home = () => {
 
     <section className="w-full py-1">
       <ShopBySlider />
-    </section>
-
-    <section className="w-full py-1">
-      <JustDropped />
-    </section>
-
-    <section className="w-full py-1">
-      <BuyerSupplierSection />
     </section>
 
     <section className="w-full">

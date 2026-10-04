@@ -28,7 +28,7 @@ const LedgerCard = ({ title, value, percent, period, icon, isPositive = true, li
           {isPositive ? <FaArrowUp className="text-[10px]" /> : <FaArrowDown className="text-[10px]" />}
           {percent} <span className="text-gray-400 font-normal">{period}</span>
         </span>
-        <span className="text-orange-500 font-medium group-hover:underline">View More</span>
+        <span className="text-yellow-500 font-medium group-hover:underline">View More</span>
       </div>
     </div>
   </Link>
@@ -52,7 +52,7 @@ const CountOverview = () => {
         icon={<BiSolidCategoryAlt />}
         link={SHOP_OWNER_CATEGORY_SHOW}
         iconBg="bg-orange-50 dark:bg-orange-500/20"
-        iconColor="text-orange-500"
+        iconColor="text-yellow-500"
       />
       <LedgerCard
         title="Your Products"

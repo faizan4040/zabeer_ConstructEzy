@@ -320,7 +320,7 @@ const AddProductVariant = () => {
                           {productOption.length === 0 ? (
                             <div className="rounded-xl sm:rounded-2xl border-2 border-dashed border-gray-200 p-4 sm:p-6 text-center text-xs sm:text-sm text-gray-500">
                               No products yet.{' '}
-                              <a href="/shop/product/add" className="text-orange-500 font-medium underline underline-offset-2">
+                              <a href="/shop/product/add" className="text-yellow-500 font-medium underline underline-offset-2">
                                 Add a product first
                               </a>{' '}
                               before creating variants.
@@ -399,7 +399,7 @@ const AddProductVariant = () => {
                                 onClick={() => setCustomInputFor(tmpl.label)}
                                 className={`px-3 py-1.5 rounded-lg border text-sm border-dashed cursor-pointer ${
                                   customInputFor === tmpl.label
-                                    ? 'border-orange-400 text-orange-500'
+                                    ? 'border-orange-400 text-yellow-500'
                                     : 'border-gray-300 text-gray-500 hover:border-orange-300'
                                 }`}
                               >
@@ -497,7 +497,7 @@ const AddProductVariant = () => {
                 {/* Pricing */}
                 <section className="rounded-xl sm:rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-stone-900 dark:to-stone-900 border border-orange-100 dark:border-stone-700 p-4 sm:p-5">
                   <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                    <IndianRupee className="h-4 w-4 text-orange-500 shrink-0" />
+                    <IndianRupee className="h-4 w-4 text-yellow-500 shrink-0" />
                     <h4 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100">Pricing</h4>
                   </div>
                   <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
@@ -585,9 +585,9 @@ const AddProductVariant = () => {
                       <div className="flex flex-col items-center gap-2 pointer-events-none">
                         <div className={`rounded-full p-2.5 sm:p-3 transition-colors ${isDragging ? 'bg-orange-200' : 'bg-orange-100'}`}>
                           {isDragging ? (
-                            <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+                            <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
                           ) : (
-                            <ImagePlus className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+                            <ImagePlus className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
                           )}
                         </div>
                         <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -999,7 +999,7 @@ export default AddProductVariant
 //                           {productOption.length === 0 ? (
 //                             <div className="rounded-xl sm:rounded-2xl border-2 border-dashed border-gray-200 p-4 sm:p-6 text-center text-xs sm:text-sm text-gray-500">
 //                               No products yet.{' '}
-//                               <a href="/shop/product/add" className="text-orange-500 font-medium underline underline-offset-2">
+//                               <a href="/shop/product/add" className="text-yellow-500 font-medium underline underline-offset-2">
 //                                 Add a product first
 //                               </a>{' '}
 //                               before creating variants.
@@ -1115,7 +1115,7 @@ export default AddProductVariant
 //                 {/* Pricing */}
 //                 <section className="rounded-xl sm:rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-stone-900 dark:to-stone-900 border border-orange-100 dark:border-stone-700 p-4 sm:p-5">
 //                   <div className="flex items-center gap-2 mb-3 sm:mb-4">
-//                     <IndianRupee className="h-4 w-4 text-orange-500 shrink-0" />
+//                     <IndianRupee className="h-4 w-4 text-yellow-500 shrink-0" />
 //                     <h4 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100">Pricing</h4>
 //                   </div>
 //                   <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
@@ -1203,9 +1203,9 @@ export default AddProductVariant
 //                       <div className="flex flex-col items-center gap-2 pointer-events-none">
 //                         <div className={`rounded-full p-2.5 sm:p-3 transition-colors ${isDragging ? 'bg-orange-200' : 'bg-orange-100'}`}>
 //                           {isDragging ? (
-//                             <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+//                             <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
 //                           ) : (
-//                             <ImagePlus className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+//                             <ImagePlus className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
 //                           )}
 //                         </div>
 //                         <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -1603,7 +1603,7 @@ export default AddProductVariant
 //                           {productOption.length === 0 ? (
 //                             <div className="rounded-xl sm:rounded-2xl border-2 border-dashed border-gray-200 p-4 sm:p-6 text-center text-xs sm:text-sm text-gray-500">
 //                               No products yet.{' '}
-//                               <a href="/shop/product/add" className="text-orange-500 font-medium underline underline-offset-2">
+//                               <a href="/shop/product/add" className="text-yellow-500 font-medium underline underline-offset-2">
 //                                 Add a product first
 //                               </a>{' '}
 //                               before creating variants.
@@ -1716,7 +1716,7 @@ export default AddProductVariant
 //                 {/* Pricing */}
 //                 <section className="rounded-xl sm:rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-stone-900 dark:to-stone-900 border border-orange-100 dark:border-stone-700 p-4 sm:p-5">
 //                   <div className="flex items-center gap-2 mb-3 sm:mb-4">
-//                     <IndianRupee className="h-4 w-4 text-orange-500 shrink-0" />
+//                     <IndianRupee className="h-4 w-4 text-yellow-500 shrink-0" />
 //                     <h4 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100">Pricing</h4>
 //                   </div>
 //                   <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
@@ -1804,9 +1804,9 @@ export default AddProductVariant
 //                       <div className="flex flex-col items-center gap-2 pointer-events-none">
 //                         <div className={`rounded-full p-2.5 sm:p-3 transition-colors ${isDragging ? 'bg-orange-200' : 'bg-orange-100'}`}>
 //                           {isDragging ? (
-//                             <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+//                             <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
 //                           ) : (
-//                             <ImagePlus className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+//                             <ImagePlus className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
 //                           )}
 //                         </div>
 //                         <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">

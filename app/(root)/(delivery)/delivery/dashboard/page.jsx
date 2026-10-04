@@ -64,7 +64,7 @@ const DeliveryDashboardPage = () => {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <Loader2 className="w-7 h-7 animate-spin text-orange-500" />
+        <Loader2 className="w-7 h-7 animate-spin text-yellow-500" />
         <p className="text-sm text-gray-400">Loading your dashboard...</p>
       </div>
     )
@@ -109,7 +109,7 @@ const DeliveryDashboardPage = () => {
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-white border rounded-2xl p-4 flex items-center gap-3 shadow-sm">
           <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
-            <Inbox className="w-5 h-5 text-orange-500" />
+            <Inbox className="w-5 h-5 text-yellow-500" />
           </div>
           <div>
             <p className="text-xl font-bold text-gray-900 leading-none">{available.length}</p>

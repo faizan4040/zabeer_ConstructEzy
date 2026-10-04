@@ -63,7 +63,7 @@ const OrderNotificationBell = ({ endpoint, storageKey, orderLinkPrefix }) => {
                   href={`${orderLinkPrefix}/${order._id}`}
                   className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
-                  <div className="w-9 h-9 rounded-full bg-orange-50 dark:bg-orange-500/20 text-orange-500 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-orange-50 dark:bg-orange-500/20 text-yellow-500 flex items-center justify-center shrink-0">
                     <Package className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
@@ -81,7 +81,7 @@ const OrderNotificationBell = ({ endpoint, storageKey, orderLinkPrefix }) => {
 
           <Link
             href={orderLinkPrefix}
-            className="block text-center py-2.5 text-xs font-medium text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10"
+            className="block text-center py-2.5 text-xs font-medium text-yellow-500 hover:bg-orange-50 dark:hover:bg-orange-500/10"
           >
             View all orders
           </Link>

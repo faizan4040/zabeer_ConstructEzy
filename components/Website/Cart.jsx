@@ -76,7 +76,7 @@ useEffect(() => {
     <Sheet open={open} onOpenChange={setOpen}>
       {/* CART ICON */}
       <SheetTrigger className="relative cursor-pointer">
-        <ShoppingBag size={26} className="text-gray-100 hover:text-orange-500 transition" />
+        <ShoppingBag size={26} className="text-gray-100 hover:text-yellow-500 transition" />
         {cart.count > 0 && (
           <span className="absolute -top-2 -right-2 bg-green-400 text-black text-xs px-2 py-0.5 rounded-full">
             {cart.count}

@@ -254,7 +254,7 @@ const ShopOwnerManualOrderAdd = () => {
                   }`}
                 >
                   <input id="manual-order-file-input" type="file" accept="image/*" hidden onChange={(e) => { handleFiles(e.target.files); e.target.value = '' }} />
-                  <FiUploadCloud className="mx-auto mb-2 text-orange-500" size={24} />
+                  <FiUploadCloud className="mx-auto mb-2 text-yellow-500" size={24} />
                   <p className="text-sm font-semibold text-gray-700">{isDragging ? 'Drop image here' : 'Click or drag to upload'}</p>
                   <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP</p>
                 </div>
@@ -281,7 +281,7 @@ const ShopOwnerManualOrderAdd = () => {
           {/* footer */}
           <div className="bg-white dark:bg-card border rounded-2xl shadow-sm p-5 flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <FiPackage className="text-orange-500" />
+              <FiPackage className="text-yellow-500" />
               {media && !media.uploading && <FiCheckCircle className="text-green-500" />}
               Ready to create this order
             </div>

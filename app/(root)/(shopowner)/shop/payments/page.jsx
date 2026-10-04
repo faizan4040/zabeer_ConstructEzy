@@ -101,7 +101,7 @@ const ShopPaymentsPage = () => {
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <TrendingUp size={16} className="text-orange-500" />
+              <TrendingUp size={16} className="text-yellow-500" />
               <h3 className="font-semibold text-gray-900">Payment Over Time</h3>
             </div>
             <Link href={SHOP_OWNER_PAYMENT_DETAILS} className="text-sm font-medium text-orange-600 hover:underline">

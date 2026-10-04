@@ -276,7 +276,7 @@ const CategoryForm = ({ mode = 'add', id = null, initialData = null, allCategori
                     <button
                       type="button"
                       onClick={addAttributeRow}
-                      className="shrink-0 px-3 py-1.5 rounded-lg border border-orange-400 text-orange-500 text-sm font-medium hover:bg-orange-50 cursor-pointer"
+                      className="shrink-0 px-3 py-1.5 rounded-lg border border-orange-400 text-yellow-500 text-sm font-medium hover:bg-orange-50 cursor-pointer"
                     >
                       + Add Option
                     </button>

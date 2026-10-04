@@ -202,7 +202,7 @@ const Filter = () => {
                     type='button'
                     onClick={() => toggleGroup(groupId)}
                     aria-expanded={isOpen}
-                    className='w-full flex items-center justify-between py-1.5 text-left font-medium cursor-pointer hover:text-orange-500'
+                    className='w-full flex items-center justify-between py-1.5 text-left font-medium cursor-pointer hover:text-yellow-500'
                   >
                     <span className='flex items-center gap-2'>
                       {group.name}

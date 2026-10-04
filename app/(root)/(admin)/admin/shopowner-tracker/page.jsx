@@ -123,7 +123,7 @@ const ShopownerTracker = () => {
   }, [shopOwners])
 
   if (loading) {
-    return <div className="py-40 flex justify-center"><Loader2 className="animate-spin text-orange-500" size={28} /></div>
+    return <div className="py-40 flex justify-center"><Loader2 className="animate-spin text-yellow-500" size={28} /></div>
   }
 
   return (
@@ -226,7 +226,7 @@ const ShopownerTracker = () => {
 
                 <div className="grid grid-cols-3 gap-2 mb-4">
                   <div className="bg-gray-50 rounded-xl p-2.5 text-center">
-                    <Package size={14} className="mx-auto text-orange-500 mb-1" />
+                    <Package size={14} className="mx-auto text-yellow-500 mb-1" />
                     <p className="text-sm font-bold text-gray-900">{owner.productCount}</p>
                     <p className="text-[10px] text-gray-400">Products</p>
                   </div>
