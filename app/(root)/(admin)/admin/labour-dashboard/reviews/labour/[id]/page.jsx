@@ -14,7 +14,7 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-// import AnimatedCard from "@/components/Application/Labour/AnimatedCard";
+import AnimatedCard from "@/components/Application/Labour/AnimatedCard";
 
 function LabourFinalReviewPage() {
   const { id } = useParams();

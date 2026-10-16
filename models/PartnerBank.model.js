@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const partnerBankSchema = new mongoose.Schema(
@@ -10,78 +11,41 @@ const partnerBankSchema = new mongoose.Schema(
       unique: true,
     },
 
-    // Account Holder Name
-    accountHolder: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    accountHolder: { type: String, required: true, trim: true },
 
-    // Bank Name
-    bankName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    // not collected by the onboarding form, so it must not be required
+    bankName: { type: String, default: "", trim: true },
+    branchName: { type: String, default: "", trim: true },
 
-    // Branch Name
-    branchName: {
-      type: String,
-      default: "",
-      trim: true,
-    },
+    accountNumber: { type: String, required: true, unique: true, trim: true },
+    ifsc: { type: String, required: true, uppercase: true, trim: true },
+    upi: { type: String, default: "", trim: true },
 
-    // Account Number
-    accountNumber: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-
-    // IFSC Code
-    ifsc: {
-      type: String,
-      required: true,
-      uppercase: true,
-      trim: true,
-    },
-
-    // UPI ID (Optional)
-    upi: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-
-    // Verification Status
     status: {
       type: String,
       enum: ["not_added", "added", "verified"],
       default: "not_added",
     },
+    isVerified: { type: Boolean, default: false },
+    verifiedAt: { type: Date, default: null },
 
-    // Admin Verification
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
-
-    verifiedAt: {
-      type: Date,
-      default: null,
-    },
+    // Razorpay X ids. lib/labourPayout.js saves these; without them in the schema
+    // Mongoose drops them and a new contact is created on every payout.
+    razorpayContactId: { type: String, default: "" },
+    razorpayFundAccountId: { type: String, default: "" },
+    razorpayFundAccountFor: { type: String, default: "" },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-
 const PartnerBank =
-  mongoose.models.PartnerBank ||
-  mongoose.model("PartnerBank", partnerBankSchema);
+  mongoose.models.PartnerBank || mongoose.model("PartnerBank", partnerBankSchema);
 
 export default PartnerBank;
+
+
+
+
+
 
 

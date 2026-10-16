@@ -1,57 +1,90 @@
 "use client"
 
 import axios from "axios"
-import Link from "next/link"
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState, useRef, Suspense } from "react"
 import ProductBox from "./ProductBox"
+import { useSearchParams } from "next/navigation"
 
 const PRODUCTS_PER_PAGE = 12
 
-const FeatureProduct = () => {
+// Text ko saaf karta hai: lowercase, comma/symbols hatata hai
+const normalize = (str) =>
+  String(str || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+const FeatureProductInner = () => {
   const sectionRef = useRef(null)
 
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
 
+  const searchParams = useSearchParams()
+  const rawQuery = (searchParams.get("q") || "").trim()
+  const q = normalize(rawQuery)
 
   const fetchProducts = async () => {
-  setLoading(true)
-  try {
-    const { data } = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/product/get-feature-product`
-    )
+    setLoading(true)
+    try {
+      const { data } = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/product/get-feature-product`
+      )
 
-    console.log("API response:", data) // 👈 Add this temporarily
+      const productArray = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.data?.products)
+        ? data.data.products
+        : Array.isArray(data?.products)
+        ? data.products
+        : []
 
-    const productArray = Array.isArray(data?.data)
-      ? data.data
-      : Array.isArray(data?.data?.products)
-      ? data.data.products
-      : Array.isArray(data?.products)   // 👈 extra fallback
-      ? data.products
-      : []
-
-    console.log("Parsed productArray:", productArray) // 👈 And this
-
-    const reversedProducts = productArray.slice().reverse()
-    setProducts(reversedProducts)
-  } catch (err) {
-    console.error("Failed to fetch products:", err)
-    setProducts([])
-  } finally {
-    setLoading(false)
+      setProducts(productArray.slice().reverse())
+    } catch (err) {
+      console.error("Failed to fetch products:", err)
+      setProducts([])
+    } finally {
+      setLoading(false)
+    }
   }
-}
-
 
   useEffect(() => {
     fetchProducts()
   }, [])
 
-  const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE)
+  // Search badalne par page 1 par reset + products section tak scroll
+  useEffect(() => {
+    setCurrentPage(1)
+    if (q) {
+      sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [q])
 
-  const visibleProducts = products.slice(
+  // Search filter: query ka har word product text mein hona chahiye
+  const filteredProducts = q
+    ? products.filter((p) => {
+        const text = normalize(
+          [
+            p.name,
+            p.title,
+            p.productName,
+            p.brand,
+            p.description,
+            p.category?.name,
+            typeof p.category === "string" ? p.category : "",
+          ]
+            .filter(Boolean)
+            .join(" ")
+        )
+        return q.split(" ").every((word) => text.includes(word))
+      })
+    : products
+
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE)
+
+  const visibleProducts = filteredProducts.slice(
     0,
     currentPage * PRODUCTS_PER_PAGE
   )
@@ -74,7 +107,7 @@ const FeatureProduct = () => {
   }
 
   return (
-    <section 
+    <section
       id="shop"
       ref={sectionRef}
       className="w-full px-4 sm:px-8 lg:px-16 -py-4"
@@ -82,14 +115,14 @@ const FeatureProduct = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl sm:text-3xl font-bold">
-          Construction Materials  
+          {q ? `Results for "${rawQuery}"` : "Construction Materials"}
         </h2>
-        <Link
-          href="/shop"
-          className="text-sm sm:text-base underline underline-offset-4 hover:text-primary"
-        >
-          View All
-        </Link>
+        {q && !loading && (
+          <span className="text-sm text-gray-500">
+            {filteredProducts.length} product
+            {filteredProducts.length === 1 ? "" : "s"} found
+          </span>
+        )}
       </div>
 
       {/* Product Grid */}
@@ -109,7 +142,7 @@ const FeatureProduct = () => {
 
         {!loading && visibleProducts.length === 0 && (
           <p className="col-span-full text-center text-gray-500 py-10">
-            No products found.
+            {q ? `No products found for "${rawQuery}".` : "No products found."}
           </p>
         )}
       </div>
@@ -151,5 +184,12 @@ const FeatureProduct = () => {
     </section>
   )
 }
+
+// useSearchParams ke liye Suspense zaroori hai (Next.js build error se bachata hai)
+const FeatureProduct = () => (
+  <Suspense fallback={null}>
+    <FeatureProductInner />
+  </Suspense>
+)
 
 export default FeatureProduct

@@ -39,9 +39,6 @@ const LABOUR_CATEGORIES = [
   { id: "painters", label: "Painters", Icon: PaintRoller, desc: "Interior & exterior" },
   { id: "tile-experts", label: "Tile Experts", Icon: House, desc: "Floor & wall tiles" },
   { id: "welders", label: "Welders", Icon: ShieldCheck, desc: "Steel & gate work" },
-  { id: "jcb-operators", label: "JCB Operators", Icon: Truck, desc: "Excavation" },
-  { id: "contractors", label: "Contractors", Icon: Pickaxe, desc: "Full projects" },
-  { id: "engineers", label: "Engineers", Icon: HardHat, desc: "Site supervision" },
 ];
 
 // Indian mobile numbers always start with 6, 7, 8 or 9

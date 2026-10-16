@@ -63,15 +63,23 @@ export default function Header() {
     setAvatarFailed(false)
   }, [auth?.avatar?.url])
 
-  const handleSearch = () => {
-    if (query.trim()) router.push(`${WEBSITE_SHOP}?q=${encodeURIComponent(query.trim())}`)
-  }
+  // const handleSearch = () => {
+  //   if (query.trim()) router.push(`${WEBSITE_SHOP}?q=${encodeURIComponent(query.trim())}`)
+  // }
 
-  const handleMobileSearch = () => {
-    if (mobileQuery.trim()) {
-      router.push(`${WEBSITE_SHOP}?q=${encodeURIComponent(mobileQuery.trim())}`)
-    }
-  }
+  // const handleMobileSearch = () => {
+  //   if (mobileQuery.trim()) {
+  //     router.push(`${WEBSITE_SHOP}?q=${encodeURIComponent(mobileQuery.trim())}`)
+  //   }
+  // }
+  const goSearch = (text) => {
+  const q = text.trim()
+  // /shop ki jagah Home par hi bhejo
+  router.push(q ? `${WEBSITE_HOME}?q=${encodeURIComponent(q)}` : WEBSITE_HOME, { scroll: false })
+}
+
+const handleSearch = () => goSearch(query)
+const handleMobileSearch = () => goSearch(mobileQuery)
 
   /* ── Fetch Nearest Labor ── */
   const fetchNearestLabor = useCallback(async (latitude, longitude, city) => {
@@ -312,7 +320,7 @@ export default function Header() {
                 {query && (
                   <button
                     type="button"
-                    onClick={() => setQuery("")}
+                    onClick={() => { setQuery(""); goSearch("") }}
                     className="absolute right-24 text-gray-400 hover:text-gray-600 cursor-pointer"
                     aria-label="Clear"
                   >

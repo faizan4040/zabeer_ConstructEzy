@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useRef } from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useSelector } from "react-redux"
 import { RiArrowLeftSLine, RiArrowRightSLine, RiArrowRightLine } from "react-icons/ri"
@@ -29,10 +28,6 @@ const LABOUR_CATEGORIES = [
   { title: "Carpenters", desc: "Furniture & wood work", Icon: Warehouse, slug: "carpenters" },
   { title: "Painters", desc: "Interior & exterior painting", Icon: PaintRoller, slug: "painters" },
   { title: "Tile Experts", desc: "Floor & wall tile installation", Icon: House, slug: "tile-experts" },
-  { title: "Welders", desc: "Steel fabrication & gate work", Icon: ShieldCheck, slug: "welders" },
-  { title: "JCB Operators", desc: "Excavation & heavy equipment", Icon: Truck, slug: "jcb-operators" },
-  { title: "Contractors", desc: "Complete construction projects", Icon: Pickaxe, slug: "contractors" },
-  { title: "Engineers", desc: "Site supervision & planning", Icon: HardHat, slug: "engineers" },
 ]
 
 const LaborSlider = ({ onAuthRequired }) => {
@@ -43,7 +38,8 @@ const LaborSlider = ({ onAuthRequired }) => {
   const scrollLeft = () => sliderRef.current?.scrollBy({ left: -300, behavior: "smooth" })
   const scrollRight = () => sliderRef.current?.scrollBy({ left: 300, behavior: "smooth" })
 
-  const handleBookNow = () => {
+  // Sirf Book Now button isko use karta hai (unchanged behaviour)
+  const goBook = () => {
     if (!auth) {
       onAuthRequired?.()
       return
@@ -61,7 +57,7 @@ const LaborSlider = ({ onAuthRequired }) => {
             {/* Book Now - top left */}
             <button
               type="button"
-              onClick={handleBookNow}
+              onClick={() => goBook()}
               className="mb-4 inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-gray-900 text-sm font-semibold transition-all cursor-pointer"
             >
               Book Now
@@ -77,12 +73,6 @@ const LaborSlider = ({ onAuthRequired }) => {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/labour"
-              className="hidden sm:flex items-center gap-2 bg-indigo-950 hover:bg-purple-950 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
-            >
-              See All <RiArrowRightLine />
-            </Link>
             <button
               onClick={scrollLeft}
               aria-label="Scroll left"
@@ -100,17 +90,16 @@ const LaborSlider = ({ onAuthRequired }) => {
           </div>
         </div>
 
-        {/* Slider */}
+        {/* Slider - static cards, no click action */}
         <div
           ref={sliderRef}
           className="flex gap-4 overflow-x-auto scroll-smooth pb-2"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {LABOUR_CATEGORIES.map(({ title, desc, Icon, slug }) => (
-            <Link
+            <div
               key={slug}
-              href={slug === "all" ? "/labour" : `/labour?category=${slug}`}
-              className="group shrink-0 w-48 sm:w-56 bg-white rounded-xl border border-gray-200 hover:border-amber-400 hover:shadow-md transition p-5"
+              className="group shrink-0 w-48 sm:w-56 text-left bg-white rounded-xl border border-gray-200 hover:border-amber-400 hover:shadow-md transition p-5"
             >
               <div className="w-12 h-12 rounded-lg bg-indigo-50 group-hover:bg-indigo-950 flex items-center justify-center transition-colors">
                 <Icon
@@ -124,18 +113,8 @@ const LaborSlider = ({ onAuthRequired }) => {
                 {title}
               </h3>
               <p className="mt-1 text-gray-500 text-xs leading-snug">{desc}</p>
-            </Link>
+            </div>
           ))}
-        </div>
-
-        {/* Mobile See All */}
-        <div className="sm:hidden mt-6 text-center">
-          <Link
-            href="/labour"
-            className="inline-flex items-center gap-2 bg-indigo-950 text-white font-semibold px-6 py-3 rounded-lg text-sm"
-          >
-            See All Categories <RiArrowRightLine />
-          </Link>
         </div>
       </div>
     </section>
@@ -143,5 +122,3 @@ const LaborSlider = ({ onAuthRequired }) => {
 }
 
 export default LaborSlider
-
-
