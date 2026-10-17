@@ -270,7 +270,7 @@ const Footer = () => {
             <ul className="space-y-4">
               <li>
                 <a
-                  href="https://wa.me/911234567890"
+                  href="https://wa.me/918955549556"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-indigo-100/70 hover:text-amber-400 transition"
