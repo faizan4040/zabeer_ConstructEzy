@@ -32,6 +32,12 @@ import { showToast } from "@/lib/showToast";
 
 /* ─── Role Options (admin excluded from self-registration) ─── */
 const ROLES = [
+  // {
+  //   value: "admin",
+  //   label: "Admin",
+  //   icon: FaBagShopping,
+  //   desc: "Manage the platform",
+  // },
   {
     value: "customer",
     label: "Customer",

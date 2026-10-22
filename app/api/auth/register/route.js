@@ -9,7 +9,7 @@ import { sendMail } from "@/lib/sendMail";
 import slugify from "slugify";
 import { z } from "zod";
 
-const ALLOWED_ROLES = ["customer", "shop owner", "laber", "delivery boy"];
+const ALLOWED_ROLES = ["admin", "customer", "shop owner", "laber", "delivery boy"];
 
 export async function POST(request) {
   try {
