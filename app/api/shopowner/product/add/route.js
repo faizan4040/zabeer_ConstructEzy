@@ -26,7 +26,7 @@ export async function POST(request) {
       discountPercentage: true,
       description: true,
       media: true,
-      isReturnable: true,   // ✅ ADD
+      // isReturnable: true,
     })
 
     const validatedData = validationSchema.safeParse(payload)
