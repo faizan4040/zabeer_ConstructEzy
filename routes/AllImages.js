@@ -11,8 +11,19 @@ export const IMAGES = {
   loading: '/assets/images/loading.gif',
   login: '/assets/images/login.jpg',
   loginfail: '/assets/images/login_fail.jpg',
-  homebanner: '/assets/images/homebanner.png',
-   
+  homebanner_1: '/assets/images/homebanner_1.png',
+  homebanner_2: '/assets/images/homebanner_2.png',
+  homebanner_3: '/assets/images/homebanner_3.png',
+  shopproducts: "/assets/images/shopproducts.png",
+  book_services: "/assets/images/book_services.png",
+
+  category_plumbing: "/images/categories/plumbing.jpg",
+  category_electrical: "/images/categories/electrical.jpg",
+  category_paints: "/images/categories/paints.jpg",
+  category_hardware: "/images/categories/hardware.jpg",
+  category_power_tools: "/images/categories/power-tools.jpg",
+  category_safety: "/images/categories/safety.jpg",
+
   // New in Footwear
   shoes_1: "/assets/images/shoes_1.avif",
   shoes_2: "/assets/images/shoes_2.avif",

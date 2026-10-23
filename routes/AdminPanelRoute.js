@@ -88,4 +88,4 @@ export const ADMIN_ORDER_SHOW = '/admin/orders'
 export const ADMIN_ORDER_DETAILS = (order_id) => order_id ? `/admin/orders/details/${order_id}` : ''
 
 
-export const ADMIN_TRACK_EARNING = '/admin/track-earning'
+export const ADMIN_ORDER_BY_USER = "/Admin/order-by-user";

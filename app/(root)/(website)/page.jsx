@@ -13,6 +13,9 @@ import GeoUpdater from "@/components/Application/Labour/GeoUpdater";
 import DeliveryDashboard from "@/components/Application/Delivery/DeliveryDashboard"; //  NEW
 import Testimonial from '@/components/Website/Testimonial'
 import ProductBox from "@/components/Website/ProductBox";
+import ShopServices from "@/components/Website/ShopServices";
+import ShopByCategory from "@/components/Website/ShopByCategory";
+import About from "@/components/Website/About";
 import { WEBSITE_SHOP, WEBSITE_HOME } from "@/routes/WebsiteRoute";
 import { X, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -118,10 +121,21 @@ const Home = () => {
   // ── No category selected: normal landing page ──
   return (
      <div className="w-full min-w-0 overflow-x-hidden">
+    <section className="w-full py-1">
+      <ShopBySlider />
+    </section>
+
     <section className="w-full">
       <CuponBanner />
     </section>
+    
+    <section className="w-full">
+      <ShopServices />
+    </section>
 
+    <section className="w-full">
+      <ShopByCategory />
+    </section>
 
     <section className="w-full py-10">
       <LabourSlider />
@@ -131,13 +145,14 @@ const Home = () => {
       <FeatureProduct />
     </section>
 
-    <section className="w-full py-1">
-      <ShopBySlider />
-    </section>
-
     <section className="w-full">
       <Testimonial />
     </section>
+
+    <section className="w-full">
+      <About />
+    </section>
+    
   </div>
   );
 };

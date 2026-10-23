@@ -24,17 +24,45 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { LucideChevronRight } from "lucide-react"
-import { TbLayoutSidebarLeftExpandFilled } from "react-icons/tb";
+import { TbLayoutSidebarLeftExpandFilled } from "react-icons/tb"
 
 import { adminAppSidebarMenu } from "@/lib/adminSidebarMenu"
 import { IMAGES } from "@/routes/AllImages"
 
+/* ==========================================================
+   THEME  (change colors only here)
+   Keep full Tailwind class names so the compiler can detect them.
+   ========================================================== */
+const THEME = {
+  // Backgrounds
+  headerBg: "bg-white",
+  contentBg: "bg-slate-50",
+  headerBorder: "border-slate-200",
+
+  // Text
+  text: "text-slate-700",
+
+  // Main menu hover
+  menuHover: "hover:bg-indigo-100 hover:text-indigo-700",
+
+  // Sub menu
+  subText: "text-slate-600",
+  subHover: "hover:bg-indigo-50 hover:text-indigo-700",
+  subBorder: "border-slate-200",
+
+  // Mobile toggle button
+  toggleBtn: "bg-indigo-600 hover:bg-indigo-500 text-white",
+}
+
 const AppSidebar = () => {
-  const {toggleSidebar} = useSidebar()
+  const { toggleSidebar } = useSidebar()
+
   return (
     <Sidebar className="z-50">
       {/* ================= HEADER ================= */}
-      <SidebarHeader className="border-b h-14 p-0 bg-gray-800">
+      <SidebarHeader
+        className={`border-b h-14 p-0 ${THEME.headerBg} ${THEME.headerBorder}`}
+      >
         <div className="flex justify-between items-center px-4 h-full">
           <img
             src={IMAGES.dashboardlogo}
@@ -48,15 +76,20 @@ const AppSidebar = () => {
             className="hidden dark:block w-auto h-10"
           />
 
-          <Button onClick={toggleSidebar} type="button" size="icon" className="md:hidden text-white">
+          <Button
+            onClick={toggleSidebar}
+            type="button"
+            size="icon"
+            className={`md:hidden ${THEME.toggleBtn}`}
+          >
             <TbLayoutSidebarLeftExpandFilled />
           </Button>
         </div>
       </SidebarHeader>
 
       {/* ================= CONTENT ================= */}
-      <SidebarContent className="p-3 bg-gray-800">
-        <SidebarMenu className="text-gray-300">
+      <SidebarContent className={`p-3 ${THEME.contentBg}`}>
+        <SidebarMenu className={THEME.text}>
           {adminAppSidebarMenu.map((menu, index) => {
             const Icon = menu.icon
 
@@ -67,11 +100,11 @@ const AppSidebar = () => {
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton
                       asChild
-                      className="
+                      className={`
                         font-semibold px-2 py-5
                         transition-colors duration-200
-                        hover:bg-gray-300
-                      "
+                        ${THEME.text} ${THEME.menuHover}
+                      `}
                     >
                       <Link
                         href={menu.url ?? "#"}
@@ -86,7 +119,6 @@ const AppSidebar = () => {
                               ml-auto
                               transition-transform duration-300 ease-in-out
                               group-data-[state=open]/collapsible:rotate-90
-                              hover:text-gray-300
                             "
                           />
                         )}
@@ -100,19 +132,19 @@ const AppSidebar = () => {
                       className="
                         overflow-hidden
                         data-[state=open]:animate-collapsible-down
-                        data-[state=closed]:animate-collapsible-up hover:text-gray-300
+                        data-[state=closed]:animate-collapsible-up
                       "
                     >
-                      <SidebarMenuSub className="pl-4">
+                      <SidebarMenuSub className={`pl-4 ${THEME.subBorder}`}>
                         {menu.submenu.map((submenuItem, subIndex) => (
                           <SidebarMenuSubItem key={subIndex}>
                             <SidebarMenuSubButton
                               asChild
-                              className="
-                                px-2 py-4 text-gray-300
+                              className={`
+                                px-2 py-4
                                 transition-colors duration-200
-                                hover:bg-gray-700 hover:text-gray-300
-                              " 
+                                ${THEME.subText} ${THEME.subHover}
+                              `}
                             >
                               <Link href={submenuItem.url}>
                                 {submenuItem.title}
@@ -134,3 +166,6 @@ const AppSidebar = () => {
 }
 
 export default AppSidebar
+
+
+

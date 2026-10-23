@@ -63,23 +63,14 @@ export default function Header() {
     setAvatarFailed(false)
   }, [auth?.avatar?.url])
 
-  // const handleSearch = () => {
-  //   if (query.trim()) router.push(`${WEBSITE_SHOP}?q=${encodeURIComponent(query.trim())}`)
-  // }
-
-  // const handleMobileSearch = () => {
-  //   if (mobileQuery.trim()) {
-  //     router.push(`${WEBSITE_SHOP}?q=${encodeURIComponent(mobileQuery.trim())}`)
-  //   }
-  // }
   const goSearch = (text) => {
-  const q = text.trim()
-  // /shop ki jagah Home par hi bhejo
-  router.push(q ? `${WEBSITE_HOME}?q=${encodeURIComponent(q)}` : WEBSITE_HOME, { scroll: false })
-}
+    const q = text.trim()
+    // /shop ki jagah Home par hi bhejo
+    router.push(q ? `${WEBSITE_HOME}?q=${encodeURIComponent(q)}` : WEBSITE_HOME, { scroll: false })
+  }
 
-const handleSearch = () => goSearch(query)
-const handleMobileSearch = () => goSearch(mobileQuery)
+  const handleSearch = () => goSearch(query)
+  const handleMobileSearch = () => goSearch(mobileQuery)
 
   /* ── Fetch Nearest Labor ── */
   const fetchNearestLabor = useCallback(async (latitude, longitude, city) => {
@@ -176,7 +167,7 @@ const handleMobileSearch = () => goSearch(mobileQuery)
   const statusColor =
     locStatus.type === "success" ? "text-emerald-600"
       : locStatus.type === "error" ? "text-rose-600"
-        : "text-indigo-600"
+        : "text-[#0B8457]"
 
   if (auth?.role === "laber") return null
 
@@ -186,28 +177,32 @@ const handleMobileSearch = () => goSearch(mobileQuery)
   /* ── Shared location panel content (desktop dropdown + mobile sheet) ── */
   const locationPanel = (
     <>
-      <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-amber-50">
+      <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-gray-100 bg-emerald-50/60">
         <p className="font-bold text-gray-900 text-base">Set delivery location</p>
         <p className="text-sm text-gray-500 mt-1">We'll show products available in your area</p>
+        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1.5">
+          <Clock size={12} className="text-[#0B8457]" />
+          Delivery in <span className="font-semibold text-[#0B8457]">{deliveryTime}</span>
+        </p>
       </div>
 
       <button
         type="button"
         onClick={detectLocation}
         disabled={isLoadingLocation}
-        className="w-full flex items-center gap-4 px-5 sm:px-6 py-4 hover:bg-indigo-50/60 transition-colors border-b border-gray-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center gap-4 px-5 sm:px-6 py-4 hover:bg-emerald-50/60 transition-colors border-b border-gray-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <span className={`w-11 h-11 rounded-full ${isLoadingLocation ? 'bg-gray-200 animate-pulse' : 'bg-amber-100'} flex items-center justify-center shrink-0`}>
+        <span className={`w-11 h-11 rounded-full ${isLoadingLocation ? 'bg-gray-200 animate-pulse' : 'bg-emerald-100'} flex items-center justify-center shrink-0`}>
           {isLoadingLocation ? (
             <div className="animate-spin">
-              <Navigation size={18} className="text-amber-600" />
+              <Navigation size={18} className="text-[#0B8457]" />
             </div>
           ) : (
-            <Navigation size={18} className="text-amber-600" />
+            <Navigation size={18} className="text-[#0B8457]" />
           )}
         </span>
         <div className="text-left">
-          <p className="text-base font-semibold text-indigo-700">
+          <p className="text-base font-semibold text-[#0B8457]">
             {isLoadingLocation ? "Detecting location..." : "Use my current location"}
           </p>
           <p className="text-sm text-gray-400 mt-0.5">Auto-detect via GPS</p>
@@ -222,19 +217,19 @@ const handleMobileSearch = () => goSearch(mobileQuery)
           onChange={e => setManualInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && confirmManual()}
           placeholder="Enter area, street, pincode…"
-          className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-300 transition"
+          className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0B8457] focus:ring-2 focus:ring-emerald-200 transition"
         />
         <button
           type="button"
           onClick={confirmManual}
-          className="w-full mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-base font-semibold py-3 rounded-xl transition-all cursor-pointer shadow-md"
+          className="w-full mt-4 bg-[#0B8457] hover:bg-[#086b47] text-white text-base font-semibold py-3 rounded-xl transition-all cursor-pointer shadow-md"
         >
           Confirm Location
         </button>
       </div>
 
       {locStatus.msg && (
-        <div className={`px-5 sm:px-6 py-4 ${locStatus.type === "error" ? "bg-rose-50" : locStatus.type === "success" ? "bg-emerald-50" : "bg-indigo-50"}`}>
+        <div className={`px-5 sm:px-6 py-4 ${locStatus.type === "error" ? "bg-rose-50" : locStatus.type === "success" ? "bg-emerald-50" : "bg-emerald-50/60"}`}>
           <p className={`text-sm font-medium flex items-center gap-2 ${statusColor}`}>
             {locStatus.type === "loading" && <span className="inline-block animate-spin">⏳</span>}
             {locStatus.type === "success" && "✅"}
@@ -245,13 +240,13 @@ const handleMobileSearch = () => goSearch(mobileQuery)
       )}
 
       {nearestLabor && (
-        <div className="px-5 sm:px-6 py-4 bg-indigo-50 border-t border-gray-100">
+        <div className="px-5 sm:px-6 py-4 bg-emerald-50 border-t border-gray-100">
           <div className="flex items-start gap-3">
-            <Truck size={18} className="text-indigo-600 shrink-0 mt-0.5" />
+            <Truck size={18} className="text-[#0B8457] shrink-0 mt-0.5" />
             <div className="text-left">
-              <p className="text-sm font-semibold text-indigo-900">{nearestLabor.name}</p>
-              <p className="text-xs text-indigo-700 mt-0.5">{nearestLabor.distance?.toFixed(1)} km away</p>
-              <p className="text-xs text-indigo-600 mt-1">Rating: {nearestLabor.rating || "N/A"} ⭐</p>
+              <p className="text-sm font-semibold text-gray-900">{nearestLabor.name}</p>
+              <p className="text-xs text-gray-600 mt-0.5">{nearestLabor.distance?.toFixed(1)} km away</p>
+              <p className="text-xs text-gray-600 mt-1">Rating: {nearestLabor.rating || "N/A"} ⭐</p>
             </div>
           </div>
         </div>
@@ -263,39 +258,49 @@ const handleMobileSearch = () => goSearch(mobileQuery)
     </>
   )
 
+  /* ── Account trigger (avatar / role icon / guest icon) ── */
+  const accountVisual = auth ? (
+    staticRoleIcon ? (
+      <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shrink-0 ${staticRoleIcon.bgClass}`}>
+        <staticRoleIcon.Icon size={17} className="text-white" />
+      </span>
+    ) : (
+      <Avatar className="w-8 h-8 sm:w-9 sm:h-9">
+        <AvatarImage src={avatarSrc} onError={() => setAvatarFailed(true)} />
+        <AvatarFallback>
+          <User size={18} />
+        </AvatarFallback>
+      </Avatar>
+    )
+  ) : (
+    <User size={26} strokeWidth={1.6} className="text-gray-900" />
+  )
+
   return (
     <div className="sticky top-0 z-50">
-      <header className="relative z-50 shadow-lg shadow-indigo-950/30">
+      <header className="relative z-50 bg-white border-b border-gray-200 shadow-sm">
 
         {/* ─── MAIN NAV ─── */}
-        <div className="bg-gradient-to-r from-indigo-950 via-purple-950 to-slate-900 text-white px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5">
-          <div className="flex items-center justify-between gap-3 sm:gap-4 lg:gap-6 max-w-[1600px] mx-auto">
+        <div className="bg-white text-gray-900 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
+          <div className="flex items-center justify-between gap-3 sm:gap-4 lg:gap-6 max-w-400 mx-auto">
 
             {/* LEFT: Logo */}
             <Link href={WEBSITE_HOME} className="shrink-0">
               <img src={IMAGES.logo} className="h-9 sm:h-11 lg:h-12 w-auto" alt="Logo" />
             </Link>
 
-            {/* Desktop: Location */}
+            {/* Desktop: Location pill */}
             <div className="hidden lg:block relative shrink-0" ref={locationModalRef}>
               <button
                 type="button"
                 onClick={() => { setLocationModal(v => !v); setLocStatus({ msg: "", type: "" }) }}
-                className="flex items-center gap-3 cursor-pointer rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-2 transition-colors whitespace-nowrap"
+                className="flex items-center gap-2 cursor-pointer rounded-lg bg-white hover:bg-gray-50 border border-gray-200 shadow-sm px-3.5 py-2.5 transition-colors whitespace-nowrap"
               >
-                <div className="w-10 h-10 bg-amber-400/20 rounded-full flex items-center justify-center shrink-0">
-                  <MapPin size={18} className="text-amber-300" />
-                </div>
-                <div className="text-left min-w-0">
-                  <p className="text-[11px] text-indigo-200/70 leading-none mb-1 flex items-center gap-1">
-                    <Clock size={11} className="shrink-0" /> Delivery in
-                    <span className="font-bold text-amber-300 ml-1">{deliveryTime}</span>
-                  </p>
-                  <p className="text-sm font-semibold text-white truncate max-w-[180px]">
-                    {locationName || "Select location"}
-                  </p>
-                </div>
-                <ChevronDown size={14} className={`text-indigo-200 shrink-0 transition-transform ${locationModal ? "rotate-180" : ""}`} />
+                <MapPin size={17} className="text-gray-900 shrink-0" />
+                <span className="text-sm font-semibold text-gray-900 truncate max-w-35">
+                  {locationName || "Select location"}
+                </span>
+                <ChevronDown size={15} className={`text-gray-900 shrink-0 transition-transform ${locationModal ? "rotate-180" : ""}`} />
               </button>
 
               {locationModal && (
@@ -307,21 +312,21 @@ const handleMobileSearch = () => goSearch(mobileQuery)
 
             {/* Desktop: Search (always open) */}
             <div className="hidden md:flex flex-1 min-w-0 justify-center">
-              <div className="relative flex items-center w-full max-w-2xl">
-                <IoSearchOutline size={20} className="absolute left-4 text-indigo-400 pointer-events-none" />
+              <div className="relative flex items-stretch w-full max-w-2xl rounded-lg border border-[#0B8457] bg-white overflow-hidden focus-within:ring-2 focus-within:ring-emerald-200 transition">
+                <IoSearchOutline size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900 pointer-events-none" />
                 <input
                   type="text"
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && handleSearch()}
-                  className="w-full pl-12 pr-28 py-2.5 sm:py-3 rounded-full text-gray-900 text-sm bg-white shadow-inner focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder-gray-400"
-                  placeholder="Search for items, brands and more..."
+                  className="flex-1 min-w-0 pl-12 pr-10 py-3 text-gray-900 text-sm bg-transparent focus:outline-none placeholder-gray-400"
+                  placeholder="Search products, materials or services..."
                 />
                 {query && (
                   <button
                     type="button"
                     onClick={() => { setQuery(""); goSearch("") }}
-                    className="absolute right-24 text-gray-400 hover:text-gray-600 cursor-pointer"
+                    className="absolute right-28 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                     aria-label="Clear"
                   >
                     <X size={16} />
@@ -330,7 +335,7 @@ const handleMobileSearch = () => goSearch(mobileQuery)
                 <button
                   type="button"
                   onClick={handleSearch}
-                  className="absolute right-1.5 px-5 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-gray-900 text-sm font-semibold cursor-pointer transition-all"
+                  className="px-7 bg-[#0B8457] hover:bg-[#086b47] text-white text-sm font-semibold cursor-pointer transition-colors"
                 >
                   Search
                 </button>
@@ -341,42 +346,27 @@ const handleMobileSearch = () => goSearch(mobileQuery)
             <div className="flex-1 md:hidden" />
 
             {/* RIGHT: Icons */}
-            <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
+            <div className="flex items-center gap-3 sm:gap-6 shrink-0">
 
               {/* Mobile Location Icon */}
               <button
-                className="flex lg:hidden items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 cursor-pointer transition-colors"
+                className="flex lg:hidden items-center justify-center w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-colors"
                 onClick={() => { setLocationModal(true); setLocStatus({ msg: "", type: "" }) }}
                 aria-label="Location"
               >
-                <MapPin size={19} className={locationName ? "text-amber-300" : "text-white"} />
+                <MapPin size={18} className={locationName ? "text-[#0B8457]" : "text-gray-900"} />
               </button>
 
               {/* Profile / Auth */}
               <div className="relative shrink-0" ref={profileRef}>
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center cursor-pointer hover:opacity-80 transition-opacity rounded-full ring-2 ring-amber-400/60"
+                  className="flex items-center gap-2 cursor-pointer hover:opacity-75 transition-opacity"
                   aria-label="Profile"
                 >
-                  {auth ? (
-                    staticRoleIcon ? (
-                      <span className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${staticRoleIcon.bgClass}`}>
-                        <staticRoleIcon.Icon size={18} className="text-white" />
-                      </span>
-                    ) : (
-                      <Avatar className="w-9 h-9 sm:w-10 sm:h-10">
-                        <AvatarImage src={avatarSrc} onError={() => setAvatarFailed(true)} />
-                        <AvatarFallback>
-                          <User size={18} />
-                        </AvatarFallback>
-                      </Avatar>
-                    )
-                  ) : (
-                    <span className="bg-white/10 rounded-full w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                      <User size={20} />
-                    </span>
-                  )}
+                  {accountVisual}
+                  <span className="hidden sm:inline text-sm font-semibold text-gray-900">Account</span>
+                  <ChevronDown size={15} className={`hidden sm:block text-gray-900 transition-transform ${profileOpen ? "rotate-180" : ""}`} />
                 </button>
 
                 {profileOpen && (
@@ -384,12 +374,12 @@ const handleMobileSearch = () => goSearch(mobileQuery)
                     {!auth ? (
                       <>
                         <Link href={WEBSITE_REGISTER}>
-                          <button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 rounded-xl cursor-pointer mb-3 font-medium transition-all">
+                          <button className="w-full bg-[#0B8457] hover:bg-[#086b47] text-white py-3 rounded-xl cursor-pointer mb-3 font-medium transition-all">
                             Create Free Account
                           </button>
                         </Link>
                         <Link href={WEBSITE_LOGIN}>
-                          <button className="w-full border-2 border-indigo-600 text-indigo-700 py-3 hover:bg-indigo-600 hover:text-white rounded-xl cursor-pointer font-medium transition-all">
+                          <button className="w-full border-2 border-[#0B8457] text-[#0B8457] py-3 hover:bg-[#0B8457] hover:text-white rounded-xl cursor-pointer font-medium transition-all">
                             Sign In
                           </button>
                         </Link>
@@ -410,10 +400,10 @@ const handleMobileSearch = () => goSearch(mobileQuery)
                             </Avatar>
                           </Link>
                         )}
-                        <span className="font-semibold text-gray-900 text-center break-words max-w-full">{auth.name}</span>
+                        <span className="font-semibold text-gray-900 text-center wrap-break-word max-w-full">{auth.name}</span>
 
                         <Link href={USER_DASHBOARD} className="w-full">
-                          <button className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-gray-900 py-3 px-4 rounded-xl cursor-pointer transition-all font-semibold">
+                          <button className="w-full bg-[#0B8457] hover:bg-[#086b47] text-white py-3 px-4 rounded-xl cursor-pointer transition-all font-semibold">
                             Dashboard
                           </button>
                         </Link>
@@ -424,7 +414,7 @@ const handleMobileSearch = () => goSearch(mobileQuery)
               </div>
 
               {/* Cart */}
-              <div className="shrink-0">
+              <div className="shrink-0 text-gray-900">
                 <Card className="cursor-pointer" />
               </div>
             </div>
@@ -432,21 +422,21 @@ const handleMobileSearch = () => goSearch(mobileQuery)
         </div>
 
         {/* ─── MOBILE SEARCH BAR (always open, below md) ─── */}
-        <div className="md:hidden bg-indigo-950/95 px-3 sm:px-6 pb-3 pt-1">
-          <div className="relative flex items-center">
-            <IoSearchOutline size={18} className="absolute left-4 text-indigo-400 pointer-events-none" />
+        <div className="md:hidden bg-white px-3 sm:px-6 pb-3 pt-1">
+          <div className="relative flex items-stretch rounded-lg border border-[#0B8457] bg-white overflow-hidden focus-within:ring-2 focus-within:ring-emerald-200 transition">
+            <IoSearchOutline size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-900 pointer-events-none" />
             <input
               type="text"
               value={mobileQuery}
               onChange={e => setMobileQuery(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleMobileSearch()}
-              className="w-full pl-11 pr-20 py-2.5 rounded-full text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder-gray-400"
-              placeholder="Search items..."
+              className="flex-1 min-w-0 pl-10 pr-9 py-2.5 text-gray-900 text-sm bg-transparent focus:outline-none placeholder-gray-400"
+              placeholder="Search products, materials or services..."
             />
             {mobileQuery && (
               <button
                 onClick={() => setMobileQuery("")}
-                className="absolute right-12 text-gray-400 hover:text-gray-600 cursor-pointer"
+                className="absolute right-14 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                 aria-label="Clear"
               >
                 <X size={16} />
@@ -455,7 +445,7 @@ const handleMobileSearch = () => goSearch(mobileQuery)
             <button
               type="button"
               onClick={handleMobileSearch}
-              className="absolute right-1.5 w-9 h-9 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center text-gray-900 cursor-pointer"
+              className="w-12 bg-[#0B8457] hover:bg-[#086b47] flex items-center justify-center text-white cursor-pointer transition-colors"
               aria-label="Search"
             >
               <IoSearchOutline size={18} />
@@ -467,13 +457,13 @@ const handleMobileSearch = () => goSearch(mobileQuery)
         <button
           type="button"
           onClick={() => { setLocationModal(true); setLocStatus({ msg: "", type: "" }) }}
-          className="lg:hidden w-full bg-slate-900 text-white px-3 sm:px-6 py-2 flex items-center justify-between text-sm border-t border-white/10 cursor-pointer"
+          className="lg:hidden w-full bg-gray-50 text-gray-900 px-3 sm:px-6 py-2 flex items-center justify-between text-sm border-t border-gray-200 cursor-pointer"
         >
           <span className="flex items-center gap-2">
-            <Clock size={15} className="text-amber-300" />
-            <span className="font-semibold text-amber-300">{deliveryTime}</span>
+            <Clock size={15} className="text-[#0B8457]" />
+            <span className="font-semibold text-[#0B8457]">{deliveryTime}</span>
           </span>
-          <span className="flex items-center gap-1.5 text-indigo-200 truncate text-xs max-w-[65%]">
+          <span className="flex items-center gap-1.5 text-gray-700 truncate text-xs max-w-[65%]">
             <MapPin size={13} className="shrink-0" />
             <span className="truncate">{locationName || "Select location"}</span>
             <ChevronDown size={13} className="shrink-0" />
@@ -483,7 +473,7 @@ const handleMobileSearch = () => goSearch(mobileQuery)
 
       {/* ─── MOBILE LOCATION BOTTOM SHEET ─── */}
       {locationModal && (
-        <div className="lg:hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="lg:hidden fixed inset-0 z-60 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
           <div
             ref={mobileSheetRef}
             className="relative w-full sm:max-w-md bg-white text-black rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
@@ -503,4 +493,3 @@ const handleMobileSearch = () => goSearch(mobileQuery)
     </div>
   )
 }
-

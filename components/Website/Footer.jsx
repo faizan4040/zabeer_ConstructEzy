@@ -13,24 +13,27 @@ import {
   WEBSITE_PRICE_BEAT_PROMISE,
   WEBSITE_PRIVACY_POLICY,
   WEBSITE_TERMS_CONDITIONS,
+  WEBSITE_SHOP,
 } from "@/routes/WebsiteRoute"
+
+import { IMAGES } from "@/routes/AllImages"
 
 import {
   Youtube,
   Instagram,
   Twitter,
   Facebook,
-  Headphones,
+  Linkedin,
   Globe,
   Loader2,
   CheckCircle2,
-  ArrowUpRight,
+  ArrowRight,
   ChevronUp,
   Check,
+  MapPin,
 } from "lucide-react"
 
 import Link from "next/link"
-import { BsWhatsapp } from "react-icons/bs"
 
 import axios from "axios"
 
@@ -72,6 +75,89 @@ const setLangCookie = (code) => {
     document.cookie = `googtrans=/en/${code}; path=/`
     document.cookie = `googtrans=/en/${code}; path=/; domain=${host}`
   }
+}
+
+/* ── Link data ──
+   NOTE: jin links ka route abhi project me nahi hai unka href "#" rakha hai.
+   Route ban jaye to bas us item ka href badal dena. */
+const WHATSAPP_URL = "https://wa.me/918955549556"
+const CALL_URL = "tel:+918955549556"
+
+const SHOP_LINKS = [
+  { label: "All Products", href: WEBSITE_SHOP },
+  { label: "Plumbing", href: `${WEBSITE_SHOP}?q=Plumbing` },
+  { label: "Electrical", href: `${WEBSITE_SHOP}?q=Electrical` },
+  { label: "Paints & Finishes", href: `${WEBSITE_SHOP}?q=Paints` },
+  { label: "Hardware", href: `${WEBSITE_SHOP}?q=Hardware` },
+  { label: "Power Tools", href: `${WEBSITE_SHOP}?q=Power%20Tools` },
+  { label: "Home Discount", href: WEBSITE_HOME_DISCOUNT },
+  { label: "Discount Codes", href: WEBSITE_DISCOUNT_CODES },
+]
+
+const SERVICE_LINKS = [
+  { label: "Plumbing Repair", href: "#" },
+  { label: "Electrical Work", href: "#" },
+  { label: "Painting", href: "#" },
+  { label: "Carpentry", href: "#" },
+  { label: "Installation", href: "#" },
+  { label: "Renovation", href: "#" },
+]
+
+const SUPPORT_LINKS = [
+  { label: "Help Center", href: "#" },
+  { label: "Track Order", href: "#" },
+  { label: "Returns & Refunds", href: WEBSITE_DELIVERY_RETURNS },
+  { label: "Contact Us", href: WEBSITE_CONTACT_US },
+  { label: "Price Beat Promise", href: WEBSITE_PRICE_BEAT_PROMISE },
+  { label: "Book via WhatsApp", href: WHATSAPP_URL, external: true },
+  { label: "Book via Call", href: CALL_URL, external: true },
+]
+
+const COMPANY_LINKS = [
+  { label: "About Us", href: WEBSITE_ABOUT },
+  { label: "Our Partners", href: "#" },
+  { label: "Careers", href: WEBSITE_CAREERS },
+  { label: "Terms & Conditions", href: WEBSITE_TERMS_CONDITIONS },
+  { label: "Privacy Policy", href: WEBSITE_PRIVACY_POLICY },
+  { label: "Cookie Policy", href: WEBSITE_COOKIE_POLICY },
+]
+
+const SOCIAL_LINKS = [
+  { label: "Instagram", href: "https://www.instagram.com/YourInstagramProfile", Icon: Instagram },
+  { label: "Facebook", href: "https://www.facebook.com/YourFacebookProfile", Icon: Facebook },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/YourCompany", Icon: Linkedin },
+  { label: "YouTube", href: "https://www.youtube.com/channel/YourChannelID", Icon: Youtube },
+  { label: "X", href: "https://twitter.com/YourTwitterProfile", Icon: Twitter },
+]
+
+const linkClass = "text-[13px] text-gray-300 hover:text-white transition-colors"
+
+function FooterColumn({ title, links }) {
+  return (
+    <div>
+      <h4 className="text-white font-semibold text-[15px] mb-4">{title}</h4>
+      <ul className="space-y-2.5">
+        {links.map((item) => (
+          <li key={item.label}>
+            {item.external ? (
+              <a
+                href={item.href}
+                target={item.href.startsWith("http") ? "_blank" : undefined}
+                rel="noopener noreferrer"
+                className={linkClass}
+              >
+                {item.label}
+              </a>
+            ) : (
+              <Link href={item.href} className={linkClass}>
+                {item.label}
+              </Link>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }
 
 const Footer = () => {
@@ -169,7 +255,7 @@ const Footer = () => {
   }
 
   return (
-    <footer className="bg-gradient-to-r from-indigo-950 via-purple-950 to-slate-900 text-indigo-100/70">
+    <footer className="bg-[#0A1F44] text-gray-300">
 
       {/* Hide Google Translate default banner/toolbar */}
       <style
@@ -184,28 +270,53 @@ const Footer = () => {
       />
       <div id="google_translate_element" className="hidden" />
 
-      {/* Newsletter */}
-      <div className="border-b border-white/10">
-        <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-12">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-            <div>
-              <p className="text-amber-400 text-sm font-semibold uppercase tracking-wider">
-                Stay Updated
-              </p>
+      {/* Main Footer */}
+      <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 pt-10 pb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-[1.3fr_1fr_1fr_1fr_1fr_1.3fr] gap-x-8 gap-y-10">
 
-              <h3 className="mt-2 text-2xl sm:text-3xl font-bold text-white">
-                Get the latest updates from ConstructEzy
-              </h3>
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-3 lg:col-span-1">
+            <Link href="/" className="inline-block">
+              <img src={IMAGES.logo} alt="ConstructEzy" className="h-11 w-auto" />
+            </Link>
+
+            <p className="mt-4 text-[13px] leading-relaxed text-gray-300 max-w-[240px]">
+              Your trusted platform for construction materials and services.
+            </p>
+
+            <div className="mt-5 flex items-center gap-4">
+              {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="text-white hover:text-emerald-400 transition-colors"
+                >
+                  <Icon size={18} />
+                </a>
+              ))}
             </div>
+          </div>
 
-            <div className="w-full lg:max-w-xl">
+          <FooterColumn title="Shop" links={SHOP_LINKS} />
+          <FooterColumn title="Services" links={SERVICE_LINKS} />
+          <FooterColumn title="Support" links={SUPPORT_LINKS} />
+          <FooterColumn title="Company" links={COMPANY_LINKS} />
+
+          {/* Stay Updated */}
+          <div className="col-span-2 md:col-span-3 lg:col-span-1">
+            <h4 className="text-white font-semibold text-[15px]">Stay Updated</h4>
+            <p className="mt-2 text-[13px] leading-relaxed text-gray-300">
+              Get latest offers, new products and{" "}
+              <span className="font-semibold text-white">service updates.</span>
+            </p>
+
+            <div className="mt-4">
               {success ? (
-                <div className="flex items-center gap-3 border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 rounded-xl">
-                  <CheckCircle2
-                    className="text-emerald-400 shrink-0"
-                    size={22}
-                  />
-
+                <div className="flex items-center gap-3 border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 rounded-lg">
+                  <CheckCircle2 className="text-emerald-400 shrink-0" size={20} />
                   <p className="text-emerald-300 text-sm">
                     You're subscribed! Thanks for signing up.
                   </p>
@@ -213,7 +324,7 @@ const Footer = () => {
               ) : (
                 <form
                   onSubmit={handleSubscribe}
-                  className="flex flex-col sm:flex-row gap-2"
+                  className="flex items-stretch rounded-lg overflow-hidden bg-white"
                 >
                   <input
                     type="email"
@@ -222,309 +333,103 @@ const Footer = () => {
                       setEmail(e.target.value)
                       setError("")
                     }}
-                    placeholder="Enter your email address"
+                    placeholder="Enter your email"
                     disabled={loading}
-                    className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white placeholder-indigo-200/50 focus:outline-none focus:border-amber-400 disabled:opacity-50"
+                    className="flex-1 min-w-0 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 bg-transparent focus:outline-none disabled:opacity-50"
                   />
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 font-semibold hover:from-amber-500 hover:to-orange-600 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Subscribe"
+                    className="w-12 bg-[#0B8457] hover:bg-[#086b47] text-white flex items-center justify-center transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {loading ? (
-                      <>
-                        <Loader2 size={17} className="animate-spin" />
-                        Subscribing...
-                      </>
+                      <Loader2 size={18} className="animate-spin" />
                     ) : (
-                      <>
-                        Subscribe
-                        <ArrowUpRight size={16} />
-                      </>
+                      <ArrowRight size={18} />
                     )}
                   </button>
                 </form>
               )}
 
               {error && (
-                <p className="mt-2 text-sm text-rose-400">
-                  {error}
-                </p>
+                <p className="mt-2 text-sm text-rose-400">{error}</p>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Footer Links */}
-      <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
-
-          {/* Support */}
-          <div>
-            <h4 className="text-white font-semibold text-base mb-5">
-              Support
-            </h4>
-
-            <ul className="space-y-4">
-              <li>
-                <a
-                  href="https://wa.me/918955549556"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  <BsWhatsapp size={17} />
-                  <span>WhatsApp</span>
-                </a>
-              </li>
-
-              <li>
-                <Link
-                  href={WEBSITE_CONTACT_US}
-                  className="flex items-center gap-3 text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  <Headphones size={18} />
-                  <span>Contact Us</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Social */}
-          <div>
-            <h4 className="text-white font-semibold text-base mb-5">
-              Follow Us
-            </h4>
-
-            <ul className="space-y-4">
-              <li>
-                <a
-                  href="https://www.youtube.com/channel/YourChannelID"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  <Youtube size={18} />
-                  <span>YouTube</span>
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="https://www.instagram.com/YourInstagramProfile"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  <Instagram size={18} />
-                  <span>Instagram</span>
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="https://twitter.com/YourTwitterProfile"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  <Twitter size={18} />
-                  <span>X</span>
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="https://www.facebook.com/YourFacebookProfile"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  <Facebook size={18} />
-                  <span>Facebook</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Order Info */}
-          <div>
-            <h4 className="text-white font-semibold text-base mb-5">
-              Order Info
-            </h4>
-
-            <ul className="space-y-3">
-              <li>
-                <Link
-                  href={WEBSITE_DELIVERY_RETURNS}
-                  className="text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  Delivery & Returns
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href={WEBSITE_HOME_DISCOUNT}
-                  className="text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  Home Discount
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Customer Care */}
-          <div>
-            <h4 className="text-white font-semibold text-base mb-5">
-              Customer Care
-            </h4>
-
-            <ul className="space-y-3">
-              <li>
-                <Link
-                  href={WEBSITE_CONTACT_US}
-                  className="text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  Contact Us
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href={WEBSITE_PRICE_BEAT_PROMISE}
-                  className="text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  Price Beat Promise
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 className="text-white font-semibold text-base mb-5">
-              Company
-            </h4>
-
-            <ul className="space-y-3">
-              <li>
-                <Link
-                  href={WEBSITE_ABOUT}
-                  className="text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  About Us
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href={WEBSITE_CAREERS}
-                  className="text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  Careers
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href={WEBSITE_PRIVACY_POLICY}
-                  className="text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href={WEBSITE_TERMS_CONDITIONS}
-                  className="text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  Terms & Conditions
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href={WEBSITE_COOKIE_POLICY}
-                  className="text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  Cookie Policy
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href={WEBSITE_DISCOUNT_CODES}
-                  className="text-indigo-100/70 hover:text-amber-400 transition"
-                >
-                  Discount Codes
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom */}
+      {/* Bottom bar */}
       <div className="border-t border-white/10">
-        <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-5 flex flex-col md:flex-row justify-between items-center gap-5">
+        <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
-          {/* Language Selector */}
-          <div className="relative notranslate" ref={langRef} translate="no">
-            <button
-              type="button"
-              onClick={() => setLangOpen((v) => !v)}
-              className="flex items-center gap-2 text-sm text-indigo-100 bg-white/10 hover:bg-white/15 border border-white/15 rounded-lg px-3 py-2 cursor-pointer transition-colors"
-              aria-haspopup="listbox"
-              aria-expanded={langOpen}
-            >
-              <Globe size={16} className="text-amber-400" />
-              <span>{activeLang.native}</span>
-              <ChevronUp
-                size={14}
-                className={`transition-transform ${langOpen ? "" : "rotate-180"}`}
-              />
-            </button>
+          <p className="text-[13px] text-gray-300 order-2 md:order-1">
+            © 2026 ConstructEzy. All rights reserved.
+          </p>
 
-            {langOpen && (
-              <div className="absolute bottom-full left-0 mb-2 w-72 max-w-[90vw] bg-white text-black rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50">
-                <div className="px-4 py-3 border-b border-gray-100 bg-indigo-50">
-                  <p className="text-sm font-semibold text-indigo-950">Select language</p>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 order-1 md:order-2">
+
+            {/* Delivering in */}
+            <p className="flex items-center gap-2 text-[13px] text-gray-300">
+              <MapPin size={14} className="text-gray-300 shrink-0" />
+              <span>Delivering in:</span>
+              <span className="text-white">Delhi NCR</span>
+              <span className="text-gray-500">|</span>
+              <span className="text-white">Jaipur</span>
+            </p>
+
+            {/* Language Selector */}
+            <div className="relative notranslate" ref={langRef} translate="no">
+              <button
+                type="button"
+                onClick={() => setLangOpen((v) => !v)}
+                className="flex items-center gap-2 text-[13px] text-white bg-white/10 hover:bg-white/15 border border-white/15 rounded-lg px-3 py-1.5 cursor-pointer transition-colors"
+                aria-haspopup="listbox"
+                aria-expanded={langOpen}
+              >
+                <Globe size={15} className="text-emerald-400" />
+                <span>{activeLang.native}</span>
+                <ChevronUp
+                  size={14}
+                  className={`transition-transform ${langOpen ? "" : "rotate-180"}`}
+                />
+              </button>
+
+              {langOpen && (
+                <div className="absolute bottom-full right-0 mb-2 w-72 max-w-[90vw] bg-white text-black rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-gray-100 bg-emerald-50">
+                    <p className="text-sm font-semibold text-gray-900">Select language</p>
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto py-1" role="listbox">
+                    {LANGUAGES.map((lang) => {
+                      const active = lang.code === currentLang
+                      return (
+                        <button
+                          key={lang.code}
+                          type="button"
+                          onClick={() => changeLanguage(lang.code)}
+                          className={`w-full flex items-center justify-between px-4 py-2.5 text-sm text-left cursor-pointer transition-colors ${
+                            active
+                              ? "bg-emerald-50 text-[#0B8457] font-semibold"
+                              : "text-gray-800 hover:bg-gray-50"
+                          }`}
+                        >
+                          <span>
+                            {lang.native}
+                            <span className="text-gray-400 text-xs ml-2">{lang.label}</span>
+                          </span>
+                          {active && <Check size={16} className="text-[#0B8457]" />}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
-
-                <div className="max-h-72 overflow-y-auto py-1" role="listbox">
-                  {LANGUAGES.map((lang) => {
-                    const active = lang.code === currentLang
-                    return (
-                      <button
-                        key={lang.code}
-                        type="button"
-                        onClick={() => changeLanguage(lang.code)}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm text-left cursor-pointer transition-colors ${
-                          active
-                            ? "bg-indigo-50 text-indigo-700 font-semibold"
-                            : "text-gray-800 hover:bg-gray-50"
-                        }`}
-                      >
-                        <span>
-                          {lang.native}
-                          <span className="text-gray-400 text-xs ml-2">{lang.label}</span>
-                        </span>
-                        {active && <Check size={16} className="text-indigo-600" />}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-
-        <div className="bg-black/25 text-center py-4 text-xs text-white">
-          © 2026 Constructezy Limited — All Rights Reserved.
         </div>
       </div>
     </footer>
