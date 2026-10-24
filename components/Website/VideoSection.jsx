@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
 import { IMAGES } from "@/routes/AllImages"
 
 /* ------------------------------------------------------------------ */
@@ -11,12 +10,15 @@ import { IMAGES } from "@/routes/AllImages"
 const AUTO_DELAY = 5000 // ms between slides
 
 // true  -> live text + button is shown on top of the image (left side)
-// false -> only the image is shown (use this if your banner images
-//          already have the text baked in, so it doesn't repeat)
+// false -> only the image is shown
 const SHOW_TEXT = true
 
+// Scroll targets (same IDs jo ShopServicesSection mein use hui hain)
+const PRODUCTS_SECTION_ID = "products-section"
+const SERVICES_SECTION_ID = "services-section"
+
 /* ------------------------------------------------------------------ */
-/*  SLIDES  (each image is used as a FULL-WIDTH background)            */
+/*  SLIDES                                                             */
 /* ------------------------------------------------------------------ */
 const SLIDES = [
   {
@@ -27,7 +29,7 @@ const SLIDES = [
     highlight: "in one place",
     description:
       "Wide range of construction materials, top brands, quick delivery and expert support.",
-    cta: { label: "Explore Products", href: "/products" },
+    cta: { label: "Explore Products", targetId: PRODUCTS_SECTION_ID },
     image: IMAGES.homebanner_1,
     alt: "Cement, paints, pipes, switches and safety helmet",
   },
@@ -39,7 +41,7 @@ const SLIDES = [
     highlight: "delivered fast",
     description:
       "Cement, steel, bricks, paints and plumbing from trusted brands, right at your site.",
-    cta: { label: "Shop Now", href: "/products" },
+    cta: { label: "Shop Now", targetId: PRODUCTS_SECTION_ID },
     image: IMAGES.homebanner_2,
     alt: "Premium construction materials",
   },
@@ -51,11 +53,24 @@ const SLIDES = [
     highlight: "partners",
     description:
       "Get bulk quotes, expert guidance and on-time delivery for projects of every size.",
-    cta: { label: "Get a Quote", href: "/contact" },
+    cta: { label: "Get a Quote", targetId: SERVICES_SECTION_ID },
     image: IMAGES.homebanner_3,
     alt: "Construction experts and materials",
   },
 ]
+
+/* ------------------------------------------------------------------ */
+/*  SMOOTH SCROLL                                                      */
+/* ------------------------------------------------------------------ */
+const scrollToSection = (e, targetId) => {
+  e.preventDefault()
+  const el = document.getElementById(targetId)
+
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" })
+    window.history.replaceState(null, "", `#${targetId}`)
+  }
+}
 
 /* ------------------------------------------------------------------ */
 /*  ICONS                                                              */
@@ -200,14 +215,15 @@ const ConstructionHero = () => {
                           {slide.description}
                         </p>
 
-                        <Link
-                          href={slide.cta.href}
+                        <a
+                          href={`#${slide.cta.targetId}`}
+                          onClick={(e) => scrollToSection(e, slide.cta.targetId)}
                           tabIndex={active ? 0 : -1}
                           className="group mt-3 inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-emerald-700/25 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 sm:mt-5 sm:px-6 sm:py-2.5 sm:text-sm md:text-base"
                         >
                           {slide.cta.label}
                           <ArrowIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Link>
+                        </a>
                       </div>
                     </div>
                   </>

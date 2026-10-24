@@ -2,9 +2,12 @@
 
 import React from "react"
 import Image from "next/image"
-import Link from "next/link"
 import { IMAGES } from "@/routes/AllImages"
 
+/* ------------------------------ CONFIG ------------------------------ */
+// Ye IDs un sections par lagani hain jahan scroll hoke rukna hai
+const PRODUCTS_SECTION_ID = "products-section"
+const SERVICES_SECTION_ID = "services-section"
 
 /* ------------------------------ ICONS ------------------------------ */
 const ArrowIcon = ({ className = "" }) => (
@@ -25,11 +28,7 @@ const ArrowIcon = ({ className = "" }) => (
 
 const BadgeIcon = () => (
   <svg viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true">
-    <path
-      d="M8 13.5 6 22l6-3 6 3-2-8.5"
-      fill="#0f9d6b"
-      opacity="0.85"
-    />
+    <path d="M8 13.5 6 22l6-3 6 3-2-8.5" fill="#0f9d6b" opacity="0.85" />
     <circle cx="12" cy="9" r="7" fill="#0f9d6b" />
     <path
       d="m8.8 9.2 2.2 2.2 4.2-4.4"
@@ -93,15 +92,28 @@ const SERVICE_POINTS = [
   "Quality Assurance",
 ]
 
+/* --------------------------- SMOOTH SCROLL -------------------------- */
+const scrollToSection = (e, targetId) => {
+  e.preventDefault()
+  const el = document.getElementById(targetId)
+
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" })
+    // URL mein #hash set hota hai, page reload nahi hota
+    window.history.replaceState(null, "", `#${targetId}`)
+  }
+}
+
 /* ------------------------------ BUTTON ----------------------------- */
-const CardButton = ({ href, children }) => (
-  <Link
-    href={href}
+const CardButton = ({ targetId, children }) => (
+  <a
+    href={`#${targetId}`}
+    onClick={(e) => scrollToSection(e, targetId)}
     className="group inline-flex items-center gap-2.5 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-800/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-lg sm:px-7 sm:py-3 sm:text-[15px]"
   >
     {children}
     <ArrowIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-  </Link>
+  </a>
 )
 
 /* ----------------------------- COMPONENT --------------------------- */
@@ -131,7 +143,7 @@ const ShopServicesSection = () => {
               High quality construction materials from trusted brands.
             </p>
             <div className="mt-4 sm:mt-5">
-              <CardButton href="/products">Browse Products</CardButton>
+              <CardButton targetId={PRODUCTS_SECTION_ID}>Browse Products</CardButton>
             </div>
           </div>
 
@@ -171,7 +183,7 @@ const ShopServicesSection = () => {
               Verified professionals for all your construction needs.
             </p>
             <div className="mt-4 sm:mt-5">
-              <CardButton href="/services">Browse Services</CardButton>
+              <CardButton targetId={SERVICES_SECTION_ID}>Browse Services</CardButton>
             </div>
           </div>
 

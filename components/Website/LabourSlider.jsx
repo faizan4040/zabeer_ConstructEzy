@@ -59,8 +59,8 @@ const LaborSlider = ({ onAuthRequired }) => {
   }, [])
 
   return (
-    <section
-      id="services"
+    <section  
+      id="services-section"
       ref={sectionRef}
       className="w-full bg-white py-6 sm:py-8"
     >

@@ -17,12 +17,15 @@ export const IMAGES = {
   shopproducts: "/assets/images/shopproducts.png",
   book_services: "/assets/images/book_services.png",
 
-  category_plumbing: "/images/categories/plumbing.jpg",
-  category_electrical: "/images/categories/electrical.jpg",
-  category_paints: "/images/categories/paints.jpg",
-  category_hardware: "/images/categories/hardware.jpg",
-  category_power_tools: "/images/categories/power-tools.jpg",
-  category_safety: "/images/categories/safety.jpg",
+  category_plumbing: "/assets/images/categories/plumbing.jpg",
+  category_electrical: "/assets/images/categories/electrical.jpg",
+  category_paints: "/assets/images/categories/paints.jpg",
+  category_hardware: "/assets/images/categories/hardware.jpg",
+  category_power_tools: "/assets/images/categories/power-tools.jpg",
+  category_safety: "/assets/images/categories/safety.jpg",
+  category_cement: "/assets/images/categories/cement.jpg",
+  category_furniture: "/assets/images/categories/furniture.jpg",
+  category_tools: "/assets/images/categories/tools.jpg",
 
   // New in Footwear
   shoes_1: "/assets/images/shoes_1.avif",

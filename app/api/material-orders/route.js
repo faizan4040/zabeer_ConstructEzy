@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import crypto from "crypto";
-import connectDB from "@/lib/databaseConnection"; // apne export ke hisaab se adjust karo
+import connectDB from "@/lib/databaseConnection";
 import MaterialOrder from "@/models/MaterialOrder";
+import { uploadBuffer } from "@/lib/cloudinaryServer";
 
 export const runtime = "nodejs";
 
@@ -13,8 +11,8 @@ const ALLOWED = {
   "image/png": "png",
   "image/webp": "webp",
 };
-const MAX_SIZE = 10 * 1024 * 1024; // 10MB per file
-const MAX_FILES = 5;
+const MAX_SIZE = 4 * 1024 * 1024; // 4MB per file (Vercel body limit 4.5MB)
+const MAX_FILES = 3;
 
 /* USER: order submit */
 export async function POST(req) {
@@ -34,21 +32,18 @@ export async function POST(req) {
     if (files.length === 0 || files.length > MAX_FILES)
       return NextResponse.json({ error: `Upload 1 to ${MAX_FILES} files` }, { status: 400 });
 
-    const dir = path.join(process.cwd(), "public", "uploads", "material-lists");
-    await mkdir(dir, { recursive: true });
-
     const saved = [];
     for (const file of files) {
-      const ext = ALLOWED[file.type];
-      if (!ext)
+      if (!ALLOWED[file.type])
         return NextResponse.json({ error: "Only PDF/JPG/PNG/WEBP allowed" }, { status: 400 });
       if (file.size > MAX_SIZE)
-        return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 400 });
+        return NextResponse.json({ error: "File too large (max 4MB)" }, { status: 400 });
 
-      const filename = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${ext}`;
-      await writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const result = await uploadBuffer(buffer);
       saved.push({
-        url: `/uploads/material-lists/${filename}`,
+        url: result.secure_url,
+        publicId: result.public_id,
         originalName: file.name,
         mimeType: file.type,
         size: file.size,
@@ -69,8 +64,8 @@ export async function POST(req) {
 
     return NextResponse.json({ success: true, id: order._id }, { status: 201 });
   } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error("material-orders POST error:", e);
+    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }
 }
 
@@ -84,6 +79,7 @@ export async function GET(req) {
     const orders = await MaterialOrder.find(filter).sort({ createdAt: -1 }).lean();
     return NextResponse.json({ orders });
   } catch (e) {
+    console.error("material-orders GET error:", e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

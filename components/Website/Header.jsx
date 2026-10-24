@@ -286,7 +286,7 @@ export default function Header() {
 
             {/* LEFT: Logo */}
             <Link href={WEBSITE_HOME} className="shrink-0">
-              <img src={IMAGES.logo} className="h-9 sm:h-11 lg:h-12 w-auto" alt="Logo" />
+              <img src={IMAGES.logo} className="h-9 sm:h-11 lg:h-14 w-auto" alt="Logo" />
             </Link>
 
             {/* Desktop: Location pill */}

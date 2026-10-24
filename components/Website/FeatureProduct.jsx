@@ -108,7 +108,7 @@ const FeatureProductInner = () => {
 
   return (
     <section
-      id="shop"
+      id="products-section"
       ref={sectionRef}
       className="w-full px-4 sm:px-8 lg:px-16 -py-4"
     >
