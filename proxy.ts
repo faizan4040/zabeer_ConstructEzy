@@ -85,6 +85,10 @@ export default async function middleware(request: NextRequest): Promise<NextResp
   if (isPublicExactPath(pathname)) {
     return NextResponse.next();
   }
+    // Email verify link logged-in ya logged-out, dono ke liye khulna chahiye
+  if (pathname.startsWith("/auth/verify-email")) {
+    return NextResponse.next();
+  }
 
   /* ── Unauthenticated user ── */
   if (!hasToken) {

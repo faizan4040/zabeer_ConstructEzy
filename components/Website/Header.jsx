@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from "react"
-import { X, User, MapPin, ChevronDown, Navigation, Truck, Clock, Shield, Store } from "lucide-react"
+import { X, User, MapPin, ChevronDown, Navigation, Truck, Clock, Shield, Store, Mic } from "lucide-react"
 import { USER_DASHBOARD, WEBSITE_HOME, WEBSITE_LOGIN, WEBSITE_REGISTER, WEBSITE_SHOP } from "@/routes/WebsiteRoute"
 import Card from '@/components/Website/Cart'
 import Link from "next/link"
@@ -9,6 +9,96 @@ import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar"
 import { IMAGES } from "@/routes/AllImages"
 import { useRouter } from "next/navigation"
 import { IoSearchOutline } from "react-icons/io5"
+
+/* ------------------------------------------------------------------ */
+/*  VOICE MIC BUTTON (browser ka built-in Web Speech API, free)        */
+/* ------------------------------------------------------------------ */
+const VOICE_LANG = "en-IN" // Hindi ke liye "hi-IN" kar do
+
+function VoiceMic({ onText, onListening, onError, size = 20 }) {
+  const recRef = useRef(null)
+  const [supported, setSupported] = useState(false)
+  const [listening, setListening] = useState(false)
+
+  // Latest callbacks ko ref mein rakho, taaki recognition baar baar na bane
+  const cbRef = useRef({ onText, onListening, onError })
+  cbRef.current = { onText, onListening, onError }
+
+  useEffect(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) return
+    setSupported(true)
+
+    const rec = new SR()
+    rec.lang = VOICE_LANG
+    rec.continuous = false
+    rec.interimResults = true
+    rec.maxAlternatives = 1
+
+    rec.onstart = () => {
+      setListening(true)
+      cbRef.current.onListening?.(true)
+      cbRef.current.onError?.("")
+    }
+
+    rec.onresult = (event) => {
+      let text = ""
+      for (let i = 0; i < event.results.length; i++) {
+        text += event.results[i][0].transcript
+      }
+      cbRef.current.onText?.(text.trim())
+    }
+
+    rec.onerror = (e) => {
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        cbRef.current.onError?.("Mic permission allow karo (browser address bar mein).")
+      } else if (e.error === "no-speech") {
+        cbRef.current.onError?.("Kuch sunai nahi diya, dobara bolo.")
+      } else if (e.error !== "aborted") {
+        cbRef.current.onError?.("Voice search kaam nahi kar raha, dobara try karo.")
+      }
+    }
+
+    rec.onend = () => {
+      setListening(false)
+      cbRef.current.onListening?.(false)
+    }
+
+    recRef.current = rec
+    return () => {
+      try { rec.abort() } catch {}
+    }
+  }, [])
+
+  const toggle = () => {
+    const rec = recRef.current
+    if (!rec) return
+    if (listening) {
+      rec.stop()
+    } else {
+      try { rec.start() } catch {}
+    }
+  }
+
+  // Unsupported browser (jaise Firefox) mein mic hide
+  if (!supported) return null
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={listening ? "Stop voice search" : "Search by voice"}
+      title={listening ? "Sun raha hun... (band karne ke liye click)" : "Bol kar search karo"}
+      className={`shrink-0 flex items-center justify-center w-9 h-9 my-auto mr-1 rounded-full transition cursor-pointer ${
+        listening
+          ? "bg-red-500 text-white animate-pulse"
+          : "text-gray-600 hover:bg-emerald-50 hover:text-[#0B8457]"
+      }`}
+    >
+      <Mic size={size} />
+    </button>
+  )
+}
 
 function getStaticRoleIcon(role) {
   const normalized = String(role || "").trim().toLowerCase()
@@ -29,6 +119,10 @@ export default function Header() {
 
   // Mobile search
   const [mobileQuery, setMobileQuery] = useState("")
+
+  // Voice state
+  const [voiceListening, setVoiceListening] = useState(false)
+  const [voiceError, setVoiceError] = useState("")
 
   // Location state
   const [locationModal, setLocationModal] = useState(false)
@@ -62,6 +156,13 @@ export default function Header() {
   useEffect(() => {
     setAvatarFailed(false)
   }, [auth?.avatar?.url])
+
+  // Voice error 4 second baad apne aap hat jaye
+  useEffect(() => {
+    if (!voiceError) return
+    const t = setTimeout(() => setVoiceError(""), 4000)
+    return () => clearTimeout(t)
+  }, [voiceError])
 
   const goSearch = (text) => {
     const q = text.trim()
@@ -173,6 +274,10 @@ export default function Header() {
 
   const avatarSrc = !avatarFailed && auth?.avatar?.url ? auth.avatar.url : IMAGES.profile
   const staticRoleIcon = getStaticRoleIcon(auth?.role)
+
+  const searchPlaceholder = voiceListening
+    ? "Listening... ab bolo"
+    : "Search products, materials or services..."
 
   /* ── Shared location panel content (desktop dropdown + mobile sheet) ── */
   const locationPanel = (
@@ -310,35 +415,51 @@ export default function Header() {
               )}
             </div>
 
-            {/* Desktop: Search (always open) */}
+            {/* Desktop: Search (always open) + Voice */}
             <div className="hidden md:flex flex-1 min-w-0 justify-center">
-              <div className="relative flex items-stretch w-full max-w-2xl rounded-lg border border-[#0B8457] bg-white overflow-hidden focus-within:ring-2 focus-within:ring-emerald-200 transition">
-                <IoSearchOutline size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900 pointer-events-none" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleSearch()}
-                  className="flex-1 min-w-0 pl-12 pr-10 py-3 text-gray-900 text-sm bg-transparent focus:outline-none placeholder-gray-400"
-                  placeholder="Search products, materials or services..."
-                />
-                {query && (
+              <div className="relative w-full max-w-2xl">
+                <div className="relative flex items-stretch w-full rounded-lg border border-[#0B8457] bg-white overflow-hidden focus-within:ring-2 focus-within:ring-emerald-200 transition">
+                  <IoSearchOutline size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handleSearch()}
+                    className="flex-1 min-w-0 pl-12 pr-2 py-3 text-gray-900 text-sm bg-transparent focus:outline-none placeholder-gray-400"
+                    placeholder={searchPlaceholder}
+                  />
+                  {query && (
+                    <button
+                      type="button"
+                      onClick={() => { setQuery(""); goSearch("") }}
+                      className="shrink-0 px-2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                      aria-label="Clear"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+
+                  {/* 🎤 Voice */}
+                  <VoiceMic
+                    onText={setQuery}
+                    onListening={setVoiceListening}
+                    onError={setVoiceError}
+                  />
+
                   <button
                     type="button"
-                    onClick={() => { setQuery(""); goSearch("") }}
-                    className="absolute right-28 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
-                    aria-label="Clear"
+                    onClick={handleSearch}
+                    className="px-7 bg-[#0B8457] hover:bg-[#086b47] text-white text-sm font-semibold cursor-pointer transition-colors"
                   >
-                    <X size={16} />
+                    Search
                   </button>
+                </div>
+
+                {voiceError && (
+                  <p className="absolute left-1 top-full mt-1 text-xs font-medium text-rose-600">
+                    {voiceError}
+                  </p>
                 )}
-                <button
-                  type="button"
-                  onClick={handleSearch}
-                  className="px-7 bg-[#0B8457] hover:bg-[#086b47] text-white text-sm font-semibold cursor-pointer transition-colors"
-                >
-                  Search
-                </button>
               </div>
             </div>
 
@@ -421,7 +542,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* ─── MOBILE SEARCH BAR (always open, below md) ─── */}
+        {/* ─── MOBILE SEARCH BAR (always open, below md) + Voice ─── */}
         <div className="md:hidden bg-white px-3 sm:px-6 pb-3 pt-1">
           <div className="relative flex items-stretch rounded-lg border border-[#0B8457] bg-white overflow-hidden focus-within:ring-2 focus-within:ring-emerald-200 transition">
             <IoSearchOutline size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-900 pointer-events-none" />
@@ -430,27 +551,41 @@ export default function Header() {
               value={mobileQuery}
               onChange={e => setMobileQuery(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleMobileSearch()}
-              className="flex-1 min-w-0 pl-10 pr-9 py-2.5 text-gray-900 text-sm bg-transparent focus:outline-none placeholder-gray-400"
-              placeholder="Search products, materials or services..."
+              className="flex-1 min-w-0 pl-10 pr-2 py-2.5 text-gray-900 text-sm bg-transparent focus:outline-none placeholder-gray-400"
+              placeholder={searchPlaceholder}
             />
             {mobileQuery && (
               <button
+                type="button"
                 onClick={() => setMobileQuery("")}
-                className="absolute right-14 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                className="shrink-0 px-1.5 text-gray-400 hover:text-gray-600 cursor-pointer"
                 aria-label="Clear"
               >
                 <X size={16} />
               </button>
             )}
+
+            {/* 🎤 Voice */}
+            <VoiceMic
+              size={18}
+              onText={setMobileQuery}
+              onListening={setVoiceListening}
+              onError={setVoiceError}
+            />
+
             <button
               type="button"
               onClick={handleMobileSearch}
-              className="w-12 bg-[#0B8457] hover:bg-[#086b47] flex items-center justify-center text-white cursor-pointer transition-colors"
+              className="w-12 shrink-0 bg-[#0B8457] hover:bg-[#086b47] flex items-center justify-center text-white cursor-pointer transition-colors"
               aria-label="Search"
             >
               <IoSearchOutline size={18} />
             </button>
           </div>
+
+          {voiceError && (
+            <p className="mt-1 text-xs font-medium text-rose-600">{voiceError}</p>
+          )}
         </div>
 
         {/* ─── MOBILE / TABLET LOCATION STRIP ─── */}

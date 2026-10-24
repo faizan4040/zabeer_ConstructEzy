@@ -2,15 +2,17 @@
 
 import React, { useEffect, useRef, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useSelector } from "react-redux"
 import { RiArrowRightLine } from "react-icons/ri"
-import { ChevronRight, ArrowRight } from "lucide-react"
+import { ChevronRight, ArrowRight, X } from "lucide-react"
 import { IMAGES } from "@/routes/AllImages"
+import { WEBSITE_LOGIN } from "@/routes/WebsiteRoute"
 
-/* ------------------------------------------------------------------ */
-/*  SERVICES  (images come from your existing IMAGES keys)             */
-/* ------------------------------------------------------------------ */
+const BOOK_PAGE = "/user/book"
+const REGISTER_PAGE = "/auth/register"
+
 const SERVICES = [
   { id: 1, title: "Electrician", slug: "electricians", image: IMAGES?.Electrician },
   { id: 2, title: "Plumber", slug: "plumbers", image: IMAGES?.Plumber },
@@ -22,19 +24,22 @@ const SERVICES = [
   { id: 8, title: "Tile Fixer", slug: "tile-fixers", image: IMAGES?.Tile_Fixer },
 ]
 
-const LaborSlider = ({ onAuthRequired }) => {
+const LaborSlider = () => {
   const sectionRef = useRef(null)
   const [visible, setVisible] = useState(false)
+  const [showPopup, setShowPopup] = useState(false)
   const router = useRouter()
   const auth = useSelector((store) => store.authStore.auth)
 
-  // Book Now behaviour unchanged (login check -> booking page)
+  const callback = encodeURIComponent(BOOK_PAGE)
+
+  // Login hai to booking page, nahi to popup
   const goBook = () => {
     if (!auth) {
-      onAuthRequired?.()
+      setShowPopup(true)
       return
     }
-    router.push("/user/book")
+    router.push(BOOK_PAGE)
   }
 
   // Cards reveal once, when the section scrolls into view
@@ -59,10 +64,10 @@ const LaborSlider = ({ onAuthRequired }) => {
   }, [])
 
   return (
-    <section  
+    <section
       id="services-section"
       ref={sectionRef}
-      className="w-full bg-white py-6 sm:py-8"
+      className="w-full scroll-mt-24 bg-white py-6 sm:py-8"
     >
       <style>{`
         @keyframes serviceCardIn {
@@ -73,6 +78,10 @@ const LaborSlider = ({ onAuthRequired }) => {
           0%   { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.55); }
           70%  { box-shadow: 0 0 0 14px rgba(245, 158, 11, 0); }
           100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+        @keyframes popupIn {
+          from { opacity: 0; transform: scale(0.94) translateY(8px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
         }
         .service-card { opacity: 0; }
         .service-card.is-visible { animation: serviceCardIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
@@ -85,7 +94,7 @@ const LaborSlider = ({ onAuthRequired }) => {
       `}</style>
 
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        {/* ---------- Header ---------- */}
+        {/* Header */}
         <div className="mb-4 flex items-center justify-between sm:mb-5">
           <h2 className="text-xl font-extrabold tracking-tight text-[#0b1b3f] sm:text-2xl lg:text-[28px]">
             Book a Service
@@ -104,7 +113,7 @@ const LaborSlider = ({ onAuthRequired }) => {
           </button>
         </div>
 
-        {/* ---------- Book Now strip (hire labour) ---------- */}
+        {/* Book Now strip */}
         <div className="mb-5 flex flex-col gap-4 rounded-2xl border border-amber-200 bg-linear-to-r from-amber-50 via-orange-50 to-amber-50 p-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">
@@ -115,10 +124,9 @@ const LaborSlider = ({ onAuthRequired }) => {
             </p>
           </div>
 
-          {/* Book Now - main action */}
           <button
             type="button"
-            onClick={() => goBook()}
+            onClick={goBook}
             className="book-now-btn group inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl bg-linear-to-r from-amber-400 to-orange-500 px-8 py-3.5 text-base font-bold text-gray-900 shadow-lg shadow-amber-500/30 transition-all hover:-translate-y-0.5 hover:from-amber-500 hover:to-orange-600 hover:shadow-xl hover:shadow-amber-500/40 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-950/40 active:translate-y-0 sm:w-auto sm:text-lg"
           >
             Book Now
@@ -129,7 +137,7 @@ const LaborSlider = ({ onAuthRequired }) => {
           </button>
         </div>
 
-        {/* ---------- Service cards ---------- */}
+        {/* Service cards */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {SERVICES.map((item, i) => (
             <button
@@ -141,7 +149,6 @@ const LaborSlider = ({ onAuthRequired }) => {
                 visible ? "is-visible" : ""
               } group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white text-left shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-900/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500`}
             >
-              {/* Photo */}
               <div className="relative h-36 w-full overflow-hidden bg-slate-100 sm:h-40 lg:h-44">
                 {item.image ? (
                   <Image
@@ -160,7 +167,6 @@ const LaborSlider = ({ onAuthRequired }) => {
                 )}
               </div>
 
-              {/* Name + chevron */}
               <div className="flex items-center justify-between px-4 py-3.5">
                 <span className="line-clamp-1 text-sm font-bold text-[#0b1b3f] transition-colors group-hover:text-emerald-700 sm:text-[15px]">
                   {item.title}
@@ -174,19 +180,53 @@ const LaborSlider = ({ onAuthRequired }) => {
           ))}
         </div>
       </div>
+
+      {/* Login / Sign up popup */}
+      {showPopup && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
+          onClick={() => setShowPopup(false)}
+        >
+          <div
+            className="relative w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl"
+            style={{ animation: "popupIn 0.25s ease-out" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowPopup(false)}
+              aria-label="Close"
+              className="absolute right-3 top-3 rounded-full p-1.5 text-slate-500 hover:bg-slate-100"
+            >
+              <X size={18} />
+            </button>
+
+            <h3 className="text-xl font-bold text-[#0b1b3f]">
+              Login to book labour
+            </h3>
+            <p className="mt-2 text-sm text-slate-600">
+              Labour book karne se pehle login ya sign up karo.
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3">
+              <Link
+                href={`${WEBSITE_LOGIN}?callback=${callback}`}
+                className="rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white transition hover:bg-emerald-800"
+              >
+                Login
+              </Link>
+              <Link
+                href={`${REGISTER_PAGE}?callback=${callback}`}
+                className="rounded-xl border-2 border-emerald-700 px-5 py-3 font-semibold text-emerald-700 transition hover:bg-emerald-50"
+              >
+                Sign up
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
 
 export default LaborSlider
-
-
-
-
-
-
-
-
-
-
-

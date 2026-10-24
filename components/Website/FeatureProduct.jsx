@@ -110,28 +110,28 @@ const FeatureProductInner = () => {
     <section
       id="products-section"
       ref={sectionRef}
-      className="w-full px-4 sm:px-8 lg:px-16 -py-4"
+      className="w-full scroll-mt-24 px-3 py-4 sm:px-8 lg:px-16"
     >
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl sm:text-3xl font-bold">
+      <div className="mb-4 flex items-center justify-between gap-2 sm:mb-6">
+        <h2 className="text-xl font-bold sm:text-3xl">
           {q ? `Results for "${rawQuery}"` : "Construction Materials"}
         </h2>
         {q && !loading && (
-          <span className="text-sm text-gray-500">
+          <span className="shrink-0 text-xs text-gray-500 sm:text-sm">
             {filteredProducts.length} product
             {filteredProducts.length === 1 ? "" : "s"} found
           </span>
         )}
       </div>
 
-      {/* Product Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 min-h-225">
+      {/* Product Grid: phone par 2, tablet par 2-3, desktop par 4 */}
+      <div className="grid min-h-225 grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
         {loading &&
           Array.from({ length: 12 }).map((_, i) => (
             <div
               key={i}
-              className="h-72 rounded-xl bg-gray-200 animate-pulse shadow"
+              className="h-56 animate-pulse rounded-xl bg-gray-200 shadow sm:h-72"
             />
           ))}
 
@@ -141,7 +141,7 @@ const FeatureProductInner = () => {
           ))}
 
         {!loading && visibleProducts.length === 0 && (
-          <p className="col-span-full text-center text-gray-500 py-10">
+          <p className="col-span-full py-10 text-center text-gray-500">
             {q ? `No products found for "${rawQuery}".` : "No products found."}
           </p>
         )}
@@ -149,26 +149,26 @@ const FeatureProductInner = () => {
 
       {/* Pagination Controls */}
       {!loading && totalPages > 1 && (
-        <div className="flex justify-between items-center mt-10">
+        <div className="mt-8 flex flex-col items-center gap-4 sm:mt-10 sm:flex-row sm:justify-between">
           {/* Load More */}
           {currentPage < totalPages && (
             <button
               onClick={handleLoadMore}
-              className="px-6 py-2 rounded-lg border-orange-500 hover:bg-orange-500 border-2 hover:text-white transition-all duration-300 cursor-pointer font-semibold"
+              className="cursor-pointer rounded-lg border-2 border-orange-500 px-6 py-2 font-semibold transition-all duration-300 hover:bg-orange-500 hover:text-white"
             >
               Load More
             </button>
           )}
 
           {/* Page Numbers */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             {Array.from({ length: totalPages }).map((_, index) => {
               const page = index + 1
               return (
                 <button
                   key={page}
                   onClick={() => handlePageClick(page)}
-                  className={`px-3 py-2 rounded-md border transition ${
+                  className={`rounded-md border px-3 py-2 transition ${
                     currentPage === page
                       ? "bg-black text-white"
                       : "bg-white hover:bg-gray-100"
