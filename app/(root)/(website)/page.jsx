@@ -15,6 +15,7 @@ import Testimonial from '@/components/Website/Testimonial'
 import ProductBox from "@/components/Website/ProductBox";
 import ShopServices from "@/components/Website/ShopServices";
 import ShopByCategory from "@/components/Website/ShopByCategory";
+import ProjectEnquiry from "@/components/Website/ProjectEnquiry"
 import About from "@/components/Website/About";
 import { WEBSITE_SHOP, WEBSITE_HOME } from "@/routes/WebsiteRoute";
 import { X, Loader2 } from "lucide-react";
@@ -120,7 +121,8 @@ const Home = () => {
 
   // ── No category selected: normal landing page ──
   return (
-     <div className="w-full min-w-0 overflow-x-hidden">
+    <div className="w-full min-w-0 overflow-x-hidden">
+
     <section className="w-full py-1">
       <ShopBySlider />
     </section>
@@ -128,7 +130,7 @@ const Home = () => {
     <section className="w-full">
       <CuponBanner />
     </section>
-    
+
     <section className="w-full">
       <ShopServices />
     </section>
@@ -143,6 +145,10 @@ const Home = () => {
 
     <section className="w-full py-10">
       <FeatureProduct />
+    </section>
+
+    <section className="w-full py-10">
+      <ProjectEnquiry />
     </section>
 
     <section className="w-full">

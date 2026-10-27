@@ -16,6 +16,7 @@ export const IMAGES = {
   homebanner_3: '/assets/images/homebanner_3.png',
   shopproducts: "/assets/images/shopproducts.png",
   book_services: "/assets/images/book_services.png",
+  projectEnquiry: "/assets/images/projectEnquiry.jpg",
 
   category_plumbing: "/assets/images/categories/plumbing.jpg",
   category_electrical: "/assets/images/categories/electrical.jpg",

@@ -9,6 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar"
 import { IMAGES } from "@/routes/AllImages"
 import { useRouter } from "next/navigation"
 import { IoSearchOutline } from "react-icons/io5"
+import MobileSidebar, { MobileMenuToggle } from "./MobileSidebar"
 
 /* ------------------------------------------------------------------ */
 /*  VOICE MIC BUTTON (browser ka built-in Web Speech API, free)        */
@@ -116,6 +117,10 @@ export default function Header() {
   const router = useRouter()
   const [profileOpen, setProfileOpen] = useState(false)
   const auth = useSelector(store => store.authStore.auth)
+
+  // Mobile sidebar menu
+  const [menuOpen, setMenuOpen] = useState(false)
+  const closeMenu = useCallback(() => setMenuOpen(false), [])
 
   // Mobile search
   const [mobileQuery, setMobileQuery] = useState("")
@@ -389,10 +394,13 @@ export default function Header() {
         <div className="bg-white text-gray-900 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
           <div className="flex items-center justify-between gap-3 sm:gap-4 lg:gap-6 max-w-400 mx-auto">
 
-            {/* LEFT: Logo */}
-            <Link href={WEBSITE_HOME} className="shrink-0">
-              <img src={IMAGES.logo} className="h-9 sm:h-11 lg:h-14 w-auto" alt="Logo" />
-            </Link>
+            {/* LEFT: Menu toggle (phone only) + Logo */}
+            <div className="flex items-center gap-2 shrink-0">
+              <MobileMenuToggle onClick={() => setMenuOpen(true)} />
+              <Link href={WEBSITE_HOME} className="shrink-0">
+                <img src={IMAGES.logo} className="h-9 sm:h-11 lg:h-14 w-auto" alt="Logo" />
+              </Link>
+            </div>
 
             {/* Desktop: Location pill */}
             <div className="hidden lg:block relative shrink-0" ref={locationModalRef}>
@@ -605,6 +613,9 @@ export default function Header() {
           </span>
         </button>
       </header>
+
+      {/* ─── MOBILE LEFT SIDEBAR MENU (phone only) ─── */}
+      <MobileSidebar open={menuOpen} onClose={closeMenu} auth={auth} />
 
       {/* ─── MOBILE LOCATION BOTTOM SHEET ─── */}
       {locationModal && (

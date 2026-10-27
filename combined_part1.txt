@@ -1,0 +1,2272 @@
+
+
+===== models\Labour.model.js =====
+import mongoose from "mongoose";
+
+const labourSchema = new mongoose.Schema(
+  {
+    // User who owns this labour profile
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    // Labour Category
+    category: {
+      type: String,
+      enum: [
+        "helpers",
+        "masons",
+        "electricians",
+        "plumbers",
+        "carpenters",
+        "painters",
+        "tile-experts",
+        "welders",
+        "jcb-operators",
+        "contractors",
+        "engineers",
+      ],
+      required: true,
+    },
+
+    // Basic Information
+    fullName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    phone: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+
+    profileImage: {
+      type: String,
+      default: "",
+    },
+
+    about: {
+      type: String,
+      default: "",
+      maxlength: 500,
+    },
+
+    // Experience
+    experienceYears: {
+      type: Number,
+      default: 0,
+    },
+
+    // Pricing — labour chooses how they charge, then only the relevant
+    // price field(s) become required
+    rateType: {
+      type: String,
+      enum: ["hour", "day", "both"],
+      required: true,
+    },
+
+    pricePerHour: {
+      type: Number,
+      required: function () {
+        return this.rateType === "hour" || this.rateType === "both";
+      },
+    },
+
+    pricePerDay: {
+      type: Number,
+      required: function () {
+        return this.rateType === "day" || this.rateType === "both";
+      },
+    },
+
+    // Skills
+    skills: [
+      {
+        type: String,
+      },
+    ],
+
+    // Current Location
+    location: {
+      latitude: {
+        type: Number,
+        default: 0,
+      },
+
+      longitude: {
+        type: Number,
+        default: 0,
+      },
+
+      address: {
+        type: String,
+        default: "",
+      },
+    },
+
+    // Service Area
+    serviceRadius: {
+      type: Number,
+      default: 10,
+    },
+
+    // Ratings
+    rating: {
+      type: Number,
+      default: 0,
+    },
+
+    totalReviews: {
+      type: Number,
+      default: 0,
+    },
+
+    completedJobs: {
+      type: Number,
+      default: 0,
+    },
+
+    // Verification
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    aadhaarNumber: {
+      type: String,
+      default: "",
+    },
+
+    aadhaarImage: {
+      type: String,
+      default: "",
+    },
+
+    // Availability
+    availability: {
+      type: String,
+      enum: ["available", "busy", "offline"],
+      default: "available",
+    },
+
+    // Admin Approval
+    status: {
+      type: String,
+      enum: ["approved", "pending", "rejected"],
+      default: "pending",
+    },
+
+    rejectionReason: {
+      type: String,
+      default: "",
+    },
+
+    // Active Status
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Labour =
+  mongoose.models.Labour || mongoose.model("Labour", labourSchema);
+
+export default Labour;
+
+===== models\User.model.js =====
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+
+const UserSchema = new mongoose.Schema(
+  {
+    role: {
+      type: String,
+      required: true,
+      enum: ["admin", "customer", "shop owner", "laber", "delivery boy"],
+      default: "customer",
+    },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      trim: true,
+      select: false,
+    },
+    avatar: {
+      url: { type: String, trim: true },
+      public_id: { type: String, trim: true },
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    address: {
+      type: String,
+      trim: true,
+    },
+    shop: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Shop",
+      default: null,
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
+    blockedAt: {
+      type: Date,
+      default: null,
+    },
+    blockReason: {
+      type: String,
+      default: "",
+    },
+
+    // ── Partner onboarding (labour ) ──
+    partnerOnBoardingSteps: {
+      type: Number,
+      min: 0,
+      max: 8,
+      default: 0,
+    },
+    partnerStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    rejectionReason: {
+      type: String,
+      default: "",
+    },
+
+    // ── Socket.io ──
+    socketId: {
+      type: String,
+      default: null,
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+      },
+      coordinates: [Number],
+    },
+    isOnline: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    // ── Video KYC ──
+    videoKycStatus: {
+      type: String,
+      enum: ["not_required", "pending", "in_progress", "approved", "rejected"],
+      default: "not_required"
+    },
+    videoKycRoomId: {
+      type: String,
+      default: null,
+    },
+    videoKycRejectionReason: {
+      type: String,
+      default: "",
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+      index: true,
+    },
+  },
+  { timestamps: true }
+);
+
+UserSchema.index({ location: "2dsphere" });
+
+UserSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  this.password = await bcrypt.hash(this.password, 10);
+});
+
+UserSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+const UserModel =
+  mongoose.models.User || mongoose.model("User", UserSchema, "users");
+
+export default UserModel;
+
+
+
+===== models\WalletTransaction.model.js =====
+import mongoose from "mongoose"
+
+const walletTransactionSchema = new mongoose.Schema({
+  shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop", required: true },
+  order: { type: mongoose.Schema.Types.ObjectId, ref: "Order", required: true },
+  orderId: { type: String, required: true },
+  productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+  productName: { type: String, required: true },
+  qty: { type: Number, required: true },
+
+  grossAmount: { type: Number, required: true },
+  commissionPercent: { type: Number, required: true }, // snapshot at delivery time
+  platformRecovery: { type: Number, required: true },  // admin ka cut
+  platformCompensation: { type: Number, default: 0 },  // future: claim compensation credit
+  netAmount: { type: Number, required: true },         // shopowner ko milne wala amount
+
+  status: {
+    type: String,
+    enum: ["on_hold", "eligible", "paid_out", "cancelled"],
+    default: "on_hold",
+  },
+
+  deliveredAt: { type: Date, required: true },
+  eligibleAt: { type: Date, required: true }, // deliveredAt + 7 days
+
+  paidOutAt: { type: Date, default: null },
+  payoutId: { type: String, default: null },
+  utr: { type: String, default: null },
+  payoutMode: { type: String, default: null },
+  failureReason: { type: String, default: null },
+}, { timestamps: true })
+
+walletTransactionSchema.index({ shop: 1, status: 1 })
+walletTransactionSchema.index({ order: 1, productId: 1 })
+
+const WalletTransactionModel = mongoose.models.WalletTransaction || mongoose.model("WalletTransaction", walletTransactionSchema, "wallettransactions")
+export default WalletTransactionModel
+
+===== lib\databaseConnection.js =====
+import mongoose from "mongoose";
+const MONGODB_URL = process.env.MONGODB_URI;
+
+if (!MONGODB_URL) {
+  throw new Error("MONGODB_URI is missing");
+}
+
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { 
+    conn: null, 
+    promise: null 
+   };
+}
+
+const connectDB = async () => {
+  if (cached.conn) return cached.conn;
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URL, {
+      dbName: "Sport-Ecommerce",
+      bufferCommands: false,
+    });
+  }
+
+  cached.conn = await cached.promise;
+
+  return cached.conn;
+};
+
+export default connectDB;
+
+
+
+
+
+
+
+
+===== lib\authentication.js =====
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import connectDB from "@/lib/databaseConnection";
+import UserModel from "@/models/User.model";
+
+/**
+ * @param {string | string[] | undefined} role
+ *   - undefined -> any authenticated user is allowed (no role restriction)
+ *   - string    -> exact role match required (existing behaviour)
+ *   - string[]  -> user's role must be one of the given roles
+ */
+export const isAuthenticated = async (role) => {
+  try {
+    const cookieStore = await cookies();
+    if (!cookieStore.has("access_token")) {
+      return { isAuth: false };
+    }
+
+    const access_token = cookieStore.get("access_token");
+    const { payload } = await jwtVerify(
+      access_token.value,
+      new TextEncoder().encode(process.env.SECRET_KEY)
+    );
+
+    if (role) {
+      const allowedRoles = Array.isArray(role) ? role : [role];
+      if (!allowedRoles.includes(payload.role)) {
+        return { isAuth: false };
+      }
+    }
+
+    // real-time block check for shop owners — this single check protects
+    // every shopowner route (dashboard, product, orders, manual orders, etc.)
+    // without touching any of those individual route files
+    if (payload.role === "shop owner") {
+      await connectDB();
+      const user = await UserModel.findById(payload._id).select(
+        "isBlocked deletedAt"
+      );
+      if (!user || user.deletedAt || user.isBlocked) {
+        return { isAuth: false, blocked: true };
+      }
+    }
+
+    return {
+      isAuth: true,
+      userId: payload._id,
+      role: payload.role,
+    };
+  } catch (error) {
+    return {
+      isAuth: false,
+      error,
+    };
+  }
+};
+
+
+
+===== lib\getCurrentUser.js =====
+import { jwtVerify } from "jose"
+
+/**
+ * Get the current logged-in user from the request.
+ * Matches your OTP verify route:
+ *   - cookie name : access_token
+ *   - secret      : process.env.SECRET_KEY
+ *   - JWT payload : { _id, role, name, avatar }
+ *
+ * Returns { id, role, name, avatar } or null if not authenticated.
+ */
+export async function getCurrentUser(request) {
+  try {
+    // ── Read access_token cookie ──────────────────────────────
+    const cookieHeader = request.headers.get("cookie") || ""
+
+    // Parse access_token (may be URL-encoded)
+    const tokenMatch = cookieHeader.match(/(?:^|;\s*)access_token=([^;]+)/)
+    let token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null
+
+    // Fallback: Authorization: Bearer <token>
+    if (!token) {
+      const authHeader = request.headers.get("authorization") || ""
+      if (authHeader.startsWith("Bearer ")) {
+        token = authHeader.slice(7).trim()
+      }
+    }
+
+    if (!token) return null
+
+    // ── Verify with SECRET_KEY ────────────────────────────────
+    const secret = new TextEncoder().encode(process.env.SECRET_KEY)
+    const { payload } = await jwtVerify(token, secret)
+
+    // payload shape: { _id, role, name, avatar }
+    return {
+      id:     payload._id,
+      role:   payload.role,
+      name:   payload.name,
+      avatar: payload.avatar,
+    }
+  } catch (err) {
+    // Token missing, expired, or invalid — not authenticated
+    return null
+  }
+}
+
+===== lib\adminSidebarMenu.js =====
+import { MdSpaceDashboard } from "react-icons/md";
+import { BiCategory } from "react-icons/bi";
+import { IoShirtOutline } from "react-icons/io5";
+import { TbPaperBag } from "react-icons/tb";
+import { GoPeople } from "react-icons/go";
+import { MdOutlinePermMedia } from "react-icons/md";
+import { CiStar } from "react-icons/ci";
+import { RiCoupon2Fill } from "react-icons/ri";
+import { MdOutlineInventory2 } from "react-icons/md";
+import { Store } from "lucide-react"
+import { HardHat } from "lucide-react"
+
+
+import { ADMIN_CATEGORY_ADD, 
+         ADMIN_CATEGORY_SHOW, 
+         ADMIN_COUPON_ADD, 
+         ADMIN_COUPON_SHOW, 
+         ADMIN_CUSTOMERS_SHOW, 
+         ADMIN_DASHBOARD, 
+         ADMIN_MANUAL_ORDERS_DETAILS, 
+         ADMIN_MEDIA_SHOW, 
+         ADMIN_ORDER_SHOW, 
+         ADMIN_PRODUCT_ADD,
+         ADMIN_PRODUCT_SHOW,
+         ADMIN_PRODUCT_VARIANT_ADD,
+         ADMIN_PRODUCT_VARIANT_SHOW,
+         ADMIN_REVIEW_SHOW,
+         ADMIN_STOCK_SHOW,
+         ADMIN_WAREHOUSE_SHOW,
+        //  ADMIN_SHOPOWNER_TRACKER_SHOW,
+         ADMIN_LABOUR_VERIFY_SHOW,
+         ADMIN_ORDER_BY_USER
+        } from "@/routes/AdminPanelRoute";
+        
+        
+export const adminAppSidebarMenu = [
+    {
+        title: "Dashboard",
+        url: ADMIN_DASHBOARD,
+        icon: MdSpaceDashboard
+    },
+
+    {
+        title: "Product",
+        url: "#",
+        icon: IoShirtOutline,
+        submenu:[
+            {
+                title: "Add Product",
+                url: ADMIN_PRODUCT_ADD
+            },
+            {
+                title: "Add Variant",
+                url: ADMIN_PRODUCT_VARIANT_ADD
+            },
+            {
+                title: "All Products",
+                url: ADMIN_PRODUCT_SHOW
+            },
+            {
+                title: "Product Variants",
+                url: ADMIN_PRODUCT_VARIANT_SHOW
+            },
+        ]
+    },
+    
+
+    {
+        title: "Category",
+        url: "#",
+        icon: BiCategory,
+        submenu:[
+            {
+                title: "Add Category",
+                url: ADMIN_CATEGORY_ADD
+            },
+            {
+                title: "All Category",
+                url: ADMIN_CATEGORY_SHOW
+            }
+        ]
+    },
+
+
+    {
+        title: "Inventory",
+        url: "#",
+        icon: MdOutlineInventory2,
+        submenu:[
+            {
+                title: "WareHouse",
+                url: ADMIN_WAREHOUSE_SHOW
+            },
+            {
+                title: "Stock",
+                url: ADMIN_STOCK_SHOW
+            },
+        ]
+    },
+    
+
+        {
+        title: "Coupons",
+        url: "#",
+        icon: RiCoupon2Fill,
+        submenu:[
+            {
+                title: "Add Coupon",
+                url: ADMIN_COUPON_ADD
+            },
+            {
+                title: "All Coupons",
+                url: ADMIN_COUPON_SHOW
+            },
+        ]
+    },
+
+    {
+        title: "Orders",
+        url: "#",
+        icon: TbPaperBag,
+        submenu:[
+            {
+                title: "List",
+                url: ADMIN_ORDER_SHOW
+            },
+            {
+                title: "Manual orders",
+                url: ADMIN_MANUAL_ORDERS_DETAILS
+            },
+        ]
+    },
+
+    
+    // // existing adminSidebarMenu array mein ye item add karo:
+    // {
+    //     title: "Track Shopowner",
+    //     icon: Store,
+    //     submenu: [
+    //     { title: "All Shopowners", url: ADMIN_SHOPOWNER_TRACKER_SHOW },
+    //     ],
+    // },
+
+    {
+        title: "Order by User",
+        icon: Store,
+        submenu: [
+            { title: "Material List Orders", url: ADMIN_ORDER_BY_USER },
+        ],
+    },
+
+
+    {
+        title: "Verified Labour",
+        icon: HardHat,
+        submenu: [
+            { title: "All Labour", url: ADMIN_LABOUR_VERIFY_SHOW },
+        ],
+    },
+    
+
+    {
+        title: "Customers",
+        url: ADMIN_CUSTOMERS_SHOW,
+        icon: GoPeople,
+    },
+
+    {
+        title: "Rating & Review",
+        url: ADMIN_REVIEW_SHOW,
+        icon: CiStar,
+    },
+
+    {
+        title: "Media",
+        url: ADMIN_MEDIA_SHOW,
+        icon: MdOutlinePermMedia,
+    },
+
+
+
+
+]
+
+===== lib\razorpayQR.js =====
+import axios from "axios"
+
+const authConfig = {
+  auth: {
+    username: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+    password: process.env.RAZORPAY_KEY_SECRET,
+  },
+}
+
+// ── Creates a real, scannable UPI QR for an exact amount ──
+// Razorpay itself returns a ready-made QR image (image_url) — no need
+// to generate our own QR image, and it auto-detects payment via status.
+export async function createPaymentQR({ amount, orderId, description }) {
+  const { data } = await axios.post(
+    "https://api.razorpay.com/v1/payments/qr_codes",
+    {
+      type: "upi_qr",
+      name: "ConstructEzy Payment",
+      usage: "single_use",
+      fixed_amount: true,
+      payment_amount: Math.round(amount * 100), // paise
+      description: description || `Payment for order ${orderId}`,
+      close_by: Math.floor(Date.now() / 1000) + 30 * 60, // valid 30 min
+      notes: { orderId },
+    },
+    authConfig
+  )
+  return data // { id, image_url, status, ... }
+}
+
+export async function getPaymentQRStatus(qrCodeId) {
+  const { data } = await axios.get(
+    `https://api.razorpay.com/v1/payments/qr_codes/${qrCodeId}`,
+    authConfig
+  )
+  return data // { status: "active" | "closed", payments_amount_received, ... }
+}
+
+===== lib\payBooking.js =====
+import axios from "axios";
+
+const loadRazorpay = () =>
+  new Promise((resolve) => {
+    if (typeof window === "undefined") return resolve(false);
+    if (window.Razorpay) return resolve(true);
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.body.appendChild(s);
+  });
+
+/**
+ * Resolves true  -> payment verified
+ * Resolves false -> user closed the popup (booking stays unpaid, can pay later)
+ * Rejects        -> script / server / verification error
+ */
+export async function payForBooking(bookingId) {
+  const ok = await loadRazorpay();
+  if (!ok) throw new Error("Could not load Razorpay. Check your internet.");
+
+  const { data } = await axios.post(`/api/booking/${bookingId}/payment/create`);
+
+  return new Promise((resolve, reject) => {
+    const rz = new window.Razorpay({
+      key: data.key,
+      amount: data.amount,
+      currency: "INR",
+      name: "ConstructEzy",
+      description: "Labour booking",
+      order_id: data.orderId,
+      handler: async (response) => {
+        try {
+          await axios.post(`/api/booking/${bookingId}/payment/verify`, response);
+          resolve(true);
+        } catch (e) {
+          reject(e);
+        }
+      },
+      modal: { ondismiss: () => resolve(false) },
+    });
+    rz.open();
+  });
+}
+
+===== lib\zodSchema.js =====
+import {z} from "zod";
+
+export const zSchema = z.object({
+     email: z
+     .string()
+     .email({message: "Invalid email address"}),
+
+     password: z
+     .string()
+     .min(8, "Password must be at least 8 characters")
+     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+     .regex(/[0-9]/, "Password must contain at least one number")
+     .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character")
+     .regex(/^\S+$/, "Password must not contain spaces"),
+
+   name: z
+     .string()
+     .min(2, "Name is required")
+     .max(50, "Name must be at most 50 characters")
+     .regex(/^[a-zA-Z0-9\s'&/().,-]+$/, "Name contains invalid characters"),
+
+     otp: z.string().regex(/^\d{6}$/, {
+     message: "OTP must be a 6-digit number",
+     }),
+     _id: z.string().min(3, '_id is required.'),
+     alt: z.string().min(3, 'Alt is required.'),
+     title: z.string().min(3, 'Title is required.'),
+     slug: z.string().min(3, 'Slug is required.'),
+
+     category: z.string().min(1, 'Category is required'),
+     mrp: z.union([
+          z.number().positive('Expected positive value, received negative.'),
+          z.string().transform((val)=> Number(val)).refine((val) => !isNaN(val) && val >=0, 'Please enter a valid number.')
+     ]),
+     sellingPrice: z.union([
+          z.number().positive('Expected positive value, received negative.'),
+          z.string().transform((val)=> Number(val)).refine((val) => !isNaN(val) && val >=0, 'Please enter a valid number.')
+     ]),
+     discountPercentage: z.union([
+          z.number().positive('Expected positive value, received negative.'),
+          z.string().transform((val)=> Number(val)).refine((val) => !isNaN(val) && val >=0, 'Please enter a valid number.')
+     ]),
+     description: z.string().min(1, 'Description is required.'),
+     media: z.array(z.string()),
+     product: z.string().min(3, 'Product is required'),
+     color: z.string().min(3, 'Color is required'),
+     size: z.string().min(1, 'Size is required'),
+     brand: z.string().min(1, 'Brand is required'),
+     attributes: z.array(
+          z.object({
+               label: z.string().min(1, 'Attribute label is required'),
+               value: z.string().min(1, 'Attribute value is required'),
+          })
+     ).min(1, 'Please select at least one option (e.g. Size).'),
+     stock: z.coerce.number({ required_error: "Stock is required" }).min(0, "Stock cannot be negative"),
+     sku: z.string().min(3, 'SKU is required'),
+     code: z.string().min(3, 'Code is required'),
+     minShoppingAmount: z.union([
+          z.number().positive('Expected positive value, received negative.'),
+          z.string().transform((val)=> Number(val)).refine((val) => !isNaN(val) && val >=0, 'Please enter a valid number.')
+     ]),
+     amount: z.union([
+          z.number().positive('Expected positive value, received negative.'),
+          z.string().transform((val)=> Number(val)).refine((val) => !isNaN(val) && val >=0, 'Please enter a valid number.')
+     ]),
+     validity: z.coerce.date(),
+     productId: z.string().min(3, "Product id is required"),
+     userId: z.string().min(3, "User id is required"),
+     rating: z.union([
+          z.number().positive('Expected positive value, received negative.'),
+          z.string().transform((val)=> Number(val)).refine((val) => !isNaN(val) && val >=0, 'Please enter a valid number.')
+     ]),
+     review: z.string().min(3, 'Review is required.'),
+     phone: z.string().regex(/^[0-9]{10}$/, 'Phone must be 10 digits'),
+     country:  z.string().min(3, 'Country is required.'),
+     address:  z.string().min(3, 'Address is required.'),
+     state:  z.string().min(3, 'State is required.'),
+     city:  z.string().min(3, 'City is required.'),
+     pincode: z.string().regex(/^[0-9]{6}$/, 'Pincode must be 6 digits'),
+     landmark:  z.string().min(3, 'Landmark is required.'),
+     ordernote: z
+               .string()
+               .optional()
+               .refine(val => !val || val.trim().length >= 3, {
+               message: "Order note must be at least 3 characters",
+               }),
+               
+     });
+
+// ============================================
+// WAREHOUSE SCHEMA (BASE)
+// ============================================
+export const warehouseSchema = z.object({
+  _id: z.string().optional(),
+
+  name: z.string().min(2, "Warehouse name is required").max(100),
+  location: z.string().min(2, "Location is required"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  city: z.string().min(2, "City is required"),
+  state: z.string().min(2, "State is required"),
+  zipCode: z.string().min(3, "Zip code is required"),
+  country: z.string().min(2, "Country is required"),
+
+  phone: z.string().regex(/^\d{10}$/, "Valid 10-digit phone number required"),
+  email: z.string().email("Invalid email address"),
+
+  manager: z.string().min(2, "Manager name is required"),
+  capacity: z.number().positive("Capacity must be greater than 0"),
+
+  currentStock: z.number().default(0).optional(),
+
+  status: z.enum(["active", "inactive", "maintenance"]).default("active"),
+
+  isReturnable: z.boolean().optional().default(true),
+
+  slug: z.string().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  deletedAt: z.date().nullable().optional(),
+})
+
+// ============================================
+// CREATE WAREHOUSE SCHEMA (POST)
+// ============================================
+export const createWarehouseSchema = warehouseSchema.omit({
+  _id: true,
+  currentStock: true,
+  slug: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+})
+
+// ============================================
+// UPDATE WAREHOUSE SCHEMA (PUT)
+//  _id MUST be required here
+// ============================================
+export const updateWarehouseSchema = warehouseSchema
+  .pick({
+    _id: true,
+    name: true,
+    location: true,
+    address: true,
+    city: true,
+    state: true,
+    zipCode: true,
+    country: true,
+    phone: true,
+    email: true,
+    manager: true,
+    capacity: true,
+    status: true,
+  })
+  .extend({
+    _id: z.string().min(1, "Warehouse ID is required"),
+  })
+
+
+
+  
+export const manualOrderSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().min(10),
+  address: z.string().min(1),
+
+  productName: z.string().min(1),
+  category: z.string().min(1),
+
+  qty: z.coerce.number().min(1),
+  price: z.coerce.number().min(0),
+
+  media: z.string().url().optional().or(z.literal('')),
+})
+
+// ============================================
+// CATEGORY ATTRIBUTE TEMPLATE (used when Admin adds/edits a Subcategory)
+// ============================================
+export const categoryAttributeSchema = z.object({
+  label: z.string().min(1, 'Attribute label is required').max(40),
+  presets: z.array(z.string().min(1)).default([]),
+  allowCustom: z.boolean().default(true),
+})
+
+export const createCategorySchema = z.object({
+  name: z.string().min(2, 'Name is required').max(100),
+  slug: z.string().min(1, 'Slug is required'),
+  parent: z.string().nullable().optional(),
+  attributes: z.array(categoryAttributeSchema).optional().default([]),
+})
+
+
+
+
+
+
+
+
+
+
+
+
+===== components\Application\Admin\AppSidebar.jsx =====
+"use client"
+
+import React from "react"
+import Link from "next/link"
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  useSidebar,
+} from "@/components/ui/sidebar"
+
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+
+import { Button } from "@/components/ui/button"
+import { LucideChevronRight } from "lucide-react"
+import { TbLayoutSidebarLeftExpandFilled } from "react-icons/tb"
+
+import { adminAppSidebarMenu } from "@/lib/adminSidebarMenu"
+import { IMAGES } from "@/routes/AllImages"
+
+/* ==========================================================
+   THEME  (change colors only here)
+   Keep full Tailwind class names so the compiler can detect them.
+   ========================================================== */
+const THEME = {
+  // Backgrounds
+  headerBg: "bg-white",
+  contentBg: "bg-slate-50",
+  headerBorder: "border-slate-200",
+
+  // Text
+  text: "text-slate-700",
+
+  // Main menu hover
+  menuHover: "hover:bg-indigo-100 hover:text-indigo-700",
+
+  // Sub menu
+  subText: "text-slate-600",
+  subHover: "hover:bg-indigo-50 hover:text-indigo-700",
+  subBorder: "border-slate-200",
+
+  // Mobile toggle button
+  toggleBtn: "bg-indigo-600 hover:bg-indigo-500 text-white",
+}
+
+const AppSidebar = () => {
+  const { toggleSidebar } = useSidebar()
+
+  return (
+    <Sidebar className="z-50">
+      {/* ================= HEADER ================= */}
+      <SidebarHeader
+        className={`border-b h-14 p-0 ${THEME.headerBg} ${THEME.headerBorder}`}
+      >
+        <div className="flex justify-between items-center px-4 h-full">
+          <img
+            src={IMAGES.dashboardlogo}
+            alt="Logo"
+            className="block dark:hidden w-35 h-12"
+          />
+
+          <img
+            src={IMAGES.dashboardlogo}
+            alt="Logo Dark"
+            className="hidden dark:block w-auto h-10"
+          />
+
+          <Button
+            onClick={toggleSidebar}
+            type="button"
+            size="icon"
+            className={`md:hidden ${THEME.toggleBtn}`}
+          >
+            <TbLayoutSidebarLeftExpandFilled />
+          </Button>
+        </div>
+      </SidebarHeader>
+
+      {/* ================= CONTENT ================= */}
+      <SidebarContent className={`p-3 ${THEME.contentBg}`}>
+        <SidebarMenu className={THEME.text}>
+          {adminAppSidebarMenu.map((menu, index) => {
+            const Icon = menu.icon
+
+            return (
+              <Collapsible key={index} className="group/collapsible">
+                <SidebarMenuItem>
+                  {/* ===== Main Menu Trigger ===== */}
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton
+                      asChild
+                      className={`
+                        font-semibold px-2 py-5
+                        transition-colors duration-200
+                        ${THEME.text} ${THEME.menuHover}
+                      `}
+                    >
+                      <Link
+                        href={menu.url ?? "#"}
+                        className="flex items-center gap-2 w-full"
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{menu.title}</span>
+
+                        {menu.submenu?.length > 0 && (
+                          <LucideChevronRight
+                            className="
+                              ml-auto
+                              transition-transform duration-300 ease-in-out
+                              group-data-[state=open]/collapsible:rotate-90
+                            "
+                          />
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+
+                  {/* ===== Sub Menu (Smooth) ===== */}
+                  {menu.submenu?.length > 0 && (
+                    <CollapsibleContent
+                      className="
+                        overflow-hidden
+                        data-[state=open]:animate-collapsible-down
+                        data-[state=closed]:animate-collapsible-up
+                      "
+                    >
+                      <SidebarMenuSub className={`pl-4 ${THEME.subBorder}`}>
+                        {menu.submenu.map((submenuItem, subIndex) => (
+                          <SidebarMenuSubItem key={subIndex}>
+                            <SidebarMenuSubButton
+                              asChild
+                              className={`
+                                px-2 py-4
+                                transition-colors duration-200
+                                ${THEME.subText} ${THEME.subHover}
+                              `}
+                            >
+                              <Link href={submenuItem.url}>
+                                {submenuItem.title}
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  )}
+                </SidebarMenuItem>
+              </Collapsible>
+            )
+          })}
+        </SidebarMenu>
+      </SidebarContent>
+    </Sidebar>
+  )
+}
+
+export default AppSidebar
+
+
+
+
+===== components\Application\Admin\CategoryForm.jsx =====
+'use client'
+
+import ButtonLoading from '@/components/Application/ButtonLoading'
+import Select from '@/components/Application/Select'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
+import { showToast } from '@/lib/showToast'
+import { zSchema } from '@/lib/zodSchema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import axios from 'axios'
+import React, { useMemo, useEffect, useRef, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import slugify from 'slugify'
+
+const emptyAttribute = () => ({ label: '', presets: [], allowCustom: true, _presetInput: '' })
+
+const toFormAttributes = (attrs = []) =>
+  attrs.map((a) => ({
+    label: a.label || '',
+    presets: a.presets || [],
+    allowCustom: a.allowCustom !== false,
+    _presetInput: '',
+  }))
+
+const getParentId = (cat) => (cat?.parent ? String(cat.parent._id ?? cat.parent) : null)
+
+/**
+ * Add aur Edit dono ke liye same UI.
+ *  mode: 'add' | 'edit'
+ *  id: edit ke time category ka _id
+ *  initialData: edit ke time category ka data
+ *  allCategories: /api/category/get-category ka poora data
+ */
+const CategoryForm = ({ mode = 'add', id = null, initialData = null, allCategories = [] }) => {
+  const isEdit = mode === 'edit'
+
+  const [loading, setLoading] = useState(false)
+  const [categoryType, setCategoryType] = useState(initialData?.parent ? 'sub' : 'top')
+  const [attributes, setAttributes] = useState(toFormAttributes(initialData?.attributes))
+
+  // edit me load hone ke baad slug apne aap overwrite na ho
+  const loadedName = useRef(initialData?.name ?? null)
+
+  // sirf top-level categories parent ban sakti hain (khud ko chhod kar)
+  const parentOption = useMemo(
+    () =>
+      allCategories
+        .filter((cat) => !getParentId(cat) && String(cat._id) !== String(id))
+        .map((cat) => ({ label: cat.name, value: cat._id })),
+    [allCategories, id]
+  )
+
+  // Jis category ke andar sub-categories hain wo khud sub-category nahi ban sakti (2 level hi allowed)
+  const hasChildren = useMemo(
+    () => isEdit && allCategories.some((cat) => getParentId(cat) === String(id)),
+    [isEdit, allCategories, id]
+  )
+
+  const formSchema = zSchema.pick({ name: true, slug: true })
+
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: initialData?.name || '',
+      slug: initialData?.slug || '',
+      parent: initialData?.parent ? String(initialData.parent) : '',
+    },
+  })
+
+  const watchedName = form.watch('name')
+  useEffect(() => {
+    if (watchedName && watchedName !== loadedName.current) {
+      form.setValue('slug', slugify(watchedName).toLowerCase())
+    }
+  }, [watchedName])
+
+  // ===== Attribute builder helpers =====
+  const addAttributeRow = () => setAttributes((prev) => [...prev, emptyAttribute()])
+  const removeAttributeRow = (index) => setAttributes((prev) => prev.filter((_, i) => i !== index))
+  const updateAttributeField = (index, field, value) =>
+    setAttributes((prev) => prev.map((attr, i) => (i === index ? { ...attr, [field]: value } : attr)))
+
+  const addPresetValue = (index) => {
+    setAttributes((prev) =>
+      prev.map((attr, i) => {
+        if (i !== index) return attr
+        const newPreset = attr._presetInput.trim()
+        if (!newPreset) return attr
+        if (attr.presets.includes(newPreset)) return { ...attr, _presetInput: '' }
+        return { ...attr, presets: [...attr.presets, newPreset], _presetInput: '' }
+      })
+    )
+  }
+
+  const removePresetValue = (index, presetToRemove) =>
+    setAttributes((prev) =>
+      prev.map((attr, i) =>
+        i === index ? { ...attr, presets: attr.presets.filter((p) => p !== presetToRemove) } : attr
+      )
+    )
+
+  const switchType = (type) => {
+    setCategoryType(type)
+    form.setValue('parent', '')
+    if (type === 'top') setAttributes([])
+  }
+
+  const onSubmit = async (values) => {
+    setLoading(true)
+    try {
+      // NOTE: zod schema me parent nahi hai, isliye values.parent strip ho jata hai.
+      // Isi wajah se getValues use kiya hai.
+      const parent = form.getValues('parent')
+
+      if (categoryType === 'sub' && !parent) {
+        showToast('error', 'Please select a parent category.')
+        return
+      }
+
+      const cleanedAttributes = attributes
+        .filter((a) => a.label.trim())
+        .map(({ label, presets, allowCustom }) => ({ label: label.trim(), presets, allowCustom }))
+
+      const payload = {
+        ...values,
+        parent: categoryType === 'sub' ? parent : null,
+        attributes: categoryType === 'sub' ? cleanedAttributes : [],
+      }
+
+      let response
+      if (isEdit) {
+        payload._id = id
+        response = (await axios.put('/api/category/update', payload)).data
+      } else {
+        response = (await axios.post('/api/category/create', payload)).data
+      }
+
+      if (!response.success) throw new Error(response.message)
+
+      if (!isEdit) {
+        form.reset({ name: '', slug: '', parent: '' })
+        setAttributes([])
+      }
+      showToast('success', response.message)
+    } catch (error) {
+      showToast('error', error?.response?.data?.message || error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Card className="py-0 rounded-3xl shadow-sm ">
+      <CardHeader className="pt-3 px-3 border-b [.border-b]:pb-2">
+        <h4 className="text-xl font-semibold">{isEdit ? 'Edit Category' : 'Add Category'}</h4>
+      </CardHeader>
+      <CardContent className="pb-5">
+        <div className="mt-5">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+
+              {/* Top-level vs Subcategory */}
+              <div className="mb-5">
+                <FormLabel className="mb-2 block">
+                  {isEdit ? 'Category type' : 'What are you adding?'}
+                </FormLabel>
+                <div className="flex gap-3">
+                  {[
+                    { key: 'top', label: 'Top-level Category', disabled: false },
+                    { key: 'sub', label: 'Subcategory', disabled: hasChildren },
+                  ].map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      disabled={opt.disabled}
+                      onClick={() => switchType(opt.key)}
+                      className={cn(
+                        'px-4 py-2 rounded-lg border text-sm font-medium transition-colors',
+                        opt.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+                        categoryType === opt.key
+                          ? 'bg-orange-500 text-white border-orange-500'
+                          : 'bg-white text-gray-600 border-gray-300 hover:border-orange-300'
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {hasChildren
+                    ? 'This category already has sub-categories, so it must stay top-level.'
+                    : categoryType === 'top'
+                    ? 'e.g. "Civil & Interiors" — a broad group shown in the main menu.'
+                    : 'e.g. "Cement" — sits inside a top-level category, products get linked here.'}
+                </p>
+              </div>
+
+              {/* Parent picker */}
+              {categoryType === 'sub' && (
+                <div className="mb-5">
+                  <FormField
+                    control={form.control}
+                    name="parent"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Parent Category<span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Select
+                            options={parentOption}
+                            selected={field.value}
+                            setSelected={field.onChange}
+                            isMulti={false}
+                            placeholder="Select a top-level category"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              <div className="mb-5">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder={categoryType === 'sub' ? 'e.g. Cement' : 'e.g. Civil & Interiors'}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="mb-5">
+                <FormField
+                  control={form.control}
+                  name="slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Slug</FormLabel>
+                      <FormControl>
+                        <Input type="text" placeholder="Enter slug" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* ===== Variant Options — sirf Subcategory ke liye ===== */}
+              {categoryType === 'sub' && (
+                <div className="mb-5 rounded-2xl border border-gray-200 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <FormLabel className="block">
+                        Variant Options (Size / Weight / Diameter / Color...)
+                      </FormLabel>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Define what options Shopowners will pick from when adding products under this
+                        subcategory — e.g. Cement → "Weight" with 25kg, 50kg presets. Optional.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addAttributeRow}
+                      className="shrink-0 px-3 py-1.5 rounded-lg border border-orange-400 text-yellow-500 text-sm font-medium hover:bg-orange-50 cursor-pointer"
+                    >
+                      + Add Option
+                    </button>
+                  </div>
+
+                  {attributes.length === 0 && <p className="text-sm text-gray-400">No options added yet.</p>}
+
+                  <div className="space-y-4">
+                    {attributes.map((attr, index) => (
+                      <div key={index} className="rounded-xl border border-gray-200 p-3 bg-gray-50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Input
+                            placeholder="Option name — e.g. Weight, Diameter, Color"
+                            value={attr.label}
+                            onChange={(e) => updateAttributeField(index, 'label', e.target.value)}
+                            className="bg-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeAttributeRow(index)}
+                            className="shrink-0 h-9 w-9 flex items-center justify-center rounded-lg border border-red-200 text-red-500 hover:bg-red-50 cursor-pointer"
+                            title="Remove this option"
+                          >
+                            ×
+                          </button>
+                        </div>
+
+                        <div className="mb-2">
+                          <p className="text-xs font-medium text-gray-600 mb-1">Preset values (optional)</p>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {attr.presets.map((preset) => (
+                              <span
+                                key={preset}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 text-xs"
+                              >
+                                {preset}
+                                <button
+                                  type="button"
+                                  onClick={() => removePresetValue(index, preset)}
+                                  className="hover:text-red-500 cursor-pointer"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="e.g. 25kg — press Enter to add"
+                              value={attr._presetInput}
+                              onChange={(e) => updateAttributeField(index, '_presetInput', e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  addPresetValue(index)
+                                }
+                              }}
+                              className="bg-white"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => addPresetValue(index)}
+                              className="shrink-0 px-3 rounded-lg border border-gray-300 text-sm text-gray-600 hover:border-orange-300 cursor-pointer"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
+
+                        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={attr.allowCustom}
+                            onChange={(e) => updateAttributeField(index, 'allowCustom', e.target.checked)}
+                          />
+                          Allow Shopowners to type a custom value too (not just presets)
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <ButtonLoading
+                loading={loading}
+                type="submit"
+                text={isEdit ? 'Update Category' : '+ Add Category'}
+                className="bg-[#fff0ea] cursor-pointer text-orange-400 font-mono hover:bg-orange-500 hover:text-white"
+              />
+            </form>
+          </Form>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+export default CategoryForm
+
+===== components\Application\Admin\Datatable.jsx =====
+'use client'
+
+import { Tooltip } from '@mui/material'
+import { useState } from "react"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import axios from "axios"
+import { download, generateCsv, mkConfig } from 'export-to-csv'
+import IconButton from '@mui/material/IconButton'
+import SaveAltIcon from '@mui/icons-material/SaveAlt'
+
+import {
+  MaterialReactTable,
+  MRT_ShowHideColumnsButton,
+  MRT_ToggleDensePaddingButton,
+  MRT_ToggleFullScreenButton,
+  MRT_ToggleGlobalFilterButton,
+  useMaterialReactTable,
+} from "material-react-table"
+
+import Link from "next/link"
+import RecyclingIcon from "@mui/icons-material/Recycling"
+import DeleteIcon from "@mui/icons-material/Delete"
+import RestoreFromTranshIcon from "@mui/icons-material/RestoreFromTrash"
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
+import useDeleteMutation from "@/hooks/useDeleteMutation"
+import ButtonLoading from "../ButtonLoading"
+import { showToast } from "@/lib/showToast"
+
+const Datatable = ({
+    querykey,
+    fetchUrl,
+    columnsConfig,
+    initialPageSize = 10,
+    exportEndpoint,
+    deleteEndpoint,
+    deleteType,
+    trashView,
+    createAction,
+    renderDetailPanel,
+    defaultHiddenColumns = [],
+}) => {
+
+    const [columnFilters, setColumnFilters] = useState([])
+    const [globalFilter, setGlobalFilter] = useState('')
+    const [sorting, setSorting] = useState([])
+    const [pagination, setPagination] = useState({
+        pageIndex: 0,
+        pageSize: initialPageSize
+    })
+    const [rowSelection, setRowSelection] = useState({})
+    const [exportLoading, setExportLoading] = useState(false)
+
+    const deleteMutation = useDeleteMutation(querykey, deleteEndpoint)
+
+    const handleDelete = (ids, deleteType) => {
+        let c
+        if (deleteType === 'PD') {
+            c = confirm('Are you sure you want to delete the data permanently?')
+        } else {
+            c = confirm('Are you sure you want to move data into trash?')
+        }
+        if (c) {
+            deleteMutation.mutate({ ids, deleteType })
+            setRowSelection({})
+        }
+    }
+
+    const handleExport = async (selectedRows) => {
+        setExportLoading(true)
+        try {
+            const csvConfig = mkConfig({
+                fieldSeparator: ',',
+                decimalSeparator: ',',
+                useKeysAsHeaders: true,
+                filename: 'csv-data'
+            })
+
+            let csv
+            if (Object.keys(rowSelection).length > 0) {
+                const rowData = selectedRows.map((row) => row.original)
+                csv = generateCsv(csvConfig)(rowData)
+            } else {
+                const { data: response } = await axios.get(exportEndpoint)
+                if (!response.success) throw new Error(response.message)
+                const rowData = response.data
+                csv = generateCsv(csvConfig)(rowData)
+            }
+
+            download(csvConfig)(csv)
+        } catch (error) {
+            console.log(error)
+            showToast('error', error.message)
+        } finally {
+            setExportLoading(false)
+        }
+    }
+
+    const {
+        data: { data = [], meta } = {},
+        isError,
+        isRefetching,
+        isLoading
+    } = useQuery({
+        queryKey: [querykey, { columnFilters, globalFilter, pagination, sorting }],
+        queryFn: async () => {
+            const url = new URL(fetchUrl, process.env.NEXT_PUBLIC_BASE_URL)
+            url.searchParams.set('start', `${pagination.pageIndex * pagination.pageSize}`)
+            url.searchParams.set('size', `${pagination.pageSize}`)
+            url.searchParams.set('filters', JSON.stringify(columnFilters ?? []))
+            url.searchParams.set('globalFilter', globalFilter ?? '')
+            url.searchParams.set('sorting', JSON.stringify(sorting ?? []))
+            url.searchParams.set('deleteType', deleteType)
+
+            const { data: response } = await axios.get(url.href)
+            return response
+        },
+        placeholderData: keepPreviousData,
+        refetchInterval: 15000,              // har 15 sec me silently re-fetch
+        refetchIntervalInBackground: false,  // ✅ NEW — tab minimize/inactive ho to polling band, battery/bandwidth save
+    })
+
+    const table = useMaterialReactTable({
+        columns: columnsConfig,
+        data,
+        enableRowSelection: true,
+        columnFilterDisplayMode: 'popover',
+        paginationDisplayMode: 'pages',
+        enableColumnOrdering: true,
+        enableStickyHeader: true,
+        enableStickyFooter: true,
+
+        layoutMode: 'grid',
+
+        initialState: {
+            showColumnFilters: false,
+            density: 'compact',
+            columnVisibility: defaultHiddenColumns.reduce((acc, key) => {
+                acc[key] = false
+                return acc
+            }, {}),
+        },
+
+        ...(renderDetailPanel ? {
+            renderDetailPanel: ({ row }) => renderDetailPanel(row),
+            enableExpanding: true,
+        } : {}),
+
+        muiTableContainerProps: {
+            sx: { maxHeight: '65vh' }
+        },
+
+        manualFiltering: true,
+        manualPagination: true,
+        manualSorting: true,
+        muiToolbarAlertBannerProps: isError
+            ? { color: 'error', children: 'Error loading data' }
+            : undefined,
+
+        onColumnFiltersChange: setColumnFilters,
+        onGlobalFilterChange: setGlobalFilter,
+        onPaginationChange: setPagination,
+        onSortingChange: setSorting,
+        rowCount: meta?.totalRowCount ?? 0,
+        onRowSelectionChange: setRowSelection,
+        state: {
+            columnFilters,
+            globalFilter,
+            isLoading,
+            pagination,
+            showAlertBanner: isError,
+            showProgressBars: isRefetching,
+            sorting,
+            rowSelection
+        },
+
+        getRowId: (originalRow) => originalRow._id,
+
+        renderToolbarInternalActions: ({ table }) => (
+            <>
+              <MRT_ToggleGlobalFilterButton table={table} />
+              <MRT_ShowHideColumnsButton table={table} />
+              <MRT_ToggleFullScreenButton table={table} />
+              <MRT_ToggleDensePaddingButton table={table} />
+
+              {deleteType !== 'PD' && trashView &&
+                <Tooltip title='Recycle Bin'>
+                    <Link href={trashView}>
+                       <IconButton><RecyclingIcon /></IconButton>
+                    </Link>
+                </Tooltip>
+              }
+
+              {deleteType === 'SD' &&
+                <Tooltip title='Delete All'>
+                    <IconButton
+                      disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+                      onClick={() => handleDelete(Object.keys(rowSelection), deleteType)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                </Tooltip>
+              }
+
+              {deleteType === 'PD' &&
+                <>
+                  <Tooltip title='Restore Data'>
+                    <IconButton
+                      disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+                      onClick={() => handleDelete(Object.keys(rowSelection), 'RSD')}
+                    >
+                      <RestoreFromTranshIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title='Permanently Delete Data'>
+                    <IconButton
+                      disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+                      onClick={() => handleDelete(Object.keys(rowSelection), deleteType)}
+                    >
+                      <DeleteForeverIcon />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              }
+            </>
+        ),
+
+        enableRowActions: true,
+        positionActionsColumn: 'last',
+        renderRowActionMenuItems: ({ row }) => createAction(row, deleteType, handleDelete),
+
+        renderTopToolbarCustomActions: ({ table }) => (
+            <Tooltip>
+                <ButtonLoading
+                  type='button'
+                  text={<><SaveAltIcon fontSize='25' />Export</>}
+                  loading={exportLoading}
+                  onClick={() => handleExport(table.getSelectedRowModel().rows)}
+                  className='cursor-pointer'
+                />
+            </Tooltip>
+        )
+    })
+
+    return (
+        <div>
+            <MaterialReactTable table={table} />
+        </div>
+    )
+}
+
+export default Datatable
+
+
+
+
+
+
+
+
+
+
+
+
+
+===== components\Application\Admin\DatatableWrapper.jsx =====
+'use client'
+
+import React, { useEffect, useState } from 'react'
+import { ThemeProvider, useTheme } from '@mui/material'
+import { darkTheme, lightTheme } from '@/lib/materialTheme'
+import Datatable from './Datatable'
+
+const DatatableWrapper = ({
+    querykey, 
+    fetchUrl,
+    columnsConfig,
+    initialPageSize = 10,
+    exportEndpoint,
+    deleteEndpoint,
+    deleteType,
+    trashView,
+    createAction,
+    renderDetailPanel,        //  ADD — isके bina detail panel kabhi nahi khulega
+    defaultHiddenColumns,     //  ADD — isके bina column-hide kaam nahi karega
+}) => {
+
+  const {resolvedTheme} = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(()=>{
+    setMounted(true)  
+  },[])
+
+  if(!mounted) return null
+
+  return (
+     <ThemeProvider theme={resolvedTheme === 'dark' ? darkTheme : lightTheme}>
+        <Datatable
+          querykey={querykey}
+          fetchUrl={fetchUrl}
+          columnsConfig={columnsConfig}
+          initialPageSize={initialPageSize}
+          exportEndpoint={exportEndpoint}
+          deleteEndpoint={deleteEndpoint}
+          deleteType={deleteType}
+          trashView={trashView}
+          createAction={createAction}
+          renderDetailPanel={renderDetailPanel}       // ✅ ADD
+          defaultHiddenColumns={defaultHiddenColumns} // ✅ ADD
+        />
+     </ThemeProvider>
+
+  )
+}
+
+export default DatatableWrapper
+
+===== components\Application\Admin\UploadMedia.jsx =====
+'use client'
+
+import React from 'react'
+import { Button } from '@/components/ui/button'
+import { CldUploadWidget } from 'next-cloudinary'
+import { FaPlus } from 'react-icons/fa6'
+import { showToast } from '@/lib/showToast'
+import axios from 'axios'
+
+const UploadMedia = ({ isMultiple, queryClient }) => {
+
+  const handleOnError = (error) => {
+    console.log('error:', error?.message || 'Upload failed')
+  }
+
+  const handleOnQueueEnd = async (results) => {
+    const files = results.info.files
+    const uploadeFiles = files.filter(file => file.uploadInfo).map(file => ({
+       asset_id: file.uploadInfo.asset_id,
+       public_id: file.uploadInfo.public_id,
+       secure_url: file.uploadInfo.secure_url,
+       path: file.uploadInfo.path,
+       thumbnail_url: file.uploadInfo.thumbnail_url,
+    }))
+
+    if (uploadeFiles.length > 0) {
+         try{
+             const {data: mediaUploadResponse} = await axios.post('/api/media/create', uploadeFiles)
+             if(!mediaUploadResponse.success){
+               throw new Error(mediaUploadResponse.message)
+             }
+
+               queryClient.invalidateQueries(['media-data'])
+                showToast('success', mediaUploadResponse.message)
+
+             } catch(error) {
+                showToast('error', error.message)
+         }
+    }
+
+  }
+
+  return (
+    <CldUploadWidget
+      signatureEndpoint="/api/cloudinary-signature"
+      uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+      onError={handleOnError}
+      onQueuesEnd={handleOnQueueEnd}
+      config={{
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+        apikey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+      }}
+      options={{
+        multiple: isMultiple,
+        sources: ['local', 'url', 'unsplash', 'google_drive'],
+      }}
+    >
+      {({ open }) => {
+      return (
+        <Button
+          type="button"
+          onClick={() => open()}
+        >
+          <FaPlus className="mr-2" />
+          Upload Media
+        </Button>
+      )
+    }}
+
+    </CldUploadWidget>
+  )
+}
+
+export default UploadMedia
+
+===== app\(root)\(admin)\admin\layout.jsx =====
+import AppSidebar from '@/components/Application/Admin/AppSidebar'
+import ThemeProvider from '@/components/Application/Admin/ThemeProvider'
+import Topbar from '@/components/Application/Admin/Topbar'
+import { SidebarProvider } from '@/components/ui/sidebar'
+
+import React from 'react'
+
+const layout = ({ children }) => {
+  return (
+    <ThemeProvider 
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+    >
+        <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar />
+          <main className="flex-1 bg-[#f9f7f7] dark:bg-stone-900">
+            <div className="pt-17.5 px-4 md:px-8 min-h-[calc(100vh-40px)] pb-10">
+              <Topbar />
+              {children}
+            </div>
+
+            <div className="border-t h-10 flex justify-center items-center text-sm bg-[#f9f7f7] dark:bg-black">
+              © 2026 ConstructEzy. All Rights Reserved.
+            </div>
+          </main>
+
+        </div>
+      </SidebarProvider>
+    </ThemeProvider>
+  )
+}
+
+export default layout
+
+===== app\(root)\(admin)\admin\category\page.jsx =====
+'use client'
+
+import BreadCrumb from '@/components/Application/Admin/BreadCrumb'
+import DatatableWrapper from '@/components/Application/Admin/DatatableWrapper'
+import DeleteAction from '@/components/Application/Admin/DeleteAction'
+import EditAction from '@/components/Application/Admin/EditAction'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { DT_CATEGORY_COLUMN } from '@/lib/column'
+import { columnConfig } from '@/lib/helperfunction'
+import { ADMIN_CATEGORY_ADD, ADMIN_CATEGORY_EDIT, ADMIN_CATEGORY_SHOW, ADMIN_DASHBOARD, ADMIN_TRASH } from '@/routes/AdminPanelRoute'
+import { FilePlus } from 'lucide-react'
+import Link from 'next/link'
+import { useCallback, useMemo } from 'react'
+
+const breadcrumbData = [
+  {href: ADMIN_DASHBOARD, label: 'Home'},
+  {href: ADMIN_CATEGORY_SHOW, label: 'Category'},
+]
+
+  const ShowCategory = () => {
+
+    const columns = useMemo(()=>{
+    return columnConfig(DT_CATEGORY_COLUMN)
+    },[])
+   
+    const action = useCallback((row, deleteType, handleDelete) => {
+        let actionMenu = []
+        actionMenu.push(<EditAction key="edit" href={ADMIN_CATEGORY_EDIT(row.original._id)}/>)
+        actionMenu.push(<DeleteAction key="delete" handleDelete={handleDelete} row={row} deleteType={deleteType}/>)
+        return actionMenu
+    }, [])
+
+
+
+  return (
+    <div>
+        <BreadCrumb breadcrumbData={breadcrumbData}/>
+
+        <div className='py-4'>
+        <Card className="py-0 rounded-3xl shadow-sm gap-0">
+        <CardHeader className="pt-3 px-3 border-b [.border-b]:pb-2">
+        <div className='flex justify-between items-center'>
+          <h4 className='text-xl font-semibold'>Show Category</h4>
+          
+        <Button className='bg-[#fff0ea] cursor-pointer text-orange-400 font-mono hover:bg-orange-500 hover:text-white'>
+          <FilePlus/>
+          <Link href={ADMIN_CATEGORY_ADD} >New Category</Link>
+        </Button>
+
+        </div>
+        </CardHeader>
+        <CardContent className='pb-5 px-0'>
+           <DatatableWrapper
+            querykey="category-data"
+            fetchUrl="/api/category"
+            initialPageSize={10}
+            columnsConfig={columns}
+            exportEndpoint="/api/category/export"
+            deleteEndpoint="/api/category/delete"
+            deleteType="SD"
+            trashView={`${ADMIN_TRASH}?trashof=category`}
+            createAction={action}
+           />
+        </CardContent>
+        </Card>
+        </div>
+    </div>
+  )
+}
+
+export default ShowCategory
+
+===== app\(root)\(admin)\admin\category\add\page.jsx =====
+'use client'
+
+import BreadCrumb from '@/components/Application/Admin/BreadCrumb'
+import CategoryForm from '@/components/Application/Admin/CategoryForm'
+import useFetch from '@/hooks/useFetch'
+import { ADMIN_CATEGORY_SHOW, ADMIN_DASHBOARD } from '@/routes/AdminPanelRoute'
+import React from 'react'
+
+const breadcrumbData = [
+  { href: ADMIN_DASHBOARD, label: 'Home' },
+  { href: ADMIN_CATEGORY_SHOW, label: 'Category' },
+  { href: '', label: 'Add Category' },
+]
+
+const AddCategory = () => {
+  const { data: getCategory } = useFetch('/api/category/get-category')
+  const allCategories = getCategory?.success ? getCategory.data : []
+
+  return (
+    <div>
+      <BreadCrumb breadcrumbData={breadcrumbData} />
+      <div className="py-4">
+        <CategoryForm mode="add" allCategories={allCategories} />
+      </div>
+    </div>
+  )
+}
+
+export default AddCategory
+
+
+===== app\api\admin\labour\all\route.js =====
+import { NextResponse } from "next/server";
+import connectDB from "@/lib/databaseConnection";
+import { isAuthenticated } from "@/lib/authentication";
+import Labour from "@/models/Labour.model";
+
+const ownerKey = (d) => String(d?.owner || d?.user || d?.partner || d?.userId || d?.partnerId || "");
+
+export async function GET() {
+  try {
+    await connectDB();
+    const session = await isAuthenticated("admin");
+    if (!session.isAuth) {
+      return NextResponse.json({ message: "unauthorized" }, { status: 401 });
+    }
+
+    const labours = await Labour.find()
+      .sort({ createdAt: -1 })
+      .populate({ path: "owner", select: "name email phone partnerStatus videoKycStatus" })
+      .lean();
+
+    const ownerIds = labours.map((l) => l.owner?._id).filter(Boolean);
+
+    // falls back to null if the export differs
+    const PartnerDocs = await import("@/models/partnerDocs.model").then((m) => m.default || null).catch(() => null);
+    const PartnerBank = await import("@/models/PartnerBank.model").then((m) => m.default || null).catch(() => null);
+
+    const docs = PartnerDocs ? await PartnerDocs.find({}).lean() : [];
+    const banks = PartnerBank ? await PartnerBank.find({}).lean() : [];
+
+    const docsMap = new Map(docs.map((d) => [ownerKey(d), d]));
+    const bankMap = new Map(banks.map((b) => [ownerKey(b), b]));
+    const wanted = new Set(ownerIds.map(String));
+
+    const data = labours.map((l) => {
+      const key = String(l.owner?._id || "");
+      return {
+        ...l,
+        docs: wanted.has(key) ? docsMap.get(key) || null : null,
+        bank: wanted.has(key) ? bankMap.get(key) || null : null,
+      };
+    });
+
+    return NextResponse.json(data, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ message: `admin labour list error ${error}` }, { status: 500 });
+  }
+}
+
+===== routes\AllImages.js =====
+import { manualOrderSchema } from "@/lib/zodSchema";
+
+export const IMAGES = {
+  coupon: "/assets/images/coupon.PNG",
+  login_logo: "/assets/images/login_logo.svg",
+  logo: "/assets/images/logo.png",
+  dashboardlogo:"/assets/images/logo.png", 
+  image_placeholder: "/assets/images/image_placeholder.webp",
+  profile: "/assets/images/profile.jpg",
+  customer_banner: "/assets/images/customer_banner.jpg",
+  loading: '/assets/images/loading.gif',
+  login: '/assets/images/login.jpg',
+  loginfail: '/assets/images/login_fail.jpg',
+  homebanner_1: '/assets/images/homebanner_1.png',
+  homebanner_2: '/assets/images/homebanner_2.png',
+  homebanner_3: '/assets/images/homebanner_3.png',
+  shopproducts: "/assets/images/shopproducts.png",
+  book_services: "/assets/images/book_services.png",
+  projectEnquiry: "/assets/images/projectEnquiry.jpg",
+
+  category_plumbing: "/assets/images/categories/plumbing.jpg",
+  category_electrical: "/assets/images/categories/electrical.jpg",
+  category_paints: "/assets/images/categories/paints.jpg",
+  category_hardware: "/assets/images/categories/hardware.jpg",
+  category_power_tools: "/assets/images/categories/power-tools.jpg",
+  category_safety: "/assets/images/categories/safety.jpg",
+  category_cement: "/assets/images/categories/cement.jpg",
+  category_furniture: "/assets/images/categories/furniture.jpg",
+  category_tools: "/assets/images/categories/tools.jpg",
+
+  // New in Footwear
+  shoes_1: "/assets/images/shoes_1.avif",
+  shoes_2: "/assets/images/shoes_2.avif",
+  shoes_3: "/assets/images/shoes_3.avif",
+  shoes_4: "/assets/images/shoes_4.avif",
+  shoes_5: "/assets/images/shoes_5.avif",
+  shoes_6: "/assets/images/shoes_6.avif",
+  shoes_7: "/assets/images/shoes_7.avif",
+  shoes_8: "/assets/images/shoes_8.avif",
+  shoes_9: "/assets/images/shoes_9.avif",
+  shoes_10: "/assets/images/shoes_10.avif",
+
+  
+
+
+
+  // JustDrop section image
+  aggregator: "/assets/images/aggregator.jpg",
+  manufacturer: "/assets/images/manufacturer.jpg",
+  importer_exporter: "/assets/images/importer_&_exporter.jpg",
+  delivery: "/assets/images/delivery.jpg",
+ 
+
+  // Explore Our Categories
+  steel: "/assets/images/steel.jpg",
+  non_ferrous: "/assets/images/non_ferrous.jpg",
+  pvc: "/assets/images/pvc.jpg",
+  cement: "/assets/images/cement.jpg",
+  bricks: "/assets/images/bricks.jpg",
+  wood: "/assets/images/wood.jpg", 
+  tiles: "/assets/images/tiles.jpg",
+
+
+  // Trending section image
+  trending_1: "/assets/images/trending_1.avif",
+  trending_2: "/assets/images/trending_2.avif",
+  trending_3: "/assets/images/trending_3.avif",
+
+
+  // Websitepages all
+
+  ordertrackingposter: "/assets/images/order-tracking-poster.jpg",
+  giftcard: "/assets/images/giftcard.png",
+  constructezy_family: "/assets/images/constructezy_family.jpg",
+  home_discount: "/assets/images/home_discount.jpg",
+  aboutus: "/assets/images/aboutus.jpg",
+  Who_are_we: "/assets/images/Who_are_we.jpg",
+  Our_history: "/assets/images/Our_history.jpg",
+  expert: "/assets/images/expert.jpg",
+  product: "/assets/images/product.jpg",
+  Repair_Maintenance: "/assets/images/Repair_Maintenance.jpg",
+  footprints: "/assets/images/footprints.jpg",
+  discount_code: "/assets/images/discount_code.jpg",
+  shipping: "/assets/images/shipping.gif",
+  confirmorder: "/assets/images/confirmorder.gif",
+  emptycart: "/assets/images/empty_cart.gif",
+  mastercard: "/assets/images/mastercard.svg",
+  laber: "/assets/images/laber.jpg",
+
+  construction: "/assets/images/construction.jpg",
+
+  Ac_Technician: "/assets/images/Ac_Technician.jpg",
+  Carpenter: "/assets/images/Carpenter.jpg",
+  Electrician: "/assets/images/Electrician.jpg",
+  Mason: "/assets/images/Mason.jpg",
+  Painter: "/assets/images/Painter.jpg",
+  Plumber: "/assets/images/Plumber.jpg",
+  Tile_Fixer: "/assets/images/Tile_Fixer.jpg",
+  Welder: "/assets/images/Welder.jpg",
+
+  House_Construction: "/assets/images/House_Construction.jpg",
+  Home_Renovation: "/assets/images/Home_Renovation.jpg",
+  Repair_Maintenance: "/assets/images/Repair_Maintenance.jpg",
+
+  
+
+}
+
+
+
+===== app\layout.jsx =====
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import { ToastContainer } from 'react-toastify';
+import GlobalProvider from "@/components/Application/GlobalProvider";
+
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata = {
+  title: "ConstructEzy",
+  description: "Discover a wide range of athletic.",
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <GlobalProvider>
+        <ToastContainer/>
+          {children}
+        </GlobalProvider>
+      </body>
+    </html>
+  );
+}
