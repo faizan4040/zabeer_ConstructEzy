@@ -2,12 +2,14 @@
 
 import React from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { IMAGES } from "@/routes/AllImages"
 
 /* ------------------------------ CONFIG ------------------------------ */
-// Ye IDs un sections par lagani hain jahan scroll hoke rukna hai
+// Products wala button abhi bhi isi section par scroll karega
 const PRODUCTS_SECTION_ID = "products-section"
-const SERVICES_SECTION_ID = "services-section"
+// Services wala button ab is page par le jayega (labour / services page)
+const SERVICES_PAGE_URL = "/services"
 
 /* ------------------------------ ICONS ------------------------------ */
 const ArrowIcon = ({ className = "" }) => (
@@ -105,15 +107,27 @@ const scrollToSection = (e, targetId) => {
 }
 
 /* ------------------------------ BUTTON ----------------------------- */
+const BUTTON_CLASS =
+  "group inline-flex items-center gap-2.5 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-800/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-lg sm:px-7 sm:py-3 sm:text-[15px]"
+
+// Same section par scroll karne wala button (Browse Products)
 const CardButton = ({ targetId, children }) => (
   <a
     href={`#${targetId}`}
     onClick={(e) => scrollToSection(e, targetId)}
-    className="group inline-flex items-center gap-2.5 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-800/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-lg sm:px-7 sm:py-3 sm:text-[15px]"
+    className={BUTTON_CLASS}
   >
     {children}
     <ArrowIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
   </a>
+)
+
+// Dusre page par le jane wala button (Browse Services)
+const CardLink = ({ href, children }) => (
+  <Link href={href} className={BUTTON_CLASS}>
+    {children}
+    <ArrowIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+  </Link>
 )
 
 /* ----------------------------- COMPONENT --------------------------- */
@@ -183,7 +197,8 @@ const ShopServicesSection = () => {
               Verified professionals for all your construction needs.
             </p>
             <div className="mt-4 sm:mt-5">
-              <CardButton targetId={SERVICES_SECTION_ID}>Browse Services</CardButton>
+              {/* Click karte hi labour / services page khulega */}
+              <CardLink href={SERVICES_PAGE_URL}>Browse Services</CardLink>
             </div>
           </div>
 

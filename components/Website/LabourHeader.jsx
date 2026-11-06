@@ -11,7 +11,7 @@ import { IMAGES } from "@/routes/AllImages";
 import { logout } from "@/store/reducer/authReducer";
 
 const ACCENT = "#F5A623"; // safety-amber — construction/high-vis accent
-const HOME_HREF = "/partner/dashboard";
+const HOME_HREF = "/"; // labour ka dashboard home page par hi render hota hai
 
 /* Avatar bahar define kiya hai taaki har render par remount na ho */
 function AvatarCircle({ auth, size = 40 }) {

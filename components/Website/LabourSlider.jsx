@@ -3,15 +3,13 @@
 import React, { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useSelector } from "react-redux"
 import { RiArrowRightLine } from "react-icons/ri"
-import { ChevronRight, ArrowRight, X } from "lucide-react"
+import { ChevronRight, ArrowRight } from "lucide-react"
 import { IMAGES } from "@/routes/AllImages"
-import { WEBSITE_LOGIN } from "@/routes/WebsiteRoute"
+import { WEBSITE_SERVICES } from "@/routes/ServiceRoute"
 
-const BOOK_PAGE = "/user/book"
-const REGISTER_PAGE = "/auth/register"
+// slug = admin ki Service Category ka slug (/admin/service-category me same slug rakho)
+const serviceUrl = (slug) => `${WEBSITE_SERVICES}?category=${slug}`
 
 const SERVICES = [
   { id: 1, title: "Electrician", slug: "electricians", image: IMAGES?.Electrician },
@@ -27,20 +25,6 @@ const SERVICES = [
 const LaborSlider = () => {
   const sectionRef = useRef(null)
   const [visible, setVisible] = useState(false)
-  const [showPopup, setShowPopup] = useState(false)
-  const router = useRouter()
-  const auth = useSelector((store) => store.authStore.auth)
-
-  const callback = encodeURIComponent(BOOK_PAGE)
-
-  // Login hai to booking page, nahi to popup
-  const goBook = () => {
-    if (!auth) {
-      setShowPopup(true)
-      return
-    }
-    router.push(BOOK_PAGE)
-  }
 
   // Cards reveal once, when the section scrolls into view
   useEffect(() => {
@@ -79,10 +63,6 @@ const LaborSlider = () => {
           70%  { box-shadow: 0 0 0 14px rgba(245, 158, 11, 0); }
           100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
         }
-        @keyframes popupIn {
-          from { opacity: 0; transform: scale(0.94) translateY(8px); }
-          to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
         .service-card { opacity: 0; }
         .service-card.is-visible { animation: serviceCardIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         .book-now-btn { animation: bookRing 2.2s ease-out infinite; }
@@ -100,9 +80,8 @@ const LaborSlider = () => {
             Book a Service
           </h2>
 
-          <button
-            type="button"
-            onClick={goBook}
+          <Link
+            href={WEBSITE_SERVICES}
             className="group inline-flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-emerald-700 transition-colors hover:text-emerald-900"
           >
             View All Services
@@ -110,7 +89,7 @@ const LaborSlider = () => {
               size={16}
               className="transition-transform duration-300 group-hover:translate-x-1"
             />
-          </button>
+          </Link>
         </div>
 
         {/* Book Now strip */}
@@ -124,9 +103,8 @@ const LaborSlider = () => {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={goBook}
+          <Link
+            href={WEBSITE_SERVICES}
             className="book-now-btn group inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl bg-linear-to-r from-amber-400 to-orange-500 px-8 py-3.5 text-base font-bold text-gray-900 shadow-lg shadow-amber-500/30 transition-all hover:-translate-y-0.5 hover:from-amber-500 hover:to-orange-600 hover:shadow-xl hover:shadow-amber-500/40 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-950/40 active:translate-y-0 sm:w-auto sm:text-lg"
           >
             Book Now
@@ -134,16 +112,15 @@ const LaborSlider = () => {
               size={20}
               className="transition-transform group-hover:translate-x-1"
             />
-          </button>
+          </Link>
         </div>
 
         {/* Service cards */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {SERVICES.map((item, i) => (
-            <button
+            <Link
               key={item.id}
-              type="button"
-              onClick={goBook}
+              href={serviceUrl(item.slug)}
               style={{ animationDelay: `${i * 80}ms` }}
               className={`service-card ${
                 visible ? "is-visible" : ""
@@ -176,55 +153,11 @@ const LaborSlider = () => {
                   className="shrink-0 text-slate-500 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-emerald-700"
                 />
               </div>
-            </button>
+            </Link>
           ))}
         </div>
       </div>
 
-      {/* Login / Sign up popup */}
-      {showPopup && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
-          onClick={() => setShowPopup(false)}
-        >
-          <div
-            className="relative w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl"
-            style={{ animation: "popupIn 0.25s ease-out" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setShowPopup(false)}
-              aria-label="Close"
-              className="absolute right-3 top-3 rounded-full p-1.5 text-slate-500 hover:bg-slate-100"
-            >
-              <X size={18} />
-            </button>
-
-            <h3 className="text-xl font-bold text-[#0b1b3f]">
-              Login to book labour
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              Labour book karne se pehle login ya sign up karo.
-            </p>
-
-            <div className="mt-6 flex flex-col gap-3">
-              <Link
-                href={`${WEBSITE_LOGIN}?callback=${callback}`}
-                className="rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white transition hover:bg-emerald-800"
-              >
-                Login
-              </Link>
-              <Link
-                href={`${REGISTER_PAGE}?callback=${callback}`}
-                className="rounded-xl border-2 border-emerald-700 px-5 py-3 font-semibold text-emerald-700 transition hover:bg-emerald-50"
-              >
-                Sign up
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   )
 }

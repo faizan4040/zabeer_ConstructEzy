@@ -102,7 +102,7 @@ export default function MyBookingsPage() {
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-black tracking-tight">My Bookings</h1>
-          <Link href="/user/book" className="flex items-center gap-1.5 bg-zinc-900 text-white text-sm font-bold px-4 py-2.5 rounded-xl">
+          <Link href="/services" className="flex items-center gap-1.5 bg-zinc-900 text-white text-sm font-bold px-4 py-2.5 rounded-xl">
             <Plus size={15} /> New booking
           </Link>
         </div>

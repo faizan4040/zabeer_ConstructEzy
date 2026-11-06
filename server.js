@@ -74,6 +74,9 @@ app.prepare().then(() => {
     maxHttpBufferSize: 5 * 1024 * 1024, // 5 MB
   });
 
+  // API routes (lib/realtime.js) isi instance se live job updates bhejte hain
+  globalThis.__io = io;
+
   io.on("connection", (socket) => {
     console.log(`🔌 Socket connected: ${socket.id}`);
 

@@ -35,23 +35,23 @@ import { IMAGES } from "@/routes/AllImages"
    ========================================================== */
 const THEME = {
   // Backgrounds
-  headerBg: "bg-white",
-  contentBg: "bg-slate-50",
-  headerBorder: "border-slate-200",
+  headerBg: "bg-[#0B8457]",
+  contentBg: "bg-[#0B8457]",
+  headerBorder: "border-[#086B46]",
 
   // Text
-  text: "text-slate-700",
+  text: "text-white",
 
   // Main menu hover
-  menuHover: "hover:bg-indigo-100 hover:text-indigo-700",
+  menuHover: "hover:bg-white hover:text-[#0B8457]",
 
   // Sub menu
-  subText: "text-slate-600",
-  subHover: "hover:bg-indigo-50 hover:text-indigo-700",
-  subBorder: "border-slate-200",
+  subText: "text-white",
+  subHover: "hover:bg-white hover:text-[#0B8457]",
+  subBorder: "border-white/20",
 
   // Mobile toggle button
-  toggleBtn: "bg-indigo-600 hover:bg-indigo-500 text-white",
+  toggleBtn: "bg-white hover:bg-[#E0F2E9] text-[#0B8457]",
 }
 
 const AppSidebar = () => {

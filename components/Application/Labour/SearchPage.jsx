@@ -194,7 +194,7 @@ function SearchPage() {
               <button onClick={fetchLabour} className="flex items-center gap-2 bg-zinc-900 text-white text-sm font-semibold px-5 py-2.5 rounded-xl">
                 <RefreshCcw size={14} /> Retry
               </button>
-              <button onClick={() => router.push("/user/book")} className="text-sm font-semibold px-5 py-2.5 rounded-xl border border-zinc-300 bg-white">
+              <button onClick={() => router.push("/services")} className="text-sm font-semibold px-5 py-2.5 rounded-xl border border-zinc-300 bg-white">
                 Change search
               </button>
             </div>
@@ -618,7 +618,7 @@ export default SearchPage
 //               <button onClick={fetchLabour} className="flex items-center gap-2 bg-zinc-900 text-white text-sm font-semibold px-5 py-2.5 rounded-xl">
 //                 <RefreshCcw size={14} /> Retry
 //               </button>
-//               <button onClick={() => router.push("/user/book")} className="text-sm font-semibold px-5 py-2.5 rounded-xl border border-zinc-300 bg-white">
+//               <button onClick={() => router.push("/services")} className="text-sm font-semibold px-5 py-2.5 rounded-xl border border-zinc-300 bg-white">
 //                 Change search
 //               </button>
 //             </div>

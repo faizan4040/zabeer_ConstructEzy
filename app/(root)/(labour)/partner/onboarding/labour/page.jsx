@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import useLabourOnboardingGuard from "@/hooks/useLabourOnboardingGuard";
 
 const LABOUR_CATEGORIES = [
   { id: "helpers", label: "Helpers", icon: Construction },
@@ -25,6 +26,7 @@ const LABOUR_CATEGORIES = [
 
 export default function Page() {
   const router = useRouter();
+  useLabourOnboardingGuard(); // already live labour -> dashboard
 
   const [category, setCategory] = useState("");
   const [fullName, setFullName] = useState("");

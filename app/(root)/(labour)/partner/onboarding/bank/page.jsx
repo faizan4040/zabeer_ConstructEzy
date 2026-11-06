@@ -12,11 +12,13 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import useLabourOnboardingGuard from "@/hooks/useLabourOnboardingGuard";
 
 const IFSC_REGEX = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 
 function Page() {
   const router = useRouter();
+  useLabourOnboardingGuard(); // already live labour -> dashboard
 
   const [accountHolder, setAccountHolder] = useState("");
   const [accountNumber, setAccountNumber] = useState("");

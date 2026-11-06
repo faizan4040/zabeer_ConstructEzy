@@ -17,7 +17,7 @@ const ROLE_DASHBOARDS: Record<Role, string> = {
   admin:          ADMIN_DASHBOARD,
   customer:       USER_DASHBOARD,
   "shop owner":   SHOP_OWNER_DASHBOARD,
-  laber:          "/partner/onboarding/labour",
+  laber:          "/", // home page labour dashboard dikhata hai (register nahi hua to wahi register par bhejta hai)
   "delivery boy": "/delivery/dashboard",
 };
 

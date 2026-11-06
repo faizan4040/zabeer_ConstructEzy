@@ -11,6 +11,7 @@ import PartnerEarning from "./PartnerEarning";
 import PricingModal from "./PricingModal";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "@/store/reducer/authReducer";
+import LabourHome from "./LabourHome";
 
 /* ================= STEPS (Labour flow) ================= */
 
@@ -48,6 +49,8 @@ function PartnerDashboard() {
 
   // NEW: stop polling when the user is logged out (avoids endless 401/400)
   const stopPolling = useRef(false);
+  // live hone ke baad LabourHome apna data khud laata hai, yahan ka 5s polling band
+  const liveRef = useRef(false);
 
   const dispatch = useDispatch();
 
@@ -55,7 +58,11 @@ function PartnerDashboard() {
     if (userData) {
       setActiveStep(userData.partnerOnBoardingSteps + 1);
     }
-  }, [userData]);
+    // labour profile abhi bani hi nahi -> seedha register form
+    if (userData?.role === "laber" && userData.partnerOnBoardingSteps === 0) {
+      router.replace("/partner/onboarding/labour");
+    }
+  }, [userData, router]);
 
   const handleGetPricing = async () => {
     try {
@@ -91,7 +98,7 @@ function PartnerDashboard() {
     };
 
     const refreshAll = () => {
-      if (stopPolling.current) return;
+      if (stopPolling.current || liveRef.current) return;
       refreshUser();
       handleGetPricing();
       loadPending();
@@ -172,6 +179,11 @@ function PartnerDashboard() {
   };
 
   const progressPercentage = ((activeStep - 1) / (TOTAL_STEPS - 1)) * 100;
+
+  // KYC + approval complete -> simple labour dashboard (jobs, Start/Finish Work, wallet)
+  const isLive = activeStep === 8 && userData?.partnerStatus === "approved";
+  liveRef.current = isLive;
+  if (isLive) return <LabourHome userId={userData?._id} />;
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 px-4 pt-40 pb-20">

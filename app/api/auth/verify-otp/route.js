@@ -69,7 +69,12 @@ export async function POST(request) {
     // remove otp after validation
     await getOtpData.deleteOne()
     
-    return response(true, 200, 'Login successfull.', loggedInUserData)
+    // labour ko login ke baad sahi page par bhejne ke liye (token me nahi, sirf response me)
+    return response(true, 200, 'Login successfull.', {
+        ...loggedInUserData,
+        partnerOnBoardingSteps: getUser.partnerOnBoardingSteps || 0,
+        partnerStatus: getUser.partnerStatus,
+    })
 
   } catch (error) {
     return catchError(error, "Email verification failed.");

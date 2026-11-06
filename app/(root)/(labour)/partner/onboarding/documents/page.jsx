@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, CircleDashed, FileCheck, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import useLabourOnboardingGuard from "@/hooks/useLabourOnboardingGuard";
 
 // Required docs (block Continue until all 3 are present)
 const REQUIRED_DOCS = [
@@ -47,6 +48,7 @@ const ALL_DOCS = [...REQUIRED_DOCS, ...OPTIONAL_DOCS];
 
 function Page() {
   const router = useRouter();
+  useLabourOnboardingGuard(); // already live labour -> dashboard
 
   const [docs, setDocs] = useState({
     aadhaarFront: null,

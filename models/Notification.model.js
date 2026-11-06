@@ -10,7 +10,7 @@ const notificationSchema = new mongoose.Schema({
   // Order-related notifications ke liye — click karke seedha order pe le jaane ke liye
   type: {
     type: String,
-    enum: ["order_status", "system", "general"],
+    enum: ["order_status", "system", "general", "labour_job"],
     default: "order_status",
   },
   order: { type: mongoose.Schema.Types.ObjectId, ref: "Order", default: null },

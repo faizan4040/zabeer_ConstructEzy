@@ -33,9 +33,13 @@ const ROLE_DASHBOARDS = {
   admin: ADMIN_DASHBOARD,
   customer: "/my-account/dashboard",
   "shop owner": SHOP_OWNER_DASHBOARD,
-  laber: "/partner/onboarding/labour",
+  laber: "/", // home page hi labour dashboard hai (see labourHome below)
   "delivery boy": "/delivery/dashboard",
 };
+
+// Labour: profile nahi bani -> register form, warna dashboard (onboarding steps ya live jobs)
+const labourHome = (user) =>
+  (user?.partnerOnBoardingSteps || 0) >= 1 ? "/" : "/partner/onboarding/labour";
 
 /* ═══════════════════════════════════════════
    MAIN COMPONENT
@@ -91,7 +95,7 @@ const LoginPage = () => {
       dispatch(login(res.data));
 
       const callback = searchParams.get("callback");
-      const dashboard = ROLE_DASHBOARDS[res.data.role] ?? "/";
+      const dashboard = res.data.role === "laber" ? labourHome(res.data) : ROLE_DASHBOARDS[res.data.role] ?? "/";
       router.push(callback || dashboard);
     } catch (error) {
       showToast("error", error.message || "OTP verification failed.");
