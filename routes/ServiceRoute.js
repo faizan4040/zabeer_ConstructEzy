@@ -16,7 +16,7 @@ export const WEBSITE_SERVICE_BOOK = (id) => `/services/${id}/book`;
 export const WEBSITE_SERVICE_CONFIRMED = (id) => `/services/confirmed/${id}`;
 export const WEBSITE_MY_SERVICE_BOOKINGS = "/services/my-bookings";
 export const WEBSITE_LOGIN = "/auth/login"; // <-- apne login page ka path yahan set karo
-export const WEBSITE_MATERIAL_LIST = "/order-by-user"; // <-- "Upload Your Material List" page ka path
+export const WEBSITE_MATERIAL_LIST = "/upload-material-list"; // <-- "Upload Your Material List" page ka path
 
 // Labour
 export const LABOUR_WALLET = "/labour/wallet";

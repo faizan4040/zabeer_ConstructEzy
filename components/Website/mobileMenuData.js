@@ -17,7 +17,7 @@ import {
   FaTint, FaCogs, FaUserTie, FaHeadset, FaInfoCircle,
 } from "react-icons/fa"
 
-import { WEBSITE_HOME, WEBSITE_SHOP } from "@/routes/WebsiteRoute"
+import { WEBSITE_HOME, WEBSITE_SHOP, WEBSITE_ORDER_TRACKING, WEBSITE_ABOUT, WEBSITE_CONTACT_US } from "@/routes/WebsiteRoute"
 
 // Contact numbers / links (yahan change karo)
 export const WHATSAPP_NUMBER = "919999999999" // country code ke saath, + ke bina
@@ -33,7 +33,7 @@ export const MENU_SECTIONS = [
       { label: "Upload Your Material List", href: "/upload-material-list", icon: FaFileAlt, bold: true },
       { label: "Book via WhatsApp", action: "whatsapp", icon: FaWhatsapp },
       { label: "Book via Call", action: "call", icon: FaPhoneAlt },
-      { label: "Track Order / Booking", href: "/track-order", icon: FaTruck },
+      { label: "Track Order / Booking", href: WEBSITE_ORDER_TRACKING, icon: FaTruck },
     ],
   },
   {
@@ -54,24 +54,24 @@ export const MENU_SECTIONS = [
   {
     title: "Book a service",
     items: [
-      { label: "Plumbing Repair", href: "/services?type=plumbing", icon: FaFaucet },
-      { label: "Electrical Work", href: "/services?type=electrical", icon: FaBolt },
-      { label: "Painting", href: "/services?type=painting", icon: FaPaintRoller },
-      { label: "Carpentry", href: "/services?type=carpentry", icon: FaHammer },
-      { label: "AC Installation", href: "/services?type=ac-installation", icon: FaSnowflake },
-      { label: "Renovation", href: "/services?type=renovation", icon: FaHome },
-      { label: "Installation", href: "/services?type=installation", icon: FaCogs },
-      { label: "Civil Contractor", href: "/services?type=civil-contractor", icon: FaUserTie },
-      { label: "Waterproofing", href: "/services?type=waterproofing", icon: FaTint },
+      { label: "Plumbing Repair", href: "/services?category=plumbing", icon: FaFaucet },
+      { label: "Electrical Work", href: "/services?category=electrical", icon: FaBolt },
+      { label: "Painting", href: "/services?category=painting", icon: FaPaintRoller },
+      { label: "Carpentry", href: "/services?category=carpentry", icon: FaHammer },
+      { label: "AC Installation", href: "/services?category=ac-installation", icon: FaSnowflake },
+      { label: "Renovation", href: "/services?category=renovation", icon: FaHome },
+      { label: "Installation", href: "/services?category=installation", icon: FaCogs },
+      { label: "Civil Contractor", href: "/services?category=civil-contractor", icon: FaUserTie },
+      { label: "Waterproofing", href: "/services?category=waterproofing", icon: FaTint },
       { label: "View All Services", href: "/services", icon: FaThLarge },
     ],
   },
   {
     title: "",
     items: [
-      { label: "Help & Support", href: "/help", icon: FaHeadset },
-      { label: "About Us", href: "/about", icon: FaInfoCircle },
-      { label: "Contact Us", href: "/contact", icon: FaPhoneAlt },
+      { label: "Help & Support", href: WEBSITE_CONTACT_US, icon: FaHeadset },
+      { label: "About Us", href: WEBSITE_ABOUT, icon: FaInfoCircle },
+      { label: "Contact Us", href: WEBSITE_CONTACT_US, icon: FaPhoneAlt },
     ],
   },
 ]

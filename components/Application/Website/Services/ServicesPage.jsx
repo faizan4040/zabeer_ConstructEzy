@@ -60,7 +60,6 @@ const catIcon = (name = '') => {
 
 const toggle = (arr, v) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v])
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`
-const initials = (n = '') => n.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('') || 'P'
 const inputCls = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-[13px] text-slate-700 outline-none transition placeholder:text-gray-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/15'
 
 /* ============================ LAYOUT CSS ============================
@@ -88,7 +87,8 @@ const CSS = `
 .sv-pop::-webkit-scrollbar{display:none}
 .sv-pop>*{scroll-snap-align:start}
 .sv-steps{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
-.sv-contact{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:12px}
+.sv-contact{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+@media(min-width:640px){.sv-contact{gap:10px}}
 .sv-banner-text{max-width:100%}
 
 @media(min-width:480px){.sv-wrap{padding:0 16px 48px}}
@@ -171,14 +171,14 @@ const Avatar = ({ src, name }) => {
   return src && !bad ? (
     <img src={src} alt={name || 'Professional'} onError={() => setBad(true)} className="h-14 w-14 shrink-0 rounded-full border-2 border-white object-cover shadow-md ring-2 ring-emerald-200 min-[480px]:h-18 min-[480px]:w-18" />
   ) : (
-    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-linear-to-br from-emerald-500 to-emerald-700 text-lg font-bold text-white shadow-md ring-2 ring-emerald-200 min-[480px]:h-18 min-[480px]:w-18 min-[480px]:text-2xl">{initials(name)}</span>
+    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-linear-to-br from-emerald-500 to-emerald-700 text-lg font-bold text-white shadow-md ring-2 ring-emerald-200 min-[480px]:h-18 min-[480px]:w-18 min-[480px]:text-2xl"><FaUserCheck /></span>
   )
 }
 
 /* ============================ SERVICE CARD ============================ */
 const ServiceCard = ({ s, liked, onLike }) => {
   const href = WEBSITE_SERVICE_DETAILS(s._id)
-  const labour = s.labourName || 'Professional'
+  const labour = 'Professional' // labour name is intentionally hidden on the card
   const labourPic = s.labourPhoto || s.labourImage || s.labour?.photo
   const city = s.city || s.location
   return (
@@ -187,7 +187,6 @@ const ServiceCard = ({ s, liked, onLike }) => {
       <div className="sv-labour">
         <Avatar src={labourPic} name={labour} />
         <div className="sv-labour-info">
-          <p className="truncate text-[14px] font-bold text-[#0b1b3f]" title={labour}>{labour}</p>
           {s.isVerified ? (
             <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10.5px] font-semibold text-white"><FaCheckCircle size={9} />Verified Pro</span>
           ) : (
@@ -215,7 +214,7 @@ const ServiceCard = ({ s, liked, onLike }) => {
           </div>
         </div>
 
-        <p className="mt-2.5 line-clamp-2 text-[12.5px] leading-relaxed text-gray-500">{s.shortDescription || `Professional service by ${labour}.`}</p>
+        <p className="mt-2.5 line-clamp-2 text-[12.5px] leading-relaxed text-gray-500">{s.shortDescription || 'Professional service.'}</p>
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           {city && <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-medium text-sky-700"><FaMapMarkerAlt size={9} />{city}</span>}
@@ -338,10 +337,13 @@ const ServicesPage = () => {
           { href: PHONE ? `tel:${PHONE}` : '#', Icon: FaPhoneAlt, size: 18, wrap: 'border-sky-100 from-sky-50', ic: 'rounded-full bg-sky-500', t: 'Book via Call', d: 'Talk to our experts' },
           { href: WEBSITE_MATERIAL_LIST, Icon: FaFileDownload, size: 20, wrap: 'border-orange-100 from-orange-50', ic: 'rounded-lg bg-orange-400', t: 'Upload Material List', d: 'Get best prices & quick quotes' },
         ].map(({ href, ext, Icon, size, wrap, ic, t, d }) => (
-          <Link key={t} href={href} {...(ext ? { target: '_blank', rel: 'noreferrer' } : {})} className={`group flex items-center gap-3 rounded-xl border bg-gradient-to-r to-white px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md ${wrap}`}>
-            <span className={`flex h-11 w-11 shrink-0 items-center justify-center text-white shadow ${ic}`}><Icon size={size} /></span>
-            <span className="min-w-0"><b className="block truncate text-[14.5px] text-[#0b1b3f]">{t}</b><span className="block truncate text-xs text-gray-500">{d}</span></span>
-            <FaChevronRight size={12} className="ml-auto shrink-0 text-gray-400 transition group-hover:translate-x-1" />
+          <Link key={t} href={href} {...(ext ? { target: '_blank', rel: 'noreferrer' } : {})} className={`group flex flex-col items-center gap-1.5 rounded-xl border bg-linear-to-b to-white px-1.5 py-2.5 text-center transition hover:-translate-y-0.5 hover:shadow-md sm:flex-row sm:gap-3 sm:bg-linear-to-r sm:px-4 sm:py-3 sm:text-left ${wrap}`}>
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center text-white shadow sm:h-11 sm:w-11 ${ic}`}><Icon size={size} /></span>
+            <span className="min-w-0 w-full sm:w-auto">
+              <b className="block text-[11.5px] leading-tight text-[#0b1b3f] sm:truncate sm:text-[14.5px]">{t}</b>
+              <span className="mt-0.5 line-clamp-2 block text-[10px] leading-snug text-gray-500 sm:mt-0 sm:truncate sm:text-xs">{d}</span>
+            </span>
+            <FaChevronRight size={12} className="ml-auto hidden shrink-0 text-gray-400 transition group-hover:translate-x-1 sm:block" />
           </Link>
         ))}
       </div>

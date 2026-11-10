@@ -135,7 +135,6 @@ export default function Header() {
   const [manualInput, setManualInput] = useState("")
   const [locStatus, setLocStatus] = useState({ msg: "", type: "" })
   const [nearestLabor, setNearestLabor] = useState(null)
-  const [deliveryTime, setDeliveryTime] = useState("60 mins")
   const [isLoadingLocation, setIsLoadingLocation] = useState(false)
 
   // Avatar image load-failure fallback
@@ -190,10 +189,6 @@ export default function Header() {
       if (response.ok) {
         const data = await response.json()
         setNearestLabor(data)
-        if (data.distance) {
-          const time = Math.ceil(data.distance / 2) + 10
-          setDeliveryTime(`${Math.max(time, 60)} mins`)
-        }
       }
     } catch (error) {
       console.log("Error fetching nearest labor:", error)
@@ -292,7 +287,7 @@ export default function Header() {
         <p className="text-sm text-gray-500 mt-1">We'll show products available in your area</p>
         <p className="text-xs text-gray-500 mt-2 flex items-center gap-1.5">
           <Clock size={12} className="text-[#0B8457]" />
-          Delivery in <span className="font-semibold text-[#0B8457]">{deliveryTime}</span>
+          <span className="font-semibold text-[#0B8457]">Get in minutes</span>
         </p>
       </div>
 
@@ -479,7 +474,7 @@ export default function Header() {
 
               {/* Mobile Location Icon */}
               <button
-                className="flex lg:hidden items-center justify-center w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-colors"
+                className="hidden sm:flex lg:hidden items-center justify-center w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-colors"
                 onClick={() => { setLocationModal(true); setLocStatus({ msg: "", type: "" }) }}
                 aria-label="Location"
               >
@@ -604,7 +599,7 @@ export default function Header() {
         >
           <span className="flex items-center gap-2">
             <Clock size={15} className="text-[#0B8457]" />
-            <span className="font-semibold text-[#0B8457]">{deliveryTime}</span>
+            <span className="font-semibold text-[#0B8457]">Get in minutes</span>
           </span>
           <span className="flex items-center gap-1.5 text-gray-700 truncate text-xs max-w-[65%]">
             <MapPin size={13} className="shrink-0" />

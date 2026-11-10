@@ -136,7 +136,7 @@ const AboutSection = () => {
           </p>
 
           <Link
-            href="/about"
+            href="/AboutUs"
             className="group mt-5 inline-flex items-center gap-2.5 rounded-lg bg-emerald-700 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-800/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-lg sm:px-7 sm:py-3"
           >
             Learn More

@@ -36,7 +36,8 @@ export const WEBSITE_ORDER_DETAILS = (order_id) => `/order-details/${order_id}`
 
 
 // Website pages
-export const WEBSITE_ORDER_TRACKING = "/order-tracking"
+export const WEBSITE_ORDER_TRACKING = "/track-order"
+export const WEBSITE_PARTNERS = "/partners"
 export const WEBSITE_DELIVERY_RETURNS = "/delivery-returns"
 export const WEBSITE_GIFT_VOUCHERS = "/gift-vouchers"
 export const WEBSITE_CONSTRUCTION_CLUB = "/construction-club"

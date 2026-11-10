@@ -108,7 +108,7 @@ const scrollToSection = (e, targetId) => {
 
 /* ------------------------------ BUTTON ----------------------------- */
 const BUTTON_CLASS =
-  "group inline-flex items-center gap-2.5 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-800/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-lg sm:px-7 sm:py-3 sm:text-[15px]"
+  "group inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-emerald-700 px-4 py-2 text-[13px] font-semibold text-white shadow-md shadow-emerald-800/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-lg sm:gap-2.5 sm:px-7 sm:py-3 sm:text-[15px]"
 
 // Same section par scroll karne wala button (Browse Products)
 const CardButton = ({ targetId, children }) => (
@@ -138,7 +138,8 @@ const ShopServicesSection = () => {
         {/* =================== CARD 1 : SHOP PRODUCTS =================== */}
         <article className="group relative flex min-h-[260px] flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-linear-to-br from-emerald-50 via-emerald-50/70 to-green-100/60 p-5 shadow-sm transition-shadow hover:shadow-xl sm:min-h-[270px] sm:p-7">
           {/* Product image (right) */}
-          <div className="pointer-events-none absolute bottom-10 right-0 top-0 w-[58%] sm:w-[55%]">
+          {/* Phone: image sirf upar wale hisse mein (feature row se overlap nahi) */}
+          <div className="pointer-events-none absolute right-0 top-4 h-[140px] w-[42%] sm:bottom-10 sm:top-0 sm:h-auto sm:w-[55%]">
             <Image
               src={IMAGES.shopproducts}
               alt="Cement, paint, pipes, switches and wood"
@@ -149,7 +150,7 @@ const ShopServicesSection = () => {
           </div>
 
           {/* Text */}
-          <div className="relative z-10 max-w-[60%] sm:max-w-[50%]">
+          <div className="relative z-10 max-w-[58%] sm:max-w-[50%]">
             <h2 className="text-2xl font-extrabold tracking-tight text-[#0b1b3f] sm:text-3xl lg:text-[34px]">
               Shop Products
             </h2>
@@ -178,7 +179,8 @@ const ShopServicesSection = () => {
         {/* =================== CARD 2 : BOOK SERVICES =================== */}
         <article className="group relative flex min-h-[260px] flex-col overflow-hidden rounded-2xl border border-sky-100 bg-linear-to-br from-sky-50 via-blue-50/80 to-indigo-100/60 p-5 shadow-sm transition-shadow hover:shadow-xl sm:min-h-[270px] sm:p-7">
           {/* Worker image */}
-          <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-[55%] sm:right-[8%] sm:w-[50%] lg:right-[10%]">
+          {/* Phone: image upar ke hisse tak limited (checklist se overlap nahi) */}
+          <div className="pointer-events-none absolute right-0 top-3 h-[165px] w-[42%] sm:bottom-0 sm:top-0 sm:right-[8%] sm:h-auto sm:w-[50%] lg:right-[10%]">
             <Image
               src={IMAGES.book_services}
               alt="Verified ConstructEzy professional"
@@ -189,7 +191,7 @@ const ShopServicesSection = () => {
           </div>
 
           {/* Text */}
-          <div className="relative z-10 max-w-[55%] sm:max-w-[48%]">
+          <div className="relative z-10 max-w-[58%] sm:max-w-[48%]">
             <h2 className="text-2xl font-extrabold tracking-tight text-[#0b1b3f] sm:text-3xl lg:text-[34px]">
               Book Services
             </h2>

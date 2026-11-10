@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react"
 
 import {
   WEBSITE_ABOUT,
+  WEBSITE_ORDER_TRACKING,
+  WEBSITE_PARTNERS,
   WEBSITE_CAREERS,
   WEBSITE_CONTACT_US,
   WEBSITE_COOKIE_POLICY,
@@ -95,17 +97,17 @@ const SHOP_LINKS = [
 ]
 
 const SERVICE_LINKS = [
-  { label: "Plumbing Repair", href: "#" },
-  { label: "Electrical Work", href: "#" },
-  { label: "Painting", href: "#" },
-  { label: "Carpentry", href: "#" },
-  { label: "Installation", href: "#" },
-  { label: "Renovation", href: "#" },
+  { label: "Plumbing Repair", href: "/services?category=plumbing" },
+  { label: "Electrical Work", href: "/services?category=electrical" },
+  { label: "Painting", href: "/services?category=painting" },
+  { label: "Carpentry", href: "/services?category=carpentry" },
+  { label: "Installation", href: "/services?category=installation" },
+  { label: "Renovation", href: "/services?category=renovation" },
 ]
 
 const SUPPORT_LINKS = [
-  { label: "Help Center", href: "#" },
-  { label: "Track Order", href: "#" },
+  { label: "Help Center", href: WEBSITE_CONTACT_US },
+  { label: "Track Order", href: WEBSITE_ORDER_TRACKING },
   { label: "Returns & Refunds", href: WEBSITE_DELIVERY_RETURNS },
   { label: "Contact Us", href: WEBSITE_CONTACT_US },
   { label: "Price Beat Promise", href: WEBSITE_PRICE_BEAT_PROMISE },
@@ -115,7 +117,7 @@ const SUPPORT_LINKS = [
 
 const COMPANY_LINKS = [
   { label: "About Us", href: WEBSITE_ABOUT },
-  { label: "Our Partners", href: "#" },
+  { label: "Our Partners", href: WEBSITE_PARTNERS },
   { label: "Careers", href: WEBSITE_CAREERS },
   { label: "Terms & Conditions", href: WEBSITE_TERMS_CONDITIONS },
   { label: "Privacy Policy", href: WEBSITE_PRIVACY_POLICY },
