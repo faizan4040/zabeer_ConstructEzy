@@ -89,3 +89,7 @@ export const ADMIN_ORDER_DETAILS = (order_id) => order_id ? `/admin/orders/detai
 
 
 export const ADMIN_ORDER_BY_USER = "/admin/order-by-user";
+
+// Supplier & logistics sheets
+export const ADMIN_VENDOR_LIST = '/admin/vendors'
+export const ADMIN_LOGISTIC_PARTNERS = '/admin/logistic-partners'

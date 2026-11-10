@@ -123,12 +123,12 @@ const Home = () => {
   return (
     <div className="w-full min-w-0 overflow-x-hidden">
 
-    <section className="w-full py-1">
-      <ShopBySlider />
-    </section>
-
     <section className="w-full">
       <CuponBanner />
+    </section>
+    
+    <section className="w-full py-1">
+      <ShopBySlider />
     </section>
 
     <section className="w-full">

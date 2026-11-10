@@ -91,6 +91,18 @@ const AppSidebar = () => {
       <SidebarContent className={`p-3 ${THEME.contentBg}`}>
         <SidebarMenu className={THEME.text}>
           {adminAppSidebarMenu.map((menu, index) => {
+            // section heading with underline
+            if (menu.section) {
+              return (
+                <li key={`section-${index}`} className="list-none mt-4 mb-1 px-2 first:mt-0">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">
+                    {menu.section}
+                  </p>
+                  <div className="mt-1.5 h-px w-full bg-white/25" />
+                </li>
+              )
+            }
+
             const Icon = menu.icon
 
             return (
