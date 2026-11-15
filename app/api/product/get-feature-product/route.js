@@ -2,6 +2,7 @@ import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
 import ProductModel from "@/models/Product.model";
 import UserModel from "@/models/User.model";
+import { sanitizeProductForBuyer } from "@/lib/delivery";
 
 export async function GET() {
   try {
@@ -18,7 +19,7 @@ export async function GET() {
       return response(false, 404, "Products not found");
     }
 
-    return response(true, 200, "Products found.", products);
+    return response(true, 200, "Products found.", products.map(sanitizeProductForBuyer));
   } catch (error) {
     return catchError(error);
   }

@@ -103,7 +103,7 @@ useEffect(() => {
           )}
 
           {cart.products.map((product) => {
-            const key = `${product.productId}-${product.variantId}`
+            const key = `${product.productId}-${product.variantId}-${product.isSample ? 's' : 'f'}`
 
             return (
               <div
@@ -122,6 +122,11 @@ useEffect(() => {
                   <h4 className="font-semibold leading-snug">
                     {product.name}
                   </h4>
+                  {product.isSample && (
+                    <span className="inline-block text-[11px] font-semibold bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">
+                      Sample
+                    </span>
+                  )}
                   <p className="text-sm text-gray-500">
                     {product.size} • {product.color}
                   </p>
@@ -137,6 +142,7 @@ useEffect(() => {
                           removeFromCart({
                             productId: product.productId,
                             variantId: product.variantId,
+                            isSample: !!product.isSample,
                           })
                         )
                       }

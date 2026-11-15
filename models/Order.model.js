@@ -69,6 +69,15 @@ const orderSchema = new mongoose.Schema({
             isReturnable: { type: Boolean, default: true },
             returnRequested: { type: Boolean, default: false },
 
+            // ── Buy a Sample ──
+            isSample: { type: Boolean, default: false },
+
+            // ── Delivery (internal — buyer ko deliveredBy nahi dikhate) ──
+            deliveryType: { type: String, enum: ["free", "paid_supplier", "constructezy"], default: "free" },
+            deliveredBy: { type: String, enum: ["supplier", "constructezy"], default: "supplier" },
+            deliveryRatePerKm: { type: Number, default: 0 },
+            deliveryDistanceKm: { type: Number, default: null },
+
             // NEW — is item ko kis shop ko notify kiya gaya, radius, timeout, etc.
             itemAssignment: { type: itemAssignmentSchema, default: () => ({}) },
         }
@@ -79,6 +88,8 @@ const orderSchema = new mongoose.Schema({
     subtotal: { type: Number, required: true },
     discount: { type: Number, required: true },
     couponDiscount: { type: Number, default: 0 },
+    // server-side calculated (lib/delivery.js → quoteDelivery), totalAmount me included
+    deliveryCharge: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
     payment_id: { type: String, required: true },
     order_id: { type: String, required: true },

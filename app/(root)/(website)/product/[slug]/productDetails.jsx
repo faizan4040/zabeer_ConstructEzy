@@ -8,12 +8,13 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { IMAGES } from "@/routes/AllImages"
-import { WEBSITE_CART, WEBSITE_PRODUCT_DETAILS, WEBSITE_SHOP } from "@/routes/WebsiteRoute"
+import { WEBSITE_CART, WEBSITE_CHECKOUT, WEBSITE_PRODUCT_DETAILS, WEBSITE_SHOP } from "@/routes/WebsiteRoute"
+import { useRouter } from "next/navigation"
 import { decode } from "entities"
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { Plus, Truck, Clock, Wallet, ShieldCheck } from "lucide-react"
+import { Plus, Truck, Clock, Wallet, ShieldCheck, FlaskConical, RotateCcw } from "lucide-react"
 import { BiMinus } from "react-icons/bi"
 import { IoStar } from "react-icons/io5"
 import ButtonLoading from "@/components/Application/ButtonLoading"
@@ -24,11 +25,13 @@ import { Button } from "@/components/ui/button"
 import ProdcutReview from "@/components/Website/ProdcutReview"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import { deliveryLabel } from "@/lib/listingOptions"
 
 // attributeGroups shape: { "Weight": ["100g","200g","500g"], "Color": ["Red","White"] }
 const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount }) => {
 
   const dispatch = useDispatch()
+  const router = useRouter()
   const cartStore =
     useSelector((store) => store.cartStore) ?? {
       count: 0,
@@ -51,7 +54,7 @@ const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount })
   useEffect(() => {
     if (cartStore.count > 0) {
       const existingProduct = cartStore.products.findIndex((cartProduct) =>
-        cartProduct.productId === product._id && cartProduct.variantId === variant._id)
+        cartProduct.productId === product._id && cartProduct.variantId === variant._id && !cartProduct.isSample)
 
       if (existingProduct >= 0) {
         setIsAddedIntoCart(true)
@@ -71,22 +74,41 @@ const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount })
     })
   }
 
+  const buildCartProduct = (isSample = false) => ({
+    productId: product._id,
+    variantId: variant._id,
+    name: product.name,
+    url: product.slug,
+    attributes: variant.attributes, // dynamic — array of {label, value}
+    mrp: isSample ? product.samplePrice : variant.mrp,
+    sellingPrice: isSample ? product.samplePrice : variant.sellingPrice,
+    media: variant?.media[0]?.secure_url,
+    qty: isSample ? 1 : qty,
+    isSample,
+    sampleNote: isSample ? (product.sampleNote || '') : '',
+    delivery: product.delivery,
+  })
+
   const handleAddToCart = () => {
-    const cartProduct = {
-      productId: product._id,
-      variantId: variant._id,
-      name: product.name,
-      url: product.slug,
-      attributes: variant.attributes, // dynamic — array of {label, value}
-      mrp: variant.mrp,
-      sellingPrice: variant.sellingPrice,
-      media: variant?.media[0]?.secure_url,
-      qty: qty
-    }
-    dispatch(addIntoCart(cartProduct))
+    dispatch(addIntoCart(buildCartProduct(false)))
     setIsAddedIntoCart(true)
     showToast('success', 'product added into cart.')
   }
+
+  // Buy Now → cart me daalo aur seedha checkout
+  const handleBuyNow = () => {
+    if (!isAddedIntoCart) dispatch(addIntoCart(buildCartProduct(false)))
+    router.push(WEBSITE_CHECKOUT)
+  }
+
+  // Buy a Sample → qty 1, seller ka sample price, seedha checkout
+  const sampleAvailable = !!product?.sampleEnabled && Number(product?.samplePrice) > 0
+  const handleBuySample = () => {
+    dispatch(addIntoCart(buildCartProduct(true)))
+    router.push(WEBSITE_CHECKOUT)
+  }
+
+  const isPaidDelivery = product?.delivery?.mode === 'paid'
 
   // current selected value of a given attribute label, read off this variant
   const getCurrentValue = (label) => {
@@ -199,8 +221,10 @@ const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount })
             <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50">
               <Truck className="w-4 h-4 text-primary shrink-0" />
               <span className="text-gray-700">
-                <span className="font-medium text-gray-900">Free Delivery</span>{" "}
-                <span className="text-gray-500">on orders above ₹500</span>
+                <span className="font-medium text-gray-900">{deliveryLabel(product?.delivery)}</span>{" "}
+                {isPaidDelivery && (
+                  <span className="text-gray-500">· calculated at checkout by distance</span>
+                )}
               </span>
             </div>
             <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50">
@@ -304,6 +328,13 @@ const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount })
 
           {/* CTA */}
           <div className="flex flex-col sm:flex-row gap-4 mb-2">
+            <Button
+              type="button"
+              onClick={handleBuyNow}
+              className="flex-1 bg-black text-white py-3 hover:bg-orange-500 hover:text-white cursor-pointer rounded-full font-semibold transition"
+            >
+              Buy Now
+            </Button>
             {!isAddedIntoCart ? (
               <ButtonLoading
                 onClick={handleAddToCart}
@@ -322,6 +353,37 @@ const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount })
               </Button>
             )}
           </div>
+
+          {/* Buy a Sample — sirf jab seller ne enable kiya ho */}
+          {sampleAvailable && (
+            <div className="mt-4 rounded-xl border border-dashed border-orange-300 bg-orange-50/60 p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+                <div className="flex items-start gap-2">
+                  <FlaskConical className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      Not sure? Try a sample first —{" "}
+                      {Number(product.samplePrice).toLocaleString("en-IN", { style: "currency", currency: "INR" })}
+                    </p>
+                    {product.sampleNote && (
+                      <p className="text-xs text-gray-600">{product.sampleNote}</p>
+                    )}
+                    <p className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                      <RotateCcw className="w-3 h-3" /> Sample is returnable within 7 days of delivery
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleBuySample}
+                  variant="outline"
+                  className="rounded-full border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white font-semibold cursor-pointer"
+                >
+                  Buy a Sample
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Trust strip */}
           <div className="flex items-center gap-2 text-xs text-gray-500 mt-3">

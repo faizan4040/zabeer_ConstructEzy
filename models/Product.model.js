@@ -73,6 +73,40 @@ const productSchema = new mongoose.Schema({
         index: true
     },
 
+    // ── Buy a Sample (optional, seller toggle) ──
+    // Enable hone par product page pe "Buy a Sample" button dikhta hai.
+    // Sample qty hamesha 1, aur sirf sample hi returnable hai (7 din, delivery ke baad).
+    sampleEnabled: {
+        type: Boolean,
+        default: false,
+    },
+    samplePrice: {
+        type: Number,
+        default: null,
+        min: 0,
+    },
+    // e.g. "1 kg pack", "2 tiles" — buyer ko batata hai sample me kya milega
+    sampleNote: {
+        type: String,
+        trim: true,
+        default: "",
+    },
+
+    // ── Delivery option (see lib/delivery.js) ──
+    // free / paid_supplier → supplier khud deliver karta hai
+    // constructezy → ConstructEzy deliver karta hai (buyer ko kabhi nahi dikhaya jata)
+    deliveryType: {
+        type: String,
+        enum: ["free", "paid_supplier", "constructezy"],
+        default: "free",
+    },
+    // sirf paid_supplier ke liye — supplier ka ₹/km rate
+    deliveryRatePerKm: {
+        type: Number,
+        default: 0,
+        min: 0,
+    },
+
     masterProductId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product",

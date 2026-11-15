@@ -25,7 +25,7 @@ export async function POST(request) {
         })
 
         const razOption = {
-            amount: Number(amount) * 100,
+            amount: Math.round(Number(amount) * 100), // paise must be an integer
             currency: 'INR'
         }
 

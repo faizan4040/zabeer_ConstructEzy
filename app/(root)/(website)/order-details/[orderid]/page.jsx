@@ -110,8 +110,21 @@ const OrderDetails = async ({ params }) => {
                           >
                             {product?.productId?.name}
                           </Link>
-                          <p className="text-sm text-gray-500 mt-1">Color: {product?.variantId?.color}</p>
-                          <p className="text-sm text-gray-500">Size: {product?.variantId?.size}</p>
+                          {product?.variantId?.attributes?.length ? (
+                            <p className="text-sm text-gray-500 mt-1">
+                              {product.variantId.attributes.map((a) => `${a.label}: ${a.value}`).join(' | ')}
+                            </p>
+                          ) : (
+                            <>
+                              <p className="text-sm text-gray-500 mt-1">Color: {product?.variantId?.color}</p>
+                              <p className="text-sm text-gray-500">Size: {product?.variantId?.size}</p>
+                            </>
+                          )}
+                          {product.isSample && (
+                            <span className="inline-block mt-1 text-[11px] font-semibold bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">
+                              Sample · returnable within 7 days of delivery
+                            </span>
+                          )}
                         </div>
                       </td>
 
@@ -139,6 +152,8 @@ const OrderDetails = async ({ params }) => {
                             status={product.status}
                             isReturnable={product.isReturnable}
                             returnRequested={product.returnRequested}
+                            isSample={!!product.isSample}
+                            deliveredAt={product.deliveredAt}
                           />
                         </div>
                       </td>
@@ -210,6 +225,14 @@ const OrderDetails = async ({ params }) => {
                   <div className="flex justify-between">
                     <span className="font-medium">Coupon Discount</span>
                     <span>{orderData?.data?.couponDiscount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Delivery</span>
+                    <span>
+                      {Number(orderData?.data?.deliveryCharge || 0) > 0
+                        ? Number(orderData.data.deliveryCharge).toLocaleString('en-IN', { style: 'currency', currency: 'INR' })
+                        : 'Free'}
+                    </span>
                   </div>
                   <div className="flex justify-between mt-4 pt-2 border-t text-lg font-bold text-gray-900">
                     <span>Total</span>

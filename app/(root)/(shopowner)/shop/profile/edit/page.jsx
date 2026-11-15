@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import ProfileEditForm from "@/components/Profile/ProfileEditForm"
+import ShopLocationCard from "@/components/Application/ShopOwner/ShopLocationCard"
 import { USER_DASHBOARD } from "@/routes/WebsiteRoute"
 
 export default function ShopownerEditProfilePage() {
@@ -38,6 +39,9 @@ export default function ShopownerEditProfilePage() {
         redirectRoute={USER_DASHBOARD}
         initialUser={user}
       />
+      <div className="max-w-lg mx-auto mt-6">
+        <ShopLocationCard />
+      </div>
     </div>
   )
 }

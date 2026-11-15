@@ -127,7 +127,7 @@ const CartPage = () => {
               <tbody>
                 {cart.products.map((product) => (
                   <tr
-                    key={`${product.productId}-${product.variantId}`}
+                    key={`${product.productId}-${product.variantId}-${product.isSample ? 's' : 'f'}`}
                     className="border-b block md:table-row"
                   >
                     {/* PRODUCT */}
@@ -147,9 +147,25 @@ const CartPage = () => {
                           >
                             {product.name}
                           </Link>
-                          <p className="text-sm text-gray-500">
-                            Color: {product.color || '-'} | Size:{' '}
-                            {product.size || '-'}
+                          {product.attributes?.length ? (
+                            <p className="text-sm text-gray-500">
+                              {product.attributes.map((a) => `${a.label}: ${a.value}`).join(' | ')}
+                            </p>
+                          ) : (
+                            <p className="text-sm text-gray-500">
+                              Color: {product.color || '-'} | Size:{' '}
+                              {product.size || '-'}
+                            </p>
+                          )}
+                          {product.isSample && (
+                            <span className="inline-block mt-1 text-[11px] font-semibold bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">
+                              Sample{product.sampleNote ? ` · ${product.sampleNote}` : ''} · returnable 7 days
+                            </span>
+                          )}
+                          <p className="text-xs text-gray-500 mt-1">
+                            {product.delivery?.mode === 'paid'
+                              ? `Paid Delivery · ₹${product.delivery.ratePerKm}/km`
+                              : 'Free Delivery'}
                           </p>
                         </div>
                       </div>
@@ -169,6 +185,7 @@ const CartPage = () => {
                               decreaseQuantity({
                                 productId: product.productId,
                                 variantId: product.variantId,
+                                isSample: !!product.isSample,
                               })
                             )
                           }
@@ -187,10 +204,13 @@ const CartPage = () => {
                               increaseQuantity({
                                 productId: product.productId,
                                 variantId: product.variantId,
+                                isSample: !!product.isSample,
                               })
                             )
                           }
-                          className="px-3 py-2 hover:bg-gray-100"
+                          disabled={product.isSample}
+                          title={product.isSample ? 'Sample is limited to 1' : undefined}
+                          className="px-3 py-2 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <Plus size={16} />
                         </button>
@@ -209,10 +229,11 @@ const CartPage = () => {
                       <button
                         onClick={() =>
                           dispatch(
-                            removeFromCart({
-                              productId: product.productId,
-                              variantId: product.variantId,
-                            })
+                              removeFromCart({
+                                productId: product.productId,
+                                variantId: product.variantId,
+                                isSample: !!product.isSample,
+                              })
                           )
                         }
                         className="text-xl text-gray-500 hover:text-red-500"
@@ -244,6 +265,15 @@ const CartPage = () => {
           <div className="flex justify-between text-green-600">
             <span>Discount</span>
             <span>- {formatPrice(discount)}</span>
+          </div>
+
+          <div className="flex justify-between text-gray-600">
+            <span>Delivery</span>
+            <span>
+              {cart.products.some((p) => p.delivery?.mode === 'paid')
+                ? 'Calculated at checkout'
+                : 'Free'}
+            </span>
           </div>
 
           <div className="border-t pt-3 flex justify-between font-semibold text-lg">

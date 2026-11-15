@@ -5,7 +5,7 @@ import { catchError, response } from "@/lib/helperfunction";
 import { sendMail } from "@/lib/sendMail";
 import { zSchema } from "@/lib/zodSchema";
 import OrderModel from "@/models/Order.model";
-import ProductModel from "@/models/Product.model";
+import { prepareOrderItems } from "@/lib/orderDelivery";
 import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils";
 import z from "zod";
 
@@ -22,7 +22,8 @@ export async function POST(request) {
         name: z.string().min(1),
         qty: z.number().min(1),
         mrp: z.number().nonnegative(),
-        sellingPrice: z.number().nonnegative()
+        sellingPrice: z.number().nonnegative(),
+        isSample: z.boolean().optional().default(false)
     })
 
     const orderSchema = zSchema.pick({
@@ -37,6 +38,8 @@ export async function POST(request) {
         discount: z.number().nonnegative(),
         couponDiscount: z.number().nonnegative(),
         totalAmount: z.number().nonnegative(),
+        deliveryCharge: z.number().nonnegative().optional().default(0),
+        customerLocation: z.object({ lat: z.number(), lng: z.number() }).optional().nullable(),
         products: z.array(productSchema)
     })
 
@@ -61,15 +64,23 @@ export async function POST(request) {
 
     const initialStatus = paymentVerification ? 'on_hold' : 'unverified'
 
-    const productIds = validateData.products.map((p) => p.productId)
-    const productsInfo = await ProductModel.find({ _id: { $in: productIds } }).select("isReturnable")
-    const returnableMap = {}
-    productsInfo.forEach((p) => { returnableMap[p._id.toString()] = p.isReturnable !== false })
+    // Sample/return rules + server-side delivery charge. Payment ho chuka hai,
+    // isliye strict=false — yahan order kabhi fail nahi karte.
+    const fullAddress = `${validateData.address}, ${validateData.city}, ${validateData.state} ${validateData.pincode}, India`
+    const prepared = await prepareOrderItems({
+        products: validateData.products,
+        customerLocation: validateData.customerLocation,
+        addressString: fullAddress,
+        strict: false,
+    })
 
-    const productsWithStatus = validateData.products.map((item) => ({
+    if (Math.abs((validateData.deliveryCharge || 0) - prepared.deliveryCharge) > 1) {
+        console.warn(`[save-order] delivery charge mismatch for ${validateData.razorpay_order_id}: client=${validateData.deliveryCharge} server=${prepared.deliveryCharge}`)
+    }
+
+    const productsWithStatus = prepared.items.map((item) => ({
         ...item,
         status: initialStatus,
-        isReturnable: returnableMap[item.productId] ?? true,
     }))
 
     const newOrder = await OrderModel.create({
@@ -88,6 +99,7 @@ export async function POST(request) {
     subtotal: validateData.subtotal,
     discount: validateData.discount,
     couponDiscount: validateData.couponDiscount || 0,  
+    deliveryCharge: prepared.deliveryCharge,
     totalAmount: validateData.totalAmount,
     payment_id: validateData.razorpay_payment_id,
     order_id: validateData.razorpay_order_id,               
@@ -101,8 +113,7 @@ export async function POST(request) {
             const { geocodeAddress } = await import("@/lib/geocode")
             const { assignAllItems } = await import("@/lib/itemAssignment")
 
-            const fullAddress = `${validateData.address}, ${validateData.city}, ${validateData.state} ${validateData.pincode}, India`
-            const coords = await geocodeAddress(fullAddress)
+            const coords = prepared.location || await geocodeAddress(fullAddress)
 
             if (coords) {
                 newOrder.customerLocation = coords

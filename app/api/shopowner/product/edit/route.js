@@ -4,6 +4,9 @@ import { isAuthenticated } from "@/lib/authentication";
 import { zSchema } from "@/lib/zodSchema";
 import ProductModel from "@/models/Product.model";
 import UserModel from "@/models/User.model";
+import ShopModel from "@/models/Shop.model";
+import { listingOptionsSchema, pickListingOptions } from "@/lib/listingOptions";
+import { shopCoords } from "@/lib/delivery";
 
 export async function PUT(request) {
   try {
@@ -40,7 +43,18 @@ export async function PUT(request) {
     const product = await ProductModel.findOne({ _id, shop: user.shop, deletedAt: null });
     if (!product) return response(false, 404, "Product not found or not owned by you.");
 
-    Object.assign(product, validatedData.data);
+    const options = listingOptionsSchema.safeParse(pickListingOptions(rest));
+    if (!options.success) {
+      return response(false, 400, options.error.issues?.[0]?.message || "Invalid sample / delivery settings.");
+    }
+    if (options.data.deliveryType !== "free") {
+      const shop = await ShopModel.findById(user.shop).select("location").lean();
+      if (!shopCoords(shop)) {
+        return response(false, 400, "Please enable your shop location first — paid delivery is calculated from your shop to the buyer.");
+      }
+    }
+
+    Object.assign(product, validatedData.data, options.data);
     await product.save();
 
     return response(true, 200, "Product updated successfully.", product);

@@ -54,6 +54,31 @@ const shopSchema = new mongoose.Schema(
     razorpayContactId: { type: String, default: null },
     razorpayFundAccountId: { type: String, default: null },
 
+    // ── Shop / pickup location (GeoJSON Point: [lng, lat]) ──
+    // Paid delivery ka distance isi se nikalta hai (shop → buyer), aur
+    // nearest-shop assignment (lib/itemAssignment.js) bhi isi pe $nearSphere chalata hai.
+    // default undefined rakha hai taaki bina location wale shops pe 2dsphere index na toote.
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: undefined,
+      },
+      coordinates: {
+        type: [Number],
+        default: undefined,
+      },
+    },
+    locationAddress: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    locationUpdatedAt: {
+      type: Date,
+      default: null,
+    },
+
     deletedAt: {
       type: Date,
       default: null,
@@ -62,6 +87,8 @@ const shopSchema = new mongoose.Schema(
   },
   { timestamps: true }
 )
+
+shopSchema.index({ location: "2dsphere" })
 
 const ShopModel = mongoose.models.Shop || mongoose.model("Shop", shopSchema, "shops")
 export default ShopModel

@@ -5,7 +5,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, AlertCircle, RotateCcw } from 'lucide-react'
 
-const ReturnOrderButton = ({ orderId, productId, status, isReturnable, returnRequested }) => {
+const RETURN_WINDOW_DAYS = 7
+
+const ReturnOrderButton = ({ orderId, productId, status, isReturnable, returnRequested, isSample = false, deliveredAt = null }) => {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(null)
   const [formOpen, setFormOpen] = useState(false)
@@ -25,6 +27,11 @@ const ReturnOrderButton = ({ orderId, productId, status, isReturnable, returnReq
   // ── Only eligible when: item delivered + product marked returnable ──
   if (status !== 'delivered' || isReturnable === false) return null
 
+  // 7-day window (delivery ke baad) khatam → button mat dikhao
+  if (deliveredAt && (Date.now() - new Date(deliveredAt).getTime()) / 86400000 > RETURN_WINDOW_DAYS) {
+    return <span className="text-[11px] text-gray-400 whitespace-nowrap">Return window closed</span>
+  }
+
   const handleSubmit = async () => {
     if (reason.trim().length < 5) {
       setMessage({ type: 'error', text: 'Please describe the reason (min 5 characters).' })
@@ -37,7 +44,7 @@ const ReturnOrderButton = ({ orderId, productId, status, isReturnable, returnReq
 
       const { data } = await axios.post(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/customers/orders/${orderId}/return`,
-        { productId, reason: reason.trim() }
+        { productId, reason: reason.trim(), isSample }
       )
 
       if (data.success) {
@@ -66,7 +73,7 @@ const ReturnOrderButton = ({ orderId, productId, status, isReturnable, returnReq
           className="text-[11px] font-semibold text-blue-600 hover:text-blue-700
                      underline underline-offset-2 whitespace-nowrap"
         >
-          Return Item
+          {isSample ? 'Return Sample' : 'Return Item'}
         </button>
       ) : (
         <div className="flex flex-col gap-2 bg-white border border-blue-200 rounded-lg shadow-sm p-3 w-56">

@@ -13,6 +13,8 @@ const returnSchema = new mongoose.Schema({
   variantId: { type: mongoose.Schema.Types.ObjectId, ref: "ProductVariant", required: true },
   productName: { type: String, required: true },
   qty: { type: Number, required: true },
+  // Buy a Sample ka return (sample hamesha returnable, 7 din ke andar)
+  isSample: { type: Boolean, default: false },
 
   customer: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   customerName: { type: String, required: true },

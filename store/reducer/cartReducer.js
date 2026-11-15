@@ -5,51 +5,45 @@ const initialState = {
   products: [],
 };
 
+// Ek cart line = product + variant + (sample ya full). Isse same variant ka
+// sample aur full order dono alag-alag cart me reh sakte hain.
+const sameLine = (a, b) =>
+  a.productId === b.productId &&
+  a.variantId === b.variantId &&
+  !!a.isSample === !!b.isSample;
+
 export const cartReducer = createSlice({
   name: "cartStore",
   initialState,
   reducers: {
     addIntoCart: (state, action) => {
       const payload = action.payload;
+      if (!payload) return;
 
-      const existingProduct = state.products.findIndex(
-        (product) =>
-          product.productId === payload.productId &&
-          product.variantId === payload.variantId
-      );
+      const existingProduct = state.products.findIndex((product) => sameLine(product, payload));
 
       if (existingProduct >= 0) {
-        // Increase qty if already exists
-        state.products[existingProduct].qty += payload.qty || 1;
+        // Sample hamesha qty 1 — dobara add karne pe badhta nahi
+        if (!payload.isSample) {
+          state.products[existingProduct].qty += payload.qty || 1;
+        }
       } else {
-        state.products.push(payload);
+        state.products.push(payload.isSample ? { ...payload, qty: 1 } : payload);
       }
 
       state.count = state.products.length;
     },
 
     increaseQuantity: (state, action) => {
-      const { productId, variantId } = action.payload;
+      const existingProduct = state.products.findIndex((product) => sameLine(product, action.payload));
 
-      const existingProduct = state.products.findIndex(
-        (product) =>
-          product.productId === productId &&
-          product.variantId === variantId
-      );
-
-      if (existingProduct >= 0) {
+      if (existingProduct >= 0 && !state.products[existingProduct].isSample) {
         state.products[existingProduct].qty += 1;
       }
     },
 
     decreaseQuantity: (state, action) => {
-      const { productId, variantId } = action.payload;
-
-      const existingProduct = state.products.findIndex(
-        (product) =>
-          product.productId === productId &&
-          product.variantId === variantId
-      );
+      const existingProduct = state.products.findIndex((product) => sameLine(product, action.payload));
 
       if (existingProduct >= 0 && state.products[existingProduct].qty > 1) {
         state.products[existingProduct].qty -= 1;
@@ -57,14 +51,7 @@ export const cartReducer = createSlice({
     },
 
     removeFromCart: (state, action) => {
-      const { productId, variantId } = action.payload;
-
-      state.products = state.products.filter(
-        (product) =>
-          !(product.productId === productId &&
-            product.variantId === variantId)
-      );
-
+      state.products = state.products.filter((product) => !sameLine(product, action.payload));
       state.count = state.products.length;
     },
 

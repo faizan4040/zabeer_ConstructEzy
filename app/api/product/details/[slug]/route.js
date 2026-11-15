@@ -3,6 +3,7 @@ import { catchError, response } from "@/lib/helperfunction";
 import ProductModel from "@/models/Product.model";
 import ProductVariantModel from "@/models/ProductVariant.model";
 import ReviewModel from "@/models/Review.model";
+import { sanitizeProductForBuyer } from "@/lib/delivery";
 
 
 export async function GET(request, {params}) {
@@ -92,8 +93,9 @@ export async function GET(request, {params}) {
         // get review
         const review = await ReviewModel.countDocuments({ product: getProduct._id })
 
+        // deliveryType (e.g. "constructezy") buyer ko kabhi nahi bhejte — sirf { mode, ratePerKm }
         const productData = {
-            product: getProduct,
+            product: sanitizeProductForBuyer(getProduct),
             variant: variant,
             attributeGroups: attributeGroups,
             reviewCount: review

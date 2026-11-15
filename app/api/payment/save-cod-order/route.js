@@ -5,7 +5,7 @@ import { catchError, response } from "@/lib/helperfunction";
 import { sendMail } from "@/lib/sendMail";
 import { zSchema } from "@/lib/zodSchema";
 import OrderModel from "@/models/Order.model";
-import ProductModel from "@/models/Product.model";
+import { prepareOrderItems } from "@/lib/orderDelivery";
 import z from "zod";
 
 export async function POST(request) {
@@ -21,7 +21,8 @@ export async function POST(request) {
             name: z.string().min(1),
             qty: z.number().min(1),
             mrp: z.number().nonnegative(),
-            sellingPrice: z.number().nonnegative()
+            sellingPrice: z.number().nonnegative(),
+            isSample: z.boolean().optional().default(false)
         })
 
         // ✅ Razorpay fields (payment_id/order_id/signature) yahan REQUIRED nahi —
@@ -35,6 +36,8 @@ export async function POST(request) {
             discount: z.number().nonnegative(),
             couponDiscount: z.number().nonnegative(),
             totalAmount: z.number().nonnegative(),
+            deliveryCharge: z.number().nonnegative().optional().default(0),
+            customerLocation: z.object({ lat: z.number(), lng: z.number() }).optional().nullable(),
             products: z.array(productSchema)
         })
 
@@ -49,16 +52,25 @@ export async function POST(request) {
         // online-payment verified hone par hota tha), kyunki cash baad me collect hoga
         const initialStatus = 'on_hold'
 
-        const productIds = validateData.products.map((p) => p.productId)
-        const productsInfo = await ProductModel.find({ _id: { $in: productIds } }).select("isReturnable")
-        const returnableMap = {}
-        productsInfo.forEach((p) => { returnableMap[p._id.toString()] = p.isReturnable !== false })
+        // Sample price/qty lock, return rules, server-side delivery charge
+        const fullAddress = `${validateData.address}, ${validateData.city}, ${validateData.state} ${validateData.pincode}, India`
+        const prepared = await prepareOrderItems({
+            products: validateData.products,
+            customerLocation: validateData.customerLocation,
+            addressString: fullAddress,
+            strict: true,
+        })
+        if (prepared.error) return response(false, 400, prepared.error)
 
-        const productsWithStatus = validateData.products.map((item) => ({
+        const productsWithStatus = prepared.items.map((item) => ({
             ...item,
             status: initialStatus,
-            isReturnable: returnableMap[item.productId] ?? true,
         }))
+
+        // COD me paisa baad me aata hai → total server ke numbers se banao
+        const serverSubtotal = prepared.itemsSubtotal
+        const couponDiscount = Math.min(validateData.couponDiscount || 0, serverSubtotal)
+        const serverTotal = Math.round((Math.max(serverSubtotal - couponDiscount, 0) + prepared.deliveryCharge) * 100) / 100
 
         // ✅ Unique order_id — Razorpay ki jagah khud generate karna padega
         const codOrderId = `COD${Date.now()}${Math.floor(Math.random() * 1000)}`
@@ -76,10 +88,11 @@ export async function POST(request) {
             landmark: validateData.landmark,
             ordernote: validateData.ordernote,
             products: productsWithStatus,
-            subtotal: validateData.subtotal,
+            subtotal: serverSubtotal,
             discount: validateData.discount,
-            couponDiscount: validateData.couponDiscount || 0,
-            totalAmount: validateData.totalAmount,
+            couponDiscount,
+            deliveryCharge: prepared.deliveryCharge,
+            totalAmount: serverTotal,
             payment_id: `COD-${codOrderId}`,  // real payment_id nahi hai, placeholder
             order_id: codOrderId,
             status: initialStatus,
@@ -93,8 +106,8 @@ export async function POST(request) {
                 const { geocodeAddress } = await import("@/lib/geocode")
                 const { assignAllItems } = await import("@/lib/itemAssignment")
 
-                const fullAddress = `${validateData.address}, ${validateData.city}, ${validateData.state} ${validateData.pincode}, India`
-                const coords = await geocodeAddress(fullAddress)
+                // checkout GPS (ya pehle se geocoded) location ho to dobara geocode nahi
+                const coords = prepared.location || await geocodeAddress(fullAddress)
 
                 if (coords) {
                     newOrder.customerLocation = coords

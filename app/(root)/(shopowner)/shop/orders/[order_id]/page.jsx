@@ -153,7 +153,7 @@ const ShopOwnerOrderDetails = ({ params }) => {
           </thead>
           <tbody>
             {orderData.products.map((p) => (
-              <tr key={p.variantId._id} className="border-t hover:bg-gray-50 transition">
+              <tr key={`${p.variantId._id}-${p.isSample ? 's' : 'f'}`} className="border-t hover:bg-gray-50 transition">
                 <td className="p-4 flex gap-4 items-center">
                   <Image
                     src={p.variantId.media?.[0]?.secure_url || IMAGES.image_placeholder}
@@ -166,6 +166,18 @@ const ShopOwnerOrderDetails = ({ params }) => {
                       {p.productId.name}
                     </Link>
                     {p.variantId.size && <p className="text-xs text-gray-500 mt-1">Size: {p.variantId.size}</p>}
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {p.isSample && (
+                        <span className="text-[11px] font-semibold bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">Sample</span>
+                      )}
+                      <span className={`text-[11px] font-semibold rounded-full px-2 py-0.5 ${p.deliveredBy === 'constructezy' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
+                        {p.deliveredBy === 'constructezy'
+                          ? 'ConstructEzy will pick up & deliver'
+                          : p.deliveryType === 'paid_supplier'
+                            ? `You deliver · ₹${p.deliveryRatePerKm}/km${p.deliveryDistanceKm != null ? ` · ${p.deliveryDistanceKm} km` : ''}`
+                            : 'You deliver · Free delivery'}
+                      </span>
+                    </div>
                   </div>
                 </td>
                 <td className="text-center capitalize">{p.status || 'pending'}</td>

@@ -19,6 +19,8 @@ import { showToast } from '@/lib/showToast'
 import { zSchema } from '@/lib/zodSchema'
 import { SHOP_OWNER_DASHBOARD, SHOP_OWNER_PRODUCT_SHOW } from '@/routes/ShopOwnerPanelRoute'
 import { zodResolver } from '@hookform/resolvers/zod'
+import ListingOptionsSection from '@/components/Application/ShopOwner/ListingOptionsSection'
+import { LISTING_OPTION_DEFAULTS } from '@/lib/listingOptions'
 import axios from 'axios'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
@@ -47,6 +49,8 @@ const EditShopProduct = () => {
 
   const [selectedMedia, setSelectedMedia] = useState([]) // [{ _id, url, uploading?, tempId? }]
   const [isDragging, setIsDragging] = useState(false)
+  // Buy a Sample + Delivery option (react-hook-form ke bahar, submit pe merge)
+  const [listingOptions, setListingOptions] = useState(LISTING_OPTION_DEFAULTS)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -120,6 +124,14 @@ const EditShopProduct = () => {
           uploading: false,
         }))
         setSelectedMedia(existingMedia)
+
+        setListingOptions({
+          sampleEnabled: !!product.sampleEnabled,
+          samplePrice: product.samplePrice ?? '',
+          sampleNote: product.sampleNote || '',
+          deliveryType: product.deliveryType || 'free',
+          deliveryRatePerKm: product.deliveryRatePerKm || '',
+        })
       } catch (error) {
         showToast('error', error?.response?.data?.message || error.message || 'Failed to load product.')
       } finally {
@@ -269,6 +281,25 @@ const EditShopProduct = () => {
       setLoading(true)
       values._id = id
       values.media = readyMedia.map((m) => m._id)
+
+      // Sample / delivery — client-side quick checks (server bhi validate karta hai)
+      if (listingOptions.sampleEnabled && !(Number(listingOptions.samplePrice) > 0)) {
+        setLoading(false)
+        showToast('error', 'Please enter a sample price.')
+        return
+      }
+      if (listingOptions.deliveryType === 'paid_supplier' && !(Number(listingOptions.deliveryRatePerKm) > 0)) {
+        setLoading(false)
+        showToast('error', 'Please enter your delivery charge per km.')
+        return
+      }
+      Object.assign(values, {
+        sampleEnabled: !!listingOptions.sampleEnabled,
+        samplePrice: listingOptions.sampleEnabled ? Number(listingOptions.samplePrice) : null,
+        sampleNote: listingOptions.sampleNote || '',
+        deliveryType: listingOptions.deliveryType,
+        deliveryRatePerKm: listingOptions.deliveryType === 'paid_supplier' ? Number(listingOptions.deliveryRatePerKm) : 0,
+      })
 
       const { data: response } = await axios.put('/api/shopowner/product/edit', values)
       if (!response.success) throw new Error(response.message)
@@ -574,6 +605,9 @@ const EditShopProduct = () => {
                     </div>
                   )}
                 </section>
+
+                {/* Buy a Sample + Delivery */}
+                <ListingOptionsSection value={listingOptions} onChange={setListingOptions} step={5} />
 
                 <ButtonLoading
                   loading={loading || isAnyUploading}

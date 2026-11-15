@@ -5,6 +5,7 @@ import OrderModel from "@/models/Order.model"
 import ProductModel from "@/models/Product.model"
 import ReturnModel from "@/models/Return.model"
 import WalletTransactionModel from "@/models/WalletTransaction.model"
+import { SAMPLE_RETURN_WINDOW_DAYS } from "@/lib/delivery"
 
 export async function POST(request, { params }) {
   try {
@@ -13,7 +14,7 @@ export async function POST(request, { params }) {
 
     await connectDB()
     const { order_id } = await params
-    const { productId, reason } = await request.json()
+    const { productId, reason, isSample } = await request.json()
 
     if (!reason || reason.trim().length < 5) {
       return response(false, 400, "Please provide a valid reason for return.")
@@ -22,7 +23,10 @@ export async function POST(request, { params }) {
     const order = await OrderModel.findOne({ order_id, user: auth.userId, deleteAt: null })
     if (!order) return response(false, 404, "Order not found.")
 
-    const item = order.products.find((p) => String(p.productId) === productId)
+    // same product ka sample aur full order dono ek order me ho sakte hain
+    const item =
+      order.products.find((p) => String(p.productId) === productId && !!p.isSample === !!isSample) ||
+      order.products.find((p) => String(p.productId) === productId)
     if (!item) return response(false, 404, "Product not found in this order.")
 
     // ── Core eligibility checks ──
@@ -36,11 +40,17 @@ export async function POST(request, { params }) {
       return response(false, 400, "A return request already exists for this item.")
     }
 
-    // ── Optional: 7-day return window from delivery ──
-    if (item.deliveredAt) {
-      const daysSinceDelivery = (Date.now() - new Date(item.deliveredAt).getTime()) / (1000 * 60 * 60 * 24)
-      if (daysSinceDelivery > 7) {
-        return response(false, 400, "Return window has expired (7 days from delivery).")
+    // ── 7-day return window from delivery ──
+    // Sample ke liye strict: delivery time pata hona hi chahiye (deliveredAt ya
+    // statusHistory ka "delivered" entry), warna bhi window check hota hai.
+    const deliveredAt =
+      item.deliveredAt ||
+      [...(item.statusHistory || [])].reverse().find((h) => h.status === "delivered")?.at ||
+      (item.isSample ? order.updatedAt : null)
+    if (deliveredAt) {
+      const daysSinceDelivery = (Date.now() - new Date(deliveredAt).getTime()) / (1000 * 60 * 60 * 24)
+      if (daysSinceDelivery > SAMPLE_RETURN_WINDOW_DAYS) {
+        return response(false, 400, `Return window has expired (${SAMPLE_RETURN_WINDOW_DAYS} days from delivery).`)
       }
     }
 
@@ -58,6 +68,7 @@ export async function POST(request, { params }) {
       variantId: item.variantId,
       productName: item.name,
       qty: item.qty,
+      isSample: !!item.isSample,
       customer: auth.userId,
       customerName: order.name,
       customerEmail: order.email,
