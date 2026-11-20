@@ -8,7 +8,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
-import WebsiteBreadcrumb from '@/components/Website/WebsiteBreadcrumb'
 import { IMAGES } from '@/routes/AllImages'
 import {
   WEBSITE_CHECKOUT,
@@ -24,12 +23,6 @@ import {
 import { Plus } from 'lucide-react'
 import { BiMinus } from 'react-icons/bi'
 import { IoCloseCircleOutline } from 'react-icons/io5'
-
-/* ================= BREADCRUMB ================= */
-const breadCrumb = {
-  title: 'Cart',
-  links: [{ label: 'Cart' }],
-}
 
 /* ================= HELPERS ================= */
 const formatPrice = (value) => {
@@ -87,7 +80,6 @@ const CartPage = () => {
   if (!cart.products || cart.products.length === 0) {
     return (
       <>
-        <WebsiteBreadcrumb props={breadCrumb} />
        <div className="min-h-[70vh] flex items-center justify-center">
         <div className="text-center flex flex-col items-center gap-6">
           <img
@@ -109,7 +101,6 @@ const CartPage = () => {
 
   return (
     <>
-      <WebsiteBreadcrumb props={breadCrumb} />
 
       <div className="max-w-8xl mx-auto px-4 lg:px-8 my-14 flex flex-col lg:flex-row gap-10">
         {/* ================= CART ITEMS ================= */}
