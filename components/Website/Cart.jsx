@@ -154,6 +154,7 @@ useEffect(() => {
                             productId: product.productId,
                             variantId: product.variantId,
                             isSample: !!product.isSample,
+                            customSize: product.customSize || null,
                           })
                         )
                       }
@@ -178,8 +179,8 @@ useEffect(() => {
           {/* PRICE SUMMARY */}
           <div className="space-y-2 text-sm mb-4">
             <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>{formatPrice(subtotal)}</span>
+              <span>Price (MRP)</span>
+              <span>{formatPrice(subtotal + discount)}</span>
             </div>
 
             <div className="flex justify-between text-green-600">

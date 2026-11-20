@@ -69,7 +69,7 @@ const CartPage = () => {
 
     products.forEach((p) => {
       sub += p.sellingPrice * p.qty
-      disc += (p.mrp - p.sellingPrice) * p.qty
+      disc += Math.max(p.mrp - p.sellingPrice, 0) * p.qty
     })
 
     setSubtotal(sub)
@@ -186,6 +186,7 @@ const CartPage = () => {
                                 productId: product.productId,
                                 variantId: product.variantId,
                                 isSample: !!product.isSample,
+                                customSize: product.customSize || null,
                               })
                             )
                           }
@@ -205,6 +206,7 @@ const CartPage = () => {
                                 productId: product.productId,
                                 variantId: product.variantId,
                                 isSample: !!product.isSample,
+                                customSize: product.customSize || null,
                               })
                             )
                           }
@@ -233,6 +235,7 @@ const CartPage = () => {
                                 productId: product.productId,
                                 variantId: product.variantId,
                                 isSample: !!product.isSample,
+                                customSize: product.customSize || null,
                               })
                           )
                         }
@@ -258,8 +261,8 @@ const CartPage = () => {
         {/* PRICE DETAILS */}
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
-            <span>Subtotal</span>
-            <span>{formatPrice(subtotal)}</span>
+            <span>Price (MRP)</span>
+            <span>{formatPrice(subtotal + discount)}</span>
           </div>
 
           <div className="flex justify-between text-green-600">
