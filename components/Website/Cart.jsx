@@ -1,4 +1,6 @@
 'use client'
+import CartSizeInput from '@/components/Website/CartSizeInput'
+import { customSizeKey, formatCustomSize } from '@/lib/customSize'
 
 import React, { useEffect, useState } from 'react'
 import { ShoppingBag, Trash2 } from 'lucide-react'
@@ -103,7 +105,7 @@ useEffect(() => {
           )}
 
           {cart.products.map((product) => {
-            const key = `${product.productId}-${product.variantId}-${product.isSample ? 's' : 'f'}`
+            const key = `${product.productId}-${product.variantId}-${product.isSample ? 's' : 'f'}-${customSizeKey(product.customSize)}`
 
             return (
               <div
@@ -128,8 +130,17 @@ useEffect(() => {
                     </span>
                   )}
                   <p className="text-sm text-gray-500">
-                    {product.size} • {product.color}
+                    {product.attributes?.length
+                      ? product.attributes.map((a) => a.value).join(' • ')
+                      : [product.size, product.color].filter(Boolean).join(' • ')}
                   </p>
+                  {product.requiresCustomSize && !product.isSample && !product.customSize ? (
+                    <p className="text-xs font-semibold text-red-600">Size required — add it in cart</p>
+                  ) : product.customSize ? (
+                    <p className="text-xs font-medium text-orange-700">
+                      Size: {formatCustomSize(product.customSize)}
+                    </p>
+                  ) : null}
 
                   <div className="flex items-center justify-between mt-3">
                     <span className="font-semibold">

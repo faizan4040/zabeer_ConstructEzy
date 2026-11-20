@@ -71,6 +71,7 @@ export async function GET(request, { params }) {
           image,
           // Bonus: Size/Weight/Color jaisi attributes bhi dikha do
           attributes: variant?.attributes || [],
+          customSize: p.customSize || null, // Height × Width (inch) for made-to-size items
         }
       }),
     }

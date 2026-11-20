@@ -14,7 +14,7 @@ import { decode } from "entities"
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { Plus, Truck, Clock, Wallet, ShieldCheck, FlaskConical, RotateCcw } from "lucide-react"
+import { Plus, Truck, Clock, Wallet, ShieldCheck, FlaskConical, RotateCcw, Ruler } from "lucide-react"
 import { BiMinus } from "react-icons/bi"
 import { IoStar } from "react-icons/io5"
 import ButtonLoading from "@/components/Application/ButtonLoading"
@@ -26,9 +26,17 @@ import ProdcutReview from "@/components/Website/ProdcutReview"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { deliveryLabel } from "@/lib/listingOptions"
+import { calcDiscount } from "@/lib/variantBulk"
+import { areaSqft, cleanCustomSize, customSizeError, customSizeKey, priceForSize, SIZE_MAX, SIZE_MIN } from "@/lib/customSize"
+
+const inr = (n) =>
+  Number(n || 0).toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 })
+
+const valueOf = (v, label) => v?.attributes?.find((a) => a.label === label)?.value
 
 // attributeGroups shape: { "Weight": ["100g","200g","500g"], "Color": ["Red","White"] }
-const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount }) => {
+// variants: every live variant of this product — switching happens here, no page reload.
+const ProductDetails = ({ product, variant: initialVariant, variants: variantList = [], attributeGroups = {}, reviewCount }) => {
 
   const dispatch = useDispatch()
   const router = useRouter()
@@ -38,37 +46,68 @@ const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount })
       products: [],
     }
 
-  const [activeThumb, setActiveThumb] = useState(IMAGES.image_placeholder)
+  const variants = variantList.length ? variantList : (initialVariant ? [initialVariant] : [])
+  const [variantId, setVariantId] = useState(initialVariant?._id)
+  const variant = variants.find((v) => v._id === variantId) || initialVariant
+
+  const [activeThumb, setActiveThumb] = useState(initialVariant?.media?.[0]?.secure_url || IMAGES.image_placeholder)
   const [qty, setQty] = useState(1)
-  const [isAddedIntoCart, setIsAddedIntoCart] = useState(false)
   const [isProductLoading, setIsProductLoading] = useState(false)
 
+  // the server may send a different variant when the URL changes (back/forward)
   useEffect(() => {
-    if (variant?.media?.length) {
-      setActiveThumb(variant.media[0].secure_url)
-    }
+    if (initialVariant?._id) setVariantId(initialVariant._id)
+  }, [initialVariant?._id])
 
-    setIsProductLoading(false)
-  }, [variant])
-
+  // new variant → its photo, qty back to 1
   useEffect(() => {
-    if (cartStore.count > 0) {
-      const existingProduct = cartStore.products.findIndex((cartProduct) =>
-        cartProduct.productId === product._id && cartProduct.variantId === variant._id && !cartProduct.isSample)
+    setActiveThumb(variant?.media?.[0]?.secure_url || IMAGES.image_placeholder)
+    setQty(1)
+  }, [variant?._id])
 
-      if (existingProduct >= 0) {
-        setIsAddedIntoCart(true)
-      } else {
-        setIsAddedIntoCart(false)
-      }
+  // ===== price maths (always from MRP & selling price, never a stale stored %) =====
+  const mrp = Number(variant?.mrp) || 0
+  const sellingPrice = Number(variant?.sellingPrice) || 0
+  const discount = calcDiscount(mrp, sellingPrice)
+  const savePerUnit = mrp > sellingPrice ? mrp - sellingPrice : 0
+  const stock = Math.max(0, Number(variant?.stock) || 0)
+  const outOfStock = stock <= 0
+  const lowStock = !outOfStock && stock <= 10
+
+  // ===== custom size (doors, windows...) — Height × Width in inches =====
+  const needsSize = !!variant?.requiresCustomSize
+  const [sizeH, setSizeH] = useState('')
+  const [sizeW, setSizeW] = useState('')
+  const [sizeTouched, setSizeTouched] = useState(false)
+  const sizeError = needsSize ? customSizeError(sizeH, sizeW) : ''
+  const customSize = needsSize ? cleanCustomSize({ height: sizeH, width: sizeW }) : null
+
+  const isAddedIntoCart = cartStore.products.some((cartProduct) =>
+    cartProduct.productId === product._id && cartProduct.variantId === variant?._id && !cartProduct.isSample &&
+    customSizeKey(cartProduct.customSize) === customSizeKey(customSize))
+
+  // ₹ per sq ft: price of one item for the entered size
+  const perSqft = needsSize && variant?.priceUnit === 'sqft'
+  const area = perSqft && customSize ? areaSqft(customSize) : 0
+  const linePrice = priceForSize(variant, customSize) // { mrp, sellingPrice } of ONE item
+  const lineMrp = perSqft ? (customSize ? linePrice.mrp : 0) : mrp
+  const lineSelling = perSqft ? (customSize ? linePrice.sellingPrice : 0) : sellingPrice
+
+  // stops the order until a valid size is entered
+  const checkSize = () => {
+    if (!needsSize) return true
+    setSizeTouched(true)
+    if (sizeError) {
+      showToast('error', sizeError)
+      document.getElementById('custom-size')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return false
     }
-
-    setIsProductLoading(false)
-  }, [])
+    return true
+  }
 
   const handleQty = (type) => {
     setQty((prev) => {
-      if (type === 'inc') return prev + 1
+      if (type === 'inc') return prev < stock ? prev + 1 : prev
       if (type === 'dec' && prev > 1) return prev - 1
       return prev
     })
@@ -80,23 +119,32 @@ const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount })
     name: product.name,
     url: product.slug,
     attributes: variant.attributes, // dynamic — array of {label, value}
-    mrp: isSample ? product.samplePrice : variant.mrp,
-    sellingPrice: isSample ? product.samplePrice : variant.sellingPrice,
+    mrp: isSample ? product.samplePrice : lineMrp,
+    sellingPrice: isSample ? product.samplePrice : lineSelling,
+    // per-sq-ft rate, so the cart can re-price if the size changes
+    priceUnit: isSample ? 'piece' : (variant.priceUnit || 'piece'),
+    rateMrp: variant.mrp,
+    rateSellingPrice: variant.sellingPrice,
     media: variant?.media[0]?.secure_url,
     qty: isSample ? 1 : qty,
     isSample,
     sampleNote: isSample ? (product.sampleNote || '') : '',
     delivery: product.delivery,
+    requiresCustomSize: isSample ? false : needsSize,
+    customSize: isSample ? null : customSize,
   })
 
   const handleAddToCart = () => {
+    if (outOfStock) return showToast('error', 'This variant is out of stock.')
+    if (!checkSize()) return
     dispatch(addIntoCart(buildCartProduct(false)))
-    setIsAddedIntoCart(true)
     showToast('success', 'product added into cart.')
   }
 
   // Buy Now → cart me daalo aur seedha checkout
   const handleBuyNow = () => {
+    if (outOfStock) return showToast('error', 'This variant is out of stock.')
+    if (!checkSize()) return
     if (!isAddedIntoCart) dispatch(addIntoCart(buildCartProduct(false)))
     router.push(WEBSITE_CHECKOUT)
   }
@@ -111,20 +159,38 @@ const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount })
   const isPaidDelivery = product?.delivery?.mode === 'paid'
 
   // current selected value of a given attribute label, read off this variant
-  const getCurrentValue = (label) => {
-    const found = variant?.attributes?.find(a => a.label === label)
-    return found?.value
+  const getCurrentValue = (label) => valueOf(variant, label)
+
+  // Variant to switch to when the buyer clicks label=value: exact match with the other
+  // current options if it exists, otherwise the closest variant that has label=value.
+  const findVariantFor = (label, value) => {
+    const candidates = variants.filter((v) => valueOf(v, label) === value)
+    if (!candidates.length) return null
+    const score = (v) =>
+      Object.keys(attributeGroups).reduce(
+        (s, lbl) => s + (lbl !== label && valueOf(v, lbl) === getCurrentValue(lbl) ? 2 : 0),
+        0
+      ) + (Number(v.stock) > 0 ? 1 : 0)
+    return candidates.reduce((best, v) => (score(v) > score(best) ? v : best), candidates[0])
   }
 
-  // builds a link that swaps one attribute's value while keeping the other
-  // selected attributes (e.g. Color) unchanged
-  const buildVariantLink = (label, value) => {
+  // is label=value available together with every other current option?
+  const isExactCombo = (label, value) =>
+    variants.some((v) =>
+      Object.keys(attributeGroups).every((lbl) =>
+        valueOf(v, lbl) === (lbl === label ? value : getCurrentValue(lbl))
+      )
+    )
+
+  const selectOption = (label, value) => {
+    const next = findVariantFor(label, value)
+    if (!next || next._id === variant?._id) return
+    setVariantId(next._id)
+
+    // keep the URL shareable without reloading the page
     const params = new URLSearchParams()
-    Object.keys(attributeGroups).forEach((lbl) => {
-      const current = lbl === label ? value : getCurrentValue(lbl)
-      if (current) params.set(lbl, current)
-    })
-    return `${WEBSITE_PRODUCT_DETAILS(product.slug)}?${params.toString()}`
+    ;(next.attributes || []).forEach((a) => params.set(a.label, a.value))
+    window.history.replaceState(null, '', `${WEBSITE_PRODUCT_DETAILS(product.slug)}?${params.toString()}`)
   }
 
   const descriptionText = decode(product?.description || "")
@@ -237,26 +303,35 @@ const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount })
           </div>
 
           {/* Price */}
-          <div className="flex flex-wrap items-center gap-3 mb-3">
+          <div className="flex flex-wrap items-center gap-3 mb-1">
             <span className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {variant?.sellingPrice?.toLocaleString("en-IN", {
-                style: "currency",
-                currency: "INR",
-              })}
+              {inr(sellingPrice)}
+              {perSqft && <span className="text-base font-medium text-gray-500"> / sq ft</span>}
             </span>
 
-            <span className="line-through text-gray-400 text-sm">
-              {variant?.mrp?.toLocaleString("en-IN", {
-                style: "currency",
-                currency: "INR",
-              })}
-            </span>
-
-            {variant?.discountPercentage ? (
-              <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium">
-                -{variant.discountPercentage}%
+            {mrp > sellingPrice && (
+              <span className="line-through text-gray-400 text-sm">
+                MRP {inr(mrp)}
               </span>
-            ) : null}
+            )}
+
+            {discount > 0 && (
+              <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-medium">
+                -{discount}%
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 text-sm">
+            {savePerUnit > 0 && (
+              <span className="text-green-600 font-medium">You save {inr(savePerUnit)}{perSqft ? " / sq ft" : ""}</span>
+            )}
+            {outOfStock ? (
+              <span className="text-red-600 font-medium">Out of stock</span>
+            ) : lowStock ? (
+              <span className="text-orange-600 font-medium">Only {stock} left</span>
+            ) : (
+              <span className="text-gray-500">In stock</span>
+            )}
           </div>
 
           {/* Cashback Info */}
@@ -286,44 +361,140 @@ const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount })
                 {label}: <span className="font-normal text-gray-600">{getCurrentValue(label)}</span>
               </p>
               <div className="flex gap-2 flex-wrap">
-                {values.map((value) => (
-                  <Link
-                    key={value}
-                    onClick={() => setIsProductLoading(true)}
-                    href={buildVariantLink(label, value)}
-                    className={`border py-1 px-3 rounded-lg cursor-pointer transition text-sm
-                      hover:bg-primary hover:text-white hover:border-primary
-                      ${value === getCurrentValue(label) ? "bg-primary text-white border-primary" : "border-gray-200 text-gray-700"}`}
-                  >
-                    {value}
-                  </Link>
-                ))}
+                {values.map((value) => {
+                  const selected = value === getCurrentValue(label)
+                  const exact = isExactCombo(label, value)
+                  const target = findVariantFor(label, value)
+                  const soldOut = target && Number(target.stock) <= 0
+                  return (
+                    <button
+                      type="button"
+                      key={value}
+                      onClick={() => selectOption(label, value)}
+                      aria-pressed={selected}
+                      title={soldOut ? 'Out of stock' : !exact ? 'Other options will change' : undefined}
+                      className={`border py-1.5 px-3 rounded-lg cursor-pointer transition text-sm
+                        ${selected
+                          ? "bg-primary text-white border-primary"
+                          : `border-gray-200 text-gray-700 hover:border-primary hover:text-primary ${!exact ? "border-dashed opacity-70" : ""}`}
+                        ${soldOut && !selected ? "line-through text-gray-400" : ""}`}
+                    >
+                      {value}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           ))}
 
+          {/* Custom size — supplier turned this on for made-to-size items */}
+          {needsSize && (
+            <div id="custom-size" className="mb-6 rounded-xl border border-orange-200 bg-orange-50/50 p-4">
+              <p className="flex items-center gap-2 font-semibold text-gray-900 mb-1">
+                <Ruler className="w-4 h-4 text-orange-500" /> Enter your size (in inches) <span className="text-red-500">*</span>
+              </p>
+              <p className="text-xs text-gray-500 mb-3">
+                This item is made to your size. Measure the opening and enter height and width in inches.
+              </p>
+              <div className="grid grid-cols-2 gap-3 max-w-sm">
+                <label className="block">
+                  <span className="text-xs font-medium text-gray-600">Height (inch)</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={SIZE_MIN}
+                    max={SIZE_MAX}
+                    step="0.25"
+                    value={sizeH}
+                    onChange={(e) => setSizeH(e.target.value)}
+                    onBlur={() => setSizeTouched(true)}
+                    placeholder="e.g. 84"
+                    className={`mt-1 h-10 w-full rounded-lg border bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 ${
+                      sizeTouched && sizeError && !(Number(sizeH) >= SIZE_MIN && Number(sizeH) <= SIZE_MAX) ? 'border-red-400' : 'border-gray-300'
+                    }`}
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-medium text-gray-600">Width (inch)</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={SIZE_MIN}
+                    max={SIZE_MAX}
+                    step="0.25"
+                    value={sizeW}
+                    onChange={(e) => setSizeW(e.target.value)}
+                    onBlur={() => setSizeTouched(true)}
+                    placeholder="e.g. 36"
+                    className={`mt-1 h-10 w-full rounded-lg border bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 ${
+                      sizeTouched && sizeError && !(Number(sizeW) >= SIZE_MIN && Number(sizeW) <= SIZE_MAX) ? 'border-red-400' : 'border-gray-300'
+                    }`}
+                  />
+                </label>
+              </div>
+              {sizeTouched && sizeError ? (
+                <p className="text-xs text-red-600 mt-2">{sizeError}</p>
+              ) : customSize ? (
+                <p className="text-xs text-green-700 mt-2">
+                  Size: {customSize.height}&quot; H × {customSize.width}&quot; W
+                  {perSqft && <> = {area} sq ft</>}
+                </p>
+              ) : null}
+              {perSqft && (
+                <p className="text-sm mt-2 text-gray-700">
+                  {customSize ? (
+                    <>
+                      Price for your size: <b className="text-gray-900">{inr(lineSelling)}</b>
+                      {lineMrp > lineSelling && <span className="text-gray-400 line-through ml-2">{inr(lineMrp)}</span>}
+                      <span className="text-xs text-gray-500"> ({inr(sellingPrice)} × {area} sq ft)</span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-gray-500">Price = {inr(sellingPrice)} × sq ft (Height × Width ÷ 144)</span>
+                  )}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Quantity */}
           <div className="mb-8">
             <p className="font-semibold mb-2 text-gray-900">Quantity</p>
-            <div className="flex items-center w-32 border border-gray-200 rounded-full overflow-hidden">
-              <button
-                onClick={() => handleQty("dec")}
-                className="w-10 h-10 flex items-center justify-center hover:bg-gray-100"
-              >
-                <BiMinus />
-              </button>
-              <input
-                value={qty}
-                readOnly
-                className="w-12 text-center border-none focus:outline-none text-sm"
-              />
-              <button
-                onClick={() => handleQty("inc")}
-                className="w-10 h-10 flex items-center justify-center hover:bg-gray-100"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center w-32 border border-gray-200 rounded-full overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => handleQty("dec")}
+                  disabled={qty <= 1}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 cursor-pointer"
+                >
+                  <BiMinus />
+                </button>
+                <input
+                  value={qty}
+                  readOnly
+                  className="w-12 text-center border-none focus:outline-none text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleQty("inc")}
+                  disabled={outOfStock || qty >= stock}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              {!outOfStock && (!perSqft || customSize) && (
+                <p className="text-sm text-gray-600">
+                  Total: <span className="font-semibold text-gray-900">{inr(lineSelling * qty)}</span>
+                  {lineMrp > lineSelling && (
+                    <span className="text-green-600"> · save {inr((lineMrp - lineSelling) * qty)}</span>
+                  )}
+                </p>
+              )}
             </div>
+            {!outOfStock && qty >= stock && (
+              <p className="text-xs text-orange-600 mt-1">Maximum available quantity selected.</p>
+            )}
           </div>
 
           {/* CTA */}
@@ -331,11 +502,12 @@ const ProductDetails = ({ product, variant, attributeGroups = {}, reviewCount })
             <Button
               type="button"
               onClick={handleBuyNow}
+              disabled={outOfStock}
               className="flex-1 bg-black text-white py-3 hover:bg-orange-500 hover:text-white cursor-pointer rounded-full font-semibold transition"
             >
-              Buy Now
+              {outOfStock ? 'Out of Stock' : 'Buy Now'}
             </Button>
-            {!isAddedIntoCart ? (
+            {outOfStock ? null : !isAddedIntoCart ? (
               <ButtonLoading
                 onClick={handleAddToCart}
                 text='Add to Cart'

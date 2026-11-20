@@ -30,6 +30,7 @@ const ProductPage = async ({ params, searchParams }) => {
       <ProductDetails
         product={getProduct?.data?.product}
         variant={getProduct?.data?.variant}
+        variants={getProduct?.data?.variants ?? []}
         attributeGroups={getProduct?.data?.attributeGroups ?? {}}
         reviewCount={getProduct?.data?.reviewCount}
       />

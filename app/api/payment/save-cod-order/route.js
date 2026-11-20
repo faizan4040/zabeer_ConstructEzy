@@ -22,7 +22,8 @@ export async function POST(request) {
             qty: z.number().min(1),
             mrp: z.number().nonnegative(),
             sellingPrice: z.number().nonnegative(),
-            isSample: z.boolean().optional().default(false)
+            isSample: z.boolean().optional().default(false),
+        customSize: z.object({ height: z.number(), width: z.number(), unit: z.string().optional() }).optional().nullable()
         })
 
         // ✅ Razorpay fields (payment_id/order_id/signature) yahan REQUIRED nahi —

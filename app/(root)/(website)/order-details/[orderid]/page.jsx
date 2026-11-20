@@ -1,3 +1,4 @@
+import { customSizeKey, formatCustomSize } from '@/lib/customSize'
 import WebsiteBreadcrumb from '@/components/Website/WebsiteBreadcrumb'
 import { IMAGES } from '@/routes/AllImages'
 import { WEBSITE_PRODUCT_DETAILS } from '@/routes/WebsiteRoute'
@@ -119,6 +120,11 @@ const OrderDetails = async ({ params }) => {
                               <p className="text-sm text-gray-500 mt-1">Color: {product?.variantId?.color}</p>
                               <p className="text-sm text-gray-500">Size: {product?.variantId?.size}</p>
                             </>
+                          )}
+                          {product.customSize && (
+                            <p className="text-sm font-medium text-orange-700">
+                              Size: {formatCustomSize(product.customSize)}
+                            </p>
                           )}
                           {product.isSample && (
                             <span className="inline-block mt-1 text-[11px] font-semibold bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">

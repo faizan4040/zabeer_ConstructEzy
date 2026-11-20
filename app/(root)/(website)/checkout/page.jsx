@@ -1,4 +1,6 @@
 'use client'
+import CartSizeInput from '@/components/Website/CartSizeInput'
+import { customSizeKey, formatCustomSize } from '@/lib/customSize'
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -317,6 +319,11 @@ const placeOrder = async (formData) => {
     showToast('error', 'Delivery is not available for some items right now. Please remove them and try again.')
     return
   }
+  const missingSize = cart.products.find((p) => p.requiresCustomSize && !p.isSample && !p.customSize)
+  if (missingSize) {
+    showToast('error', `Please enter height and width for "${missingSize.name}" in your order summary.`)
+    return
+  }
 
   setPlacingOrder(true)
 
@@ -328,6 +335,7 @@ const placeOrder = async (formData) => {
     mrp: cartItem.mrp,
     sellingPrice: cartItem.sellingPrice,
     isSample: !!cartItem.isSample,
+    customSize: cartItem.customSize || null,
   }))
   const deliveryPayload = { deliveryCharge, customerLocation: customerLocation || null }
 
@@ -735,7 +743,7 @@ const placeOrder = async (formData) => {
             <table className="w-full mb-4">
               <tbody>
                 {cart.products.map((product) => (
-                  <tr key={`${product.variantId}-${product.isSample ? 's' : 'f'}`}>
+                  <tr key={`${product.variantId}-${product.isSample ? 's' : 'f'}-${customSizeKey(product.customSize)}`}>
                     <td className="py-3">
                       <div className="flex gap-4">
                         <Image
@@ -760,6 +768,11 @@ const placeOrder = async (formData) => {
                               <p className="text-sm">Size: {product.size}</p>
                             </>
                           )}
+                          {product.requiresCustomSize && !product.isSample ? (
+                            <CartSizeInput product={product} />
+                          ) : product.customSize ? (
+                            <p className="text-sm font-medium text-orange-700">Size: {formatCustomSize(product.customSize)}</p>
+                          ) : null}
                           {product.isSample && (
                             <span className="inline-block text-[11px] font-semibold bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">
                               Sample · returnable 7 days

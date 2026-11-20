@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { cleanCustomSize, customSizeKey, priceForSize } from "@/lib/customSize";
 
 const initialState = {
   count: 0,
@@ -10,7 +11,9 @@ const initialState = {
 const sameLine = (a, b) =>
   a.productId === b.productId &&
   a.variantId === b.variantId &&
-  !!a.isSample === !!b.isSample;
+  !!a.isSample === !!b.isSample &&
+  // same door in two different sizes = two separate lines
+  customSizeKey(a.customSize) === customSizeKey(b.customSize);
 
 export const cartReducer = createSlice({
   name: "cartStore",
@@ -55,6 +58,33 @@ export const cartReducer = createSlice({
       state.count = state.products.length;
     },
 
+    // customer adds / changes Height × Width on a cart line. payload: { line, customSize }
+    setCustomSize: (state, action) => {
+      const { line, customSize } = action.payload || {};
+      const size = cleanCustomSize(customSize);
+      const idx = state.products.findIndex((p) => sameLine(p, line));
+      if (idx < 0 || !size) return;
+
+      const item = state.products[idx];
+      const updated = { ...item, customSize: size, sizeMissing: false };
+      if (item.priceUnit === "sqft") {
+        Object.assign(updated, priceForSize(
+          { mrp: item.rateMrp, sellingPrice: item.rateSellingPrice, priceUnit: "sqft" },
+          size
+        ));
+      }
+
+      // same variant already in the cart with this size → merge quantities
+      const dup = state.products.findIndex((p, i) => i !== idx && sameLine(p, updated));
+      if (dup >= 0) {
+        state.products[dup].qty += updated.qty || 1;
+        state.products.splice(idx, 1);
+      } else {
+        state.products[idx] = updated;
+      }
+      state.count = state.products.length;
+    },
+
     clearCart: (state) => {
       state.products = [];
       state.count = 0;
@@ -67,6 +97,7 @@ export const {
   increaseQuantity,
   decreaseQuantity,
   removeFromCart,
+  setCustomSize,
   clearCart,
 } = cartReducer.actions;
 

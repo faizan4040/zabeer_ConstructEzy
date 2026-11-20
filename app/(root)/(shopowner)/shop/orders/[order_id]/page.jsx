@@ -1,4 +1,5 @@
 'use client'
+import { customSizeKey, formatCustomSize } from '@/lib/customSize'
 
 import React, { useEffect, useState, use } from 'react'
 import Image from 'next/image'
@@ -153,7 +154,7 @@ const ShopOwnerOrderDetails = ({ params }) => {
           </thead>
           <tbody>
             {orderData.products.map((p) => (
-              <tr key={`${p.variantId._id}-${p.isSample ? 's' : 'f'}`} className="border-t hover:bg-gray-50 transition">
+              <tr key={`${p.variantId._id}-${p.isSample ? 's' : 'f'}-${customSizeKey(p.customSize)}`} className="border-t hover:bg-gray-50 transition">
                 <td className="p-4 flex gap-4 items-center">
                   <Image
                     src={p.variantId.media?.[0]?.secure_url || IMAGES.image_placeholder}
@@ -165,7 +166,15 @@ const ShopOwnerOrderDetails = ({ params }) => {
                     <Link href={WEBSITE_PRODUCT_DETAILS(p.productId.slug)} className="font-medium text-gray-800 hover:underline">
                       {p.productId.name}
                     </Link>
+                    {p.variantId.attributes?.length > 0 && (
+                      <p className="text-xs text-gray-500 mt-1">{p.variantId.attributes.map((a) => `${a.label}: ${a.value}`).join(' | ')}</p>
+                    )}
                     {p.variantId.size && <p className="text-xs text-gray-500 mt-1">Size: {p.variantId.size}</p>}
+                    {p.customSize && (
+                      <p className="mt-1 inline-block rounded-md bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700">
+                        Customer size: {formatCustomSize(p.customSize)}
+                      </p>
+                    )}
                     <div className="flex flex-wrap gap-1.5 mt-1">
                       {p.isSample && (
                         <span className="text-[11px] font-semibold bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">Sample</span>

@@ -1,4 +1,6 @@
 'use client'
+import CartSizeInput from '@/components/Website/CartSizeInput'
+import { customSizeKey, formatCustomSize } from '@/lib/customSize'
 
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -127,7 +129,7 @@ const CartPage = () => {
               <tbody>
                 {cart.products.map((product) => (
                   <tr
-                    key={`${product.productId}-${product.variantId}-${product.isSample ? 's' : 'f'}`}
+                    key={`${product.productId}-${product.variantId}-${product.isSample ? 's' : 'f'}-${customSizeKey(product.customSize)}`}
                     className="border-b block md:table-row"
                   >
                     {/* PRODUCT */}
@@ -157,6 +159,13 @@ const CartPage = () => {
                               {product.size || '-'}
                             </p>
                           )}
+                          {product.requiresCustomSize && !product.isSample ? (
+                            <CartSizeInput product={product} />
+                          ) : product.customSize ? (
+                            <p className="text-sm font-medium text-orange-700">
+                              Size: {formatCustomSize(product.customSize)}
+                            </p>
+                          ) : null}
                           {product.isSample && (
                             <span className="inline-block mt-1 text-[11px] font-semibold bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">
                               Sample{product.sampleNote ? ` · ${product.sampleNote}` : ''} · returnable 7 days

@@ -1,9 +1,11 @@
 import { isAuthenticated } from "@/lib/authentication";
 import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
-import { zSchema } from "@/lib/zodSchema";
+import { buildVariantUpdate } from "@/lib/variantBulk";
 import ProductVariantModel from "@/models/ProductVariant.model";
 
+// Body: { _id, ...only the fields to change } — attributes, brand, sku, stock, mrp,
+// sellingPrice, media, requiresCustomSize, priceUnit. Discount is always recalculated.
 export async function PUT(request){
     try{
       const auth = await isAuthenticated('admin')
@@ -12,49 +14,24 @@ export async function PUT(request){
       }
 
       await connectDB()
-      const payload = await request.json()
-   
-           const schema = zSchema.pick({
-            _id: true,
-            product: true, 
-            color: true,
-            size: true,
-            gender: true,
-            sku: true,
-            stock: true,
-            mrp: true,
-            sellingPrice: true,
-            discountPercentage: true,
-            media: true,
-          })
+      const { _id, ...payload } = await request.json()
+      if (!_id) return response(false, 400, 'Variant id is required.')
 
-      const validate = schema.safeParse(payload)
-      if(!validate.success){
-        return response(false, 400, 'Invalid or missing fields.', validate.error)
+      const { error, update } = buildVariantUpdate(payload)
+      if (error) return response(false, 400, error)
+
+      const variant = await ProductVariantModel.findOne({ deletedAt: null, _id })
+      if (!variant) return response(false, 404, 'Data not found.')
+
+      if (update.sku && update.sku !== variant.sku) {
+        const clash = await ProductVariantModel.findOne({ sku: update.sku, _id: { $ne: _id } }).select('_id').lean()
+        if (clash) return response(false, 409, `SKU "${update.sku}" already exists.`)
       }
 
-      const validatedData = validate.data
+      Object.assign(variant, update)
+      await variant.save()
 
-      const getProductVariant = await ProductVariantModel.findOne({deletedAt: null, _id: validatedData._id})
-      if(!getProductVariant){
-        return response(false, 404, 'Data not found.')
-      }
-
-      getProductVariant.product = validatedData.product
-      getProductVariant.color = validatedData.color
-      getProductVariant.size = validatedData.size
-      getProductVariant.gender = validatedData.gender
-      getProductVariant.sku = validatedData.sku
-      getProductVariant.stock = validatedData.stock
-      getProductVariant.mrp = validatedData.mrp
-      getProductVariant.sellingPrice = validatedData.sellingPrice
-      getProductVariant.discountPercentage = validatedData.discountPercentage
-      getProductVariant.media = validatedData.media
-      await getProductVariant.save()
-     
       return response(true, 200, 'Product Variant updated successfully.')
-
-
     }catch(error){
       return catchError(error)
     }

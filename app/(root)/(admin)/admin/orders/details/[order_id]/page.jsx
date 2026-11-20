@@ -1,4 +1,5 @@
 'use client'
+import { customSizeKey, formatCustomSize } from '@/lib/customSize'
 
 import React, { useEffect, useState, use } from 'react'
 import Image from 'next/image'
@@ -433,7 +434,7 @@ const timeline = [
     const amount = productTotal - couponShare
 
     return (
-      <tr key={p.variantId._id} className="border-t hover:bg-gray-50 transition">
+      <tr key={`${p.variantId._id}-${p.isSample ? 's' : 'f'}-${customSizeKey(p.customSize)}`} className="border-t hover:bg-gray-50 transition">
         {/* Product */}
         <td className="p-4 flex gap-4 items-center">
           <Image
@@ -450,6 +451,14 @@ const timeline = [
             >
               {p.productId.name}
             </Link>
+            {p.variantId.attributes?.length > 0 && (
+              <p className="text-xs text-gray-500 mt-1">{p.variantId.attributes.map((a) => `${a.label}: ${a.value}`).join(' | ')}</p>
+            )}
+            {p.customSize && (
+              <p className="mt-1 inline-block rounded-md bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700">
+                Customer size: {formatCustomSize(p.customSize)}
+              </p>
+            )}
             {p.variantId.size && (
               <p className="text-xs text-gray-500 mt-1">Size: {p.variantId.size}</p>
             )}

@@ -72,6 +72,16 @@ const orderSchema = new mongoose.Schema({
             // ── Buy a Sample ──
             isSample: { type: Boolean, default: false },
 
+            // Height × Width the customer entered (doors, windows...). null when not needed.
+            customSize: {
+                type: new mongoose.Schema({
+                    height: { type: Number, required: true },
+                    width: { type: Number, required: true },
+                    unit: { type: String, default: "inch" },
+                }, { _id: false }),
+                default: null,
+            },
+
             // ── Delivery (internal — buyer ko deliveredBy nahi dikhate) ──
             deliveryType: { type: String, enum: ["free", "paid_supplier", "constructezy"], default: "free" },
             deliveredBy: { type: String, enum: ["supplier", "constructezy"], default: "supplier" },

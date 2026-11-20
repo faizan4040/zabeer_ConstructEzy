@@ -37,6 +37,20 @@ const ProductVariantSchema = new mongoose.Schema({
         required: false,
     },
 
+    // Supplier switch: customer must enter Height × Width (inches) before ordering (doors, windows...)
+    requiresCustomSize: {
+        type: Boolean,
+        default: false,
+    },
+
+    // 'sqft' → mrp / sellingPrice are per sq ft and the order price = rate × (H × W / 144).
+    // Only used when requiresCustomSize is on.
+    priceUnit: {
+        type: String,
+        enum: ['piece', 'sqft'],
+        default: 'piece',
+    },
+
     mrp: {
         type: Number,
         required: true,

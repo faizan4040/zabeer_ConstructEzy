@@ -1,10 +1,12 @@
 import { isAuthenticated } from "@/lib/authentication";
 import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
-import { zSchema } from "@/lib/zodSchema";
+import { buildVariantDocs, findConflicts } from "@/lib/variantBulk";
+import ProductModel from "@/models/Product.model";
 import ProductVariantModel from "@/models/ProductVariant.model";
 
-
+// Body: { product, brand, media, variants: [{ attributes, sku, stock, mrp, sellingPrice }] }
+// Old single-variant body ({ product, sku, attributes, ... }) is still accepted.
 export async function POST(request){
     try{
       const auth = await isAuthenticated('admin')
@@ -14,54 +16,29 @@ export async function POST(request){
 
       await connectDB()
       const payload = await request.json()
-
-          const schema = zSchema.pick({
-            product: true,
-            sku: true,
-            attributes: true,
-            brand: true,
-            stock: true,
-            mrp: true,
-            sellingPrice: true,
-            discountPercentage: true,
-            media: true,
-          })
-
-      const validate = schema.safeParse(payload)
-      if(!validate.success){
-        return response(false, 400, 'Invalid or missing fields.', validate.error)
+      if (!Array.isArray(payload?.variants)) {
+        payload.variants = [payload]
       }
 
-      const variantData = validate.data
+      const { error, docs } = buildVariantDocs(payload)
+      if (error) return response(false, 400, error)
 
-      const newProductVariant = new ProductVariantModel({
-          product: variantData.product,
-          attributes: variantData.attributes,
-          brand: variantData.brand,
-          sku: variantData.sku,
-          stock: variantData.stock,
-          mrp: variantData.mrp,
-          sellingPrice: variantData.sellingPrice,
-          discountPercentage: variantData.discountPercentage,
-          media: variantData.media,
-      })
+      const product = await ProductModel.findOne({ _id: docs[0].product, deletedAt: null }).select('_id')
+      if (!product) return response(false, 404, 'Product not found.')
 
-      await newProductVariant.save()
+      const conflict = await findConflicts(ProductVariantModel, docs)
+      if (conflict) return response(false, 409, conflict)
 
-      return response(true, 200, 'Product Variant added successfully.')
+      await ProductVariantModel.insertMany(docs)
+
+      return response(true, 200, docs.length === 1
+        ? 'Product Variant added successfully.'
+        : `${docs.length} variants added successfully.`)
 
     }catch(error){
       return catchError(error)
     }
 }
-
-
-
-
-
-
-
-
 
 
 

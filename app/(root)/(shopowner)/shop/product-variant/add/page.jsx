@@ -2,8 +2,8 @@
 
 import BreadCrumb from '@/components/Application/Admin/BreadCrumb'
 import ButtonLoading from '@/components/Application/ButtonLoading'
+import VariantRowsEditor, { CustomSizeToggle, FALLBACK_TEMPLATE, emptyRow, rowsToVariants } from '@/components/Application/VariantRowsEditor'
 import { Card, CardContent } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -14,17 +14,15 @@ import {
 } from '@/components/ui/select'
 import useFetch from '@/hooks/useFetch'
 import { showToast } from '@/lib/showToast'
-import { zSchema } from '@/lib/zodSchema'
+import { buildVariantDocs, calcDiscount } from '@/lib/variantBulk'
 import {
   SHOP_OWNER_DASHBOARD,
   SHOP_OWNER_VARIANT_SHOW,
 } from '@/routes/ShopOwnerPanelRoute'
-import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import Image from 'next/image'
 import React, { useEffect, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { PackagePlus, ImagePlus, Boxes, IndianRupee, X, Loader2, UploadCloud } from 'lucide-react'
+import { PackagePlus, ImagePlus, Boxes, X, Loader2, UploadCloud } from 'lucide-react'
 
 const breadcrumbData = [
   { href: SHOP_OWNER_DASHBOARD, label: 'Home' },
@@ -42,11 +40,15 @@ const AddProductVariant = () => {
   const { data: getProducts } = useFetch('/api/shopowner/product/get')
   const { data: getBrands } = useFetch('/api/product-variant/brands')
 
-  // ===== Dynamic attributes (replaces hardcoded color/size) =====
+  const [product, setProduct] = useState('')
+  const [brand, setBrand] = useState('')
+  const [rows, setRows] = useState([emptyRow()])
+  const [requiresCustomSize, setRequiresCustomSize] = useState(false)
+  const [priceUnit, setPriceUnit] = useState('piece')
+
+  // option templates (Weight / Diameter / Color...) of the product's category
   const [categoryName, setCategoryName] = useState('')
-  const [attributeTemplates, setAttributeTemplates] = useState([]) // [{label, presets, allowCustom}]
-  const [attributeValues, setAttributeValues] = useState({})       // {label: value}
-  const [customInputFor, setCustomInputFor] = useState(null)
+  const [attributeTemplates, setAttributeTemplates] = useState([])
   const [attributesLoading, setAttributesLoading] = useState(false)
 
   const [selectedMedia, setSelectedMedia] = useState([]) // [{ _id, url, uploading?, tempId? }]
@@ -54,99 +56,58 @@ const AddProductVariant = () => {
   const fileInputRef = useRef(null)
 
   useEffect(() => {
-    if (getProducts && getProducts.success) {
-      setProductOption(getProducts.data)
-    }
+    if (getProducts && getProducts.success) setProductOption(getProducts.data)
   }, [getProducts])
 
   useEffect(() => {
-    if (getBrands && getBrands.success) {
-      setBrandOption(getBrands.data)
-    }
+    if (getBrands && getBrands.success) setBrandOption(getBrands.data)
   }, [getBrands])
-
-  const formSchema = zSchema.pick({
-    product: true,
-    brand: true,
-    mrp: true,
-    sellingPrice: true,
-    discountPercentage: true,
-    sku: true,
-    stock: true,
-  })
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      product: '',
-      brand: '',
-      mrp: 0,
-      sellingPrice: 0,
-      discountPercentage: 0,
-      sku: '',
-      stock: 0,
-    },
-  })
-
-  useEffect(() => {
-    const mrp = form.getValues('mrp') || 0
-    const sellingPrice = form.getValues('sellingPrice') || 0
-    if (mrp > 0 && sellingPrice > 0) {
-      const discountPercentage = ((mrp - sellingPrice) / mrp) * 100
-      form.setValue('discountPercentage', Math.round(discountPercentage))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.watch('mrp'), form.watch('sellingPrice')])
 
   useEffect(() => {
     return () => {
       selectedMedia.forEach((m) => {
-        if (m.uploading && m.url?.startsWith('blob:')) {
-          URL.revokeObjectURL(m.url)
-        }
+        if (m.uploading && m.url?.startsWith('blob:')) URL.revokeObjectURL(m.url)
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const mrpValue = Number(form.watch('mrp')) || 0
-  const sellingPriceValue = Number(form.watch('sellingPrice')) || 0
-  const discountValue = Number(form.watch('discountPercentage')) || 0
-  const savedAmount = mrpValue > sellingPriceValue ? mrpValue - sellingPriceValue : 0
-  const selectedProductId = form.watch('product')
-  const selectedProductName = productOption.find((p) => p._id === selectedProductId)?.name
-
-  // ===== when Product changes, fetch its subcategory's attribute template =====
+  // when Product changes, fetch its category's option template
   useEffect(() => {
+    setRows([emptyRow()])
+    if (!product) {
+      setAttributeTemplates([])
+      setCategoryName('')
+      return
+    }
+    let cancelled = false
     const fetchAttributes = async () => {
-      if (!selectedProductId) {
-        setAttributeTemplates([])
-        setAttributeValues({})
-        setCategoryName('')
-        return
-      }
       setAttributesLoading(true)
       try {
-        const { data: res } = await axios.get(`/api/shopowner/product-variant/attributes?productId=${selectedProductId}`)
-        if (res.success) {
-          setAttributeTemplates(res.data.attributes || [])
-          setCategoryName(res.data.categoryName || '')
-          setAttributeValues({})
-        } else {
-          setAttributeTemplates([])
-        }
-      } catch (error) {
-        setAttributeTemplates([])
+        const { data: res } = await axios.get(`/api/shopowner/product-variant/attributes?productId=${product}`)
+        if (cancelled) return
+        setAttributeTemplates(res.success ? res.data.attributes || [] : [])
+        setCategoryName(res.success ? res.data.categoryName || '' : '')
+      } catch {
+        if (!cancelled) setAttributeTemplates([])
       } finally {
-        setAttributesLoading(false)
+        if (!cancelled) setAttributesLoading(false)
       }
     }
     fetchAttributes()
-  }, [selectedProductId])
+    return () => { cancelled = true }
+  }, [product])
 
-  const handleAttributeSelect = (label, value) => {
-    setAttributeValues(prev => ({ ...prev, [label]: value }))
-  }
+  const templates = attributeTemplates.length > 0 ? attributeTemplates : [FALLBACK_TEMPLATE]
+  const selectedProductName = productOption.find((p) => p._id === product)?.name
+
+  // preview numbers
+  const filledRows = rows.filter((r) => Number(r.sellingPrice) > 0)
+  const prices = filledRows.map((r) => Number(r.sellingPrice))
+  const minPrice = prices.length ? Math.min(...prices) : 0
+  const maxPrice = prices.length ? Math.max(...prices) : 0
+  const bestDiscount = rows.reduce((max, r) => Math.max(max, calcDiscount(r.mrp, r.sellingPrice)), 0)
+  const totalStock = rows.reduce((sum, r) => sum + (Number(r.stock) || 0), 0)
 
   /* ────────────── Direct upload: device → Cloudinary → Media model (shopowner) ────────────── */
 
@@ -241,35 +202,35 @@ const AddProductVariant = () => {
 
   /* ────────────── Submit ────────────── */
 
-  const onSubmit = async (values) => {
+  const onSubmit = async (e) => {
+    e.preventDefault()
+    if (isAnyUploading) {
+      showToast('error', 'Please wait — some photos are still uploading.')
+      return
+    }
+
+    const payload = {
+      product,
+      brand,
+      media: selectedMedia.filter((m) => !m.uploading && m._id).map((m) => m._id),
+      variants: rowsToVariants(rows, templates),
+      requiresCustomSize,
+      priceUnit,
+    }
+    const { error } = buildVariantDocs(payload)
+    if (error) {
+      showToast('error', error)
+      return
+    }
+
+    setLoading(true)
     try {
-      const readyMedia = selectedMedia.filter((m) => !m.uploading && m._id)
-      if (readyMedia.length <= 0) {
-        showToast('error', 'Please add at least one variant photo.')
-        return
-      }
-      if (isAnyUploading) {
-        showToast('error', 'Please wait — some photos are still uploading.')
-        return
-      }
-
-      if (attributeTemplates.length > 0) {
-        const missing = attributeTemplates.find(t => !attributeValues[t.label])
-        if (missing) {
-          showToast('error', `Please select ${missing.label}.`)
-          return
-        }
-      }
-
-      setLoading(true)
-      values.media = readyMedia.map((m) => m._id)
-      values.attributes = Object.entries(attributeValues).map(([label, value]) => ({ label, value }))
-
-      const { data: response } = await axios.post('/api/shopowner/product-variant/add', values)
+      const { data: response } = await axios.post('/api/shopowner/product-variant/add', payload)
       if (!response.success) throw new Error(response.message)
 
-      form.reset()
-      setAttributeValues({})
+      setRows([emptyRow()])
+      setRequiresCustomSize(false)
+      setPriceUnit('piece')
       setSelectedMedia([])
       showToast('success', response.message)
     } catch (error) {
@@ -291,9 +252,9 @@ const AddProductVariant = () => {
             <PackagePlus className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold leading-tight">Add a product variant</h1>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold leading-tight">Add product variants</h1>
             <p className="text-xs sm:text-sm text-orange-50 mt-0.5">
-              Different size, weight, or stock for an existing product.
+              Add every size / weight with its own stock and price, then save once.
             </p>
           </div>
         </div>
@@ -302,348 +263,190 @@ const AddProductVariant = () => {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px] gap-5 sm:gap-6 items-start">
         <Card className="rounded-2xl sm:rounded-3xl shadow-sm border-gray-200/70 order-2 lg:order-1 w-full min-w-0">
           <CardContent className="p-4 sm:p-5 md:p-7">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
+            <form onSubmit={onSubmit} className="space-y-6 sm:space-y-8">
 
-                {/* Parent product */}
+              {/* 1. Parent product + brand */}
+              <section>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600">1</span>
+                  <h4 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100">Choose the product</h4>
+                </div>
+                {productOption.length === 0 ? (
+                  <div className="rounded-xl sm:rounded-2xl border-2 border-dashed border-gray-200 p-4 sm:p-6 text-center text-xs sm:text-sm text-gray-500">
+                    No products yet.{' '}
+                    <a href="/shop/product/add" className="text-yellow-500 font-medium underline underline-offset-2">
+                      Add a product first
+                    </a>{' '}
+                    before creating variants.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Select onValueChange={setProduct} value={product}>
+                      <SelectTrigger className="rounded-xl h-11 w-full">
+                        <SelectValue placeholder="Select a product" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {productOption.map((p) => (
+                          <SelectItem key={p._id} value={p._id}>
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div>
+                      <Input
+                        placeholder="Brand * (e.g. UltraTech, ACC)"
+                        list={BRAND_DATALIST_ID}
+                        className="rounded-xl h-11 w-full"
+                        value={brand}
+                        onChange={(e) => setBrand(e.target.value)}
+                      />
+                      <datalist id={BRAND_DATALIST_ID}>
+                        {brandOption.map((b) => <option key={b} value={b} />)}
+                      </datalist>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* 2. Variant rows */}
+              {product && (
                 <section>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600">1</span>
-                    <h4 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100">Choose the product</h4>
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600">2</span>
+                    <h4 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100">
+                      {categoryName ? `${categoryName} — Variants` : 'Variants'}
+                    </h4>
                   </div>
-                  <FormField
-                    control={form.control}
-                    name="product"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          {productOption.length === 0 ? (
-                            <div className="rounded-xl sm:rounded-2xl border-2 border-dashed border-gray-200 p-4 sm:p-6 text-center text-xs sm:text-sm text-gray-500">
-                              No products yet.{' '}
-                              <a href="/shop/product/add" className="text-yellow-500 font-medium underline underline-offset-2">
-                                Add a product first
-                              </a>{' '}
-                              before creating variants.
-                            </div>
-                          ) : (
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <SelectTrigger className="rounded-xl h-11 w-full">
-                                <SelectValue placeholder="Select a product" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {productOption.map((p) => (
-                                  <SelectItem key={p._id} value={p._id}>
-                                    {p.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {attributesLoading ? (
+                    <p className="text-sm text-gray-400">Loading options...</p>
+                  ) : (
+                    <>
+                      {attributeTemplates.length === 0 && (
+                        <p className="text-xs text-gray-400 mb-3">
+                          No options are set up for this category, so type the variant name (e.g. 50kg) in each row.
+                        </p>
+                      )}
+                      <VariantRowsEditor
+                        templates={templates}
+                        rows={rows}
+                        setRows={setRows}
+                        productName={selectedProductName}
+                      />
+                      <div className="mt-4">
+                        <CustomSizeToggle
+                          checked={requiresCustomSize}
+                          onChange={setRequiresCustomSize}
+                          priceUnit={priceUnit}
+                          onPriceUnitChange={setPriceUnit}
+                        />
+                      </div>
+                    </>
+                  )}
                 </section>
+              )}
 
-                {/* Dynamic Attributes — Weight / Diameter / Color / Gauge...
-                    whatever the product's category defines. No hardcoding —
-                    driven entirely by what Admin set up for that subcategory. */}
-                {selectedProductId && (
-                  <section>
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600">2</span>
-                      <h4 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100">
-                        {categoryName ? `${categoryName} — Options` : 'Variant Options'}
-                      </h4>
-                    </div>
+              {/* 3. Media */}
+              <section>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600">3</span>
+                    <h4 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100">Variant photos</h4>
+                  </div>
+                  <span className="text-xs text-gray-400 shrink-0">{selectedMedia.length}/{MAX_IMAGES}</span>
+                </div>
+                <p className="text-xs text-gray-400 -mt-2 mb-3">Used for every variant above.</p>
 
-                    {attributesLoading && (
-                      <p className="text-sm text-gray-400">Loading options...</p>
-                    )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  hidden
+                  onChange={(e) => {
+                    handleFiles(e.target.files)
+                    e.target.value = ''
+                  }}
+                />
 
-                    {!attributesLoading && attributeTemplates.length === 0 && (
-                      <p className="text-sm text-gray-400">
-                        No custom options set for this product's category. You can still add
-                        the variant — ask Admin to set up size/weight options for this category.
+                {selectedMedia.length < MAX_IMAGES && (
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => fileInputRef.current?.click()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
+                    }}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
+                    className={`cursor-pointer rounded-xl sm:rounded-2xl border-2 border-dashed p-5 sm:p-8 text-center transition-all
+                      ${isDragging
+                        ? 'border-orange-500 bg-orange-100 scale-[1.01]'
+                        : 'border-gray-300 bg-gray-50/60 dark:bg-card hover:border-orange-400 hover:bg-orange-50'
+                      }`}
+                  >
+                    <div className="flex flex-col items-center gap-2 pointer-events-none">
+                      <div className={`rounded-full p-2.5 sm:p-3 transition-colors ${isDragging ? 'bg-orange-200' : 'bg-orange-100'}`}>
+                        {isDragging ? (
+                          <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
+                        ) : (
+                          <ImagePlus className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
+                        )}
+                      </div>
+                      <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        {isDragging ? 'Drop your images here' : 'Drag & drop or click to upload'}
                       </p>
-                    )}
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {attributeTemplates.map((tmpl) => (
-                        <div key={tmpl.label} className="rounded-xl border border-gray-200 p-3">
-                          <p className="text-sm font-medium text-gray-700 mb-2">{tmpl.label} *</p>
-
-                          <div className="flex flex-wrap gap-2">
-                            {tmpl.presets.map((preset) => (
-                              <button
-                                key={preset}
-                                type="button"
-                                onClick={() => {
-                                  handleAttributeSelect(tmpl.label, preset)
-                                  setCustomInputFor(null)
-                                }}
-                                className={`px-3 py-1.5 rounded-lg border text-sm transition-colors cursor-pointer ${
-                                  attributeValues[tmpl.label] === preset
-                                    ? 'bg-orange-500 text-white border-orange-500'
-                                    : 'bg-white text-gray-700 border-gray-300 hover:border-orange-300'
-                                }`}
-                              >
-                                {preset}
-                              </button>
-                            ))}
-
-                            {tmpl.allowCustom && (
-                              <button
-                                type="button"
-                                onClick={() => setCustomInputFor(tmpl.label)}
-                                className={`px-3 py-1.5 rounded-lg border text-sm border-dashed cursor-pointer ${
-                                  customInputFor === tmpl.label
-                                    ? 'border-orange-400 text-yellow-500'
-                                    : 'border-gray-300 text-gray-500 hover:border-orange-300'
-                                }`}
-                              >
-                                + Custom
-                              </button>
-                            )}
-                          </div>
-
-                          {tmpl.allowCustom && customInputFor === tmpl.label && (
-                            <Input
-                              autoFocus
-                              placeholder={`Enter custom ${tmpl.label.toLowerCase()}`}
-                              className="mt-2 rounded-xl h-10"
-                              defaultValue={
-                                attributeValues[tmpl.label] && !tmpl.presets.includes(attributeValues[tmpl.label])
-                                  ? attributeValues[tmpl.label]
-                                  : ''
-                              }
-                              onChange={(e) => handleAttributeSelect(tmpl.label, e.target.value)}
-                            />
-                          )}
-
-                          {attributeValues[tmpl.label] && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              Selected: <span className="font-medium">{attributeValues[tmpl.label]}</span>
-                            </p>
-                          )}
-                        </div>
-                      ))}
+                      <p className="text-[11px] sm:text-xs text-gray-500">JPG, PNG, WEBP • Up to {MAX_IMAGES} images</p>
                     </div>
-                  </section>
+                  </div>
                 )}
 
-                {/* Brand / SKU / Stock */}
-                <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600">3</span>
-                    <h4 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100">Variant details</h4>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                    <FormField
-                      control={form.control}
-                      name="brand"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Brand<span className="text-red-500">*</span></FormLabel>
-                          <FormControl>
-                            <>
-                              <Input
-                                placeholder="e.g. UltraTech, ACC, Tata Steel"
-                                list={BRAND_DATALIST_ID}
-                                className="rounded-xl h-11 w-full"
-                                {...field}
-                              />
-                              <datalist id={BRAND_DATALIST_ID}>
-                                {brandOption.map((brand) => (
-                                  <option key={brand} value={brand} />
-                                ))}
-                              </datalist>
-                            </>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="sku"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">SKU<span className="text-red-500">*</span></FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g. CEM-50-GRY-001" className="rounded-xl h-11 w-full" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="stock"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Stock<span className="text-red-500">*</span></FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="0" className="rounded-xl h-11 w-full" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </section>
-
-                {/* Pricing */}
-                <section className="rounded-xl sm:rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-stone-900 dark:to-stone-900 border border-orange-100 dark:border-stone-700 p-4 sm:p-5">
-                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                    <IndianRupee className="h-4 w-4 text-yellow-500 shrink-0" />
-                    <h4 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100">Pricing</h4>
-                  </div>
-                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
-                    <FormField
-                      control={form.control}
-                      name="mrp"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">MRP (₹)<span className="text-red-500">*</span></FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="400" className="rounded-xl h-11 w-full bg-white dark:bg-background" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="sellingPrice"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Selling Price (₹)<span className="text-red-500">*</span></FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="350" className="rounded-xl h-11 w-full bg-white dark:bg-background" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="discountPercentage"
-                      render={({ field }) => (
-                        <FormItem className="xs:col-span-2 sm:col-span-1">
-                          <FormLabel className="text-sm">Discount (%)</FormLabel>
-                          <FormControl>
-                            <Input type="number" readOnly placeholder="auto" className="rounded-xl h-11 w-full bg-white/60 dark:bg-background text-gray-500" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </section>
-
-                {/* Media */}
-                <section>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600">4</span>
-                      <h4 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100">Variant photos</h4>
-                    </div>
-                    <span className="text-xs text-gray-400 shrink-0">{selectedMedia.length}/{MAX_IMAGES}</span>
-                  </div>
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    hidden
-                    onChange={(e) => {
-                      handleFiles(e.target.files)
-                      e.target.value = ''
-                    }}
-                  />
-
-                  {selectedMedia.length < MAX_IMAGES && (
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => fileInputRef.current?.click()}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
-                      }}
-                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-                      onDragLeave={() => setIsDragging(false)}
-                      onDrop={handleDrop}
-                      className={`cursor-pointer rounded-xl sm:rounded-2xl border-2 border-dashed p-5 sm:p-8 text-center transition-all
-                        ${isDragging
-                          ? 'border-orange-500 bg-orange-100 scale-[1.01]'
-                          : 'border-gray-300 bg-gray-50/60 dark:bg-card hover:border-orange-400 hover:bg-orange-50'
-                        }`}
-                    >
-                      <div className="flex flex-col items-center gap-2 pointer-events-none">
-                        <div className={`rounded-full p-2.5 sm:p-3 transition-colors ${isDragging ? 'bg-orange-200' : 'bg-orange-100'}`}>
-                          {isDragging ? (
-                            <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
-                          ) : (
-                            <ImagePlus className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
-                          )}
-                        </div>
-                        <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
-                          {isDragging ? 'Drop your images here' : 'Drag & drop or click to upload'}
-                        </p>
-                        <p className="text-[11px] sm:text-xs text-gray-500">JPG, PNG, WEBP • Up to {MAX_IMAGES} images</p>
+                {selectedMedia.length > 0 && (
+                  <div className="mt-4 grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
+                    {selectedMedia.map((media) => (
+                      <div
+                        key={media._id ?? media.tempId}
+                        className="group relative aspect-square overflow-hidden rounded-lg sm:rounded-xl border bg-white shadow-sm"
+                      >
+                        <Image
+                          src={media.url}
+                          alt=""
+                          fill
+                          sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 160px"
+                          className="object-cover"
+                          unoptimized={media.uploading}
+                        />
+                        {media.uploading && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                            <Loader2 className="h-5 w-5 text-white animate-spin" />
+                          </div>
+                        )}
+                        {!media.uploading && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              removeMedia(media._id ?? media.tempId)
+                            }}
+                            className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-black/60 text-white opacity-100 sm:opacity-0 transition sm:group-hover:opacity-100 cursor-pointer"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    ))}
+                  </div>
+                )}
+              </section>
 
-                  {selectedMedia.length > 0 && (
-                    <div className="mt-4 grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
-                      {selectedMedia.map((media) => (
-                        <div
-                          key={media._id ?? media.tempId}
-                          className="group relative aspect-square overflow-hidden rounded-lg sm:rounded-xl border bg-white shadow-sm"
-                        >
-                          <Image
-                            src={media.url}
-                            alt=""
-                            fill
-                            sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 160px"
-                            className="object-cover"
-                            unoptimized={media.uploading}
-                          />
-                          {media.uploading && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                              <Loader2 className="h-5 w-5 text-white animate-spin" />
-                            </div>
-                          )}
-                          {!media.uploading && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                removeMedia(media._id ?? media.tempId)
-                              }}
-                              className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-black/60 text-white opacity-100 sm:opacity-0 transition sm:group-hover:opacity-100 cursor-pointer"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </section>
-
-                <ButtonLoading
-                  loading={loading || isAnyUploading}
-                  type="submit"
-                  text={isAnyUploading ? 'Uploading photos...' : '+ Add Variant'}
-                  className="w-full sm:w-auto rounded-xl h-12 px-8 bg-orange-500 text-white font-semibold hover:bg-orange-600 shadow-lg shadow-orange-200"
-                />
-              </form>
-            </Form>
+              <ButtonLoading
+                loading={loading || isAnyUploading}
+                type="submit"
+                text={isAnyUploading ? 'Uploading photos...' : rows.length > 1 ? `Save ${rows.length} Variants` : '+ Add Variant'}
+                className="w-full sm:w-auto rounded-xl h-12 px-8 bg-orange-500 text-white font-semibold hover:bg-orange-600 shadow-lg shadow-orange-200"
+              />
+            </form>
           </CardContent>
         </Card>
 
@@ -665,9 +468,9 @@ const AddProductVariant = () => {
                   <Boxes className="h-10 w-10 sm:h-12 sm:w-12" />
                 </div>
               )}
-              {discountValue > 0 && sellingPriceValue > 0 && (
+              {bestDiscount > 0 && (
                 <span className="absolute top-3 left-3 rounded-full bg-orange-500 text-white text-xs font-bold px-2.5 py-1">
-                  {discountValue}% OFF
+                  Up to {bestDiscount}% OFF
                 </span>
               )}
             </div>
@@ -675,27 +478,27 @@ const AddProductVariant = () => {
               <p className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100 line-clamp-2 min-h-[2.25rem] sm:min-h-[2.5rem] break-words">
                 {selectedProductName || 'Select a product to preview'}
               </p>
-              {Object.keys(attributeValues).length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {Object.entries(attributeValues).map(([label, value]) => (
-                    <span key={label} className="text-xs bg-gray-100 dark:bg-stone-800 text-gray-600 dark:text-gray-300 rounded-full px-2.5 py-1">
-                      {label}: {value}
+              <div className="flex flex-wrap gap-1.5">
+                {rows
+                  .map((r) => templates.map((t) => r.attrs[t.label]).filter(Boolean).join(' / '))
+                  .filter(Boolean)
+                  .map((label, i) => (
+                    <span key={`${label}-${i}`} className="text-xs bg-gray-100 dark:bg-stone-800 text-gray-600 dark:text-gray-300 rounded-full px-2.5 py-1">
+                      {label}
                     </span>
                   ))}
-                </div>
-              )}
-              <div className="flex flex-wrap items-baseline gap-2 pt-1">
-                <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                  ₹{sellingPriceValue || 0}
-                </span>
-                {mrpValue > sellingPriceValue && (
-                  <span className="text-sm text-gray-400 line-through">₹{mrpValue}</span>
-                )}
               </div>
-              {savedAmount > 0 && (
-                <p className="text-xs text-green-600 font-medium">You save ₹{savedAmount}</p>
-              )}
-              <p className="text-xs text-gray-400 pt-1">
+              <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
+                {prices.length === 0
+                  ? '₹0'
+                  : minPrice === maxPrice
+                    ? `₹${minPrice.toLocaleString('en-IN')}`
+                    : `₹${minPrice.toLocaleString('en-IN')} – ₹${maxPrice.toLocaleString('en-IN')}`}
+              </p>
+              <p className="text-xs text-gray-500">
+                {rows.length} variant{rows.length !== 1 ? 's' : ''} • {totalStock} in stock
+              </p>
+              <p className="text-xs text-gray-400">
                 {selectedMedia.filter((m) => !m.uploading).length} photo
                 {selectedMedia.length !== 1 ? 's' : ''} ready
               </p>
@@ -708,17 +511,6 @@ const AddProductVariant = () => {
 }
 
 export default AddProductVariant
-
-
-
-
-
-
-
-
-
-
-
 
 
 

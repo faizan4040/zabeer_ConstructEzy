@@ -44,50 +44,36 @@ export async function GET(request, {params}) {
         }
 
 
-        //get product variant — dynamic attribute filter, e.g. ?Weight=200g&Color=Red
-        const variantFilter = {
-            product: getProduct._id,
-            deletedAt: null,
-        }
+        // all live variants of this product (the page switches between them on the client)
+        const variants = await ProductVariantModel.find({ product: getProduct._id, deletedAt: null })
+            .select('attributes mrp sellingPrice discountPercentage stock sku media brand requiresCustomSize priceUnit')
+            .populate('media', 'secure_url')
+            .sort({ createdAt: 1 })
+            .lean()
 
-        const attributeConditions = []
-        for (const [label, value] of searchParams.entries()) {
-            if (value) {
-                attributeConditions.push({
-                    attributes: { $elemMatch: { label, value } }
-                })
-            }
-        }
-
-        if (attributeConditions.length > 0) {
-            variantFilter.$and = attributeConditions
-        }
-
-        let variant = await ProductVariantModel.findOne(variantFilter).populate('media', 'secure_url').lean()
-
-        // if no variant matches the requested combination (e.g. bad/partial query),
-        // fall back to any variant of this product instead of a hard 404
-        if (!variant) {
-            variant = await ProductVariantModel.findOne({ product: getProduct._id, deletedAt: null }).populate('media', 'secure_url').lean()
-        }
-
-        if(!variant) {
+        if (variants.length === 0) {
            return response(false, 404, 'Product not fount.')
         }
 
+        // pick the variant asked for in the URL, e.g. ?Weight=200g&Color=Red
+        const wanted = []
+        for (const [label, value] of searchParams.entries()) {
+            if (value) wanted.push({ label, value })
+        }
+        const matches = (v) => wanted.every((w) => v.attributes?.some((a) => a.label === w.label && a.value === w.value))
+        const variant =
+            (wanted.length && variants.find(matches)) ||
+            variants.find((v) => v.stock > 0) ||
+            variants[0]
 
-        // get all attribute options for this product, grouped by label
+        // option values per label, in the order variants were added
         // e.g. { Weight: ["100g","200g","500g"], Color: ["Red","White"] }
-        const attributeGroupsRaw = await ProductVariantModel.aggregate([
-            { $match: { product: getProduct._id, deletedAt: null } },
-            { $unwind: "$attributes" },
-            { $group: { _id: "$attributes.label", values: { $addToSet: "$attributes.value" } } },
-            { $project: { _id: 0, label: "$_id", values: 1 } }
-        ])
-
         const attributeGroups = {}
-        attributeGroupsRaw.forEach((group) => {
-            attributeGroups[group.label] = group.values
+        variants.forEach((v) => {
+            (v.attributes || []).forEach(({ label, value }) => {
+                if (!attributeGroups[label]) attributeGroups[label] = []
+                if (!attributeGroups[label].includes(value)) attributeGroups[label].push(value)
+            })
         })
 
         // get review
@@ -97,6 +83,7 @@ export async function GET(request, {params}) {
         const productData = {
             product: sanitizeProductForBuyer(getProduct),
             variant: variant,
+            variants: variants,
             attributeGroups: attributeGroups,
             reviewCount: review
         }
