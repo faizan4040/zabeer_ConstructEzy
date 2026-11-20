@@ -109,14 +109,20 @@ function UploadIcon() {
   );
 }
 
-/* title    = same full title on every screen (wraps to 2 lines on phone)
+/* top + bottom = the title in two parts.
+   Phone:  "Book via" (bold) on line 1, "WhatsApp" (light) on line 2.
+   md+:    one line — "Book via WhatsApp".
    subtitle = hidden on phone, shown on md+ */
-function CardBody({ title, subtitle }) {
+function CardBody({ top, bottom, subtitle }) {
   return (
     <>
       <div className="min-w-0 w-full md:w-auto md:flex-1">
-        <h3 className="text-[10.5px] min-[380px]:text-[11px] font-bold leading-tight text-gray-900 break-words md:truncate md:text-lg">
-          {title}
+        <h3 className="leading-tight text-gray-900 md:truncate md:text-lg md:font-bold">
+          <span className="block text-[11px] font-bold md:inline md:text-lg">{top}</span>
+          <span className="hidden md:inline"> </span>
+          <span className="block text-[11px] font-normal text-gray-600 md:inline md:text-lg md:font-bold md:text-gray-900">
+            {bottom}
+          </span>
         </h3>
         <p className="mt-0.5 hidden truncate text-sm text-gray-500 md:block">
           {subtitle}
@@ -148,7 +154,8 @@ export default function BookingSection() {
         >
           <WhatsAppIcon />
           <CardBody
-            title="Book via WhatsApp"
+            top="Book via"
+            bottom="WhatsApp"
             subtitle="Chat with our team"
           />
         </a>
@@ -160,7 +167,8 @@ export default function BookingSection() {
         >
           <CallIcon />
           <CardBody
-            title="Book via Call"
+            top="Book via"
+            bottom="Call"
             subtitle="Talk to our experts"
           />
         </a>
@@ -172,7 +180,8 @@ export default function BookingSection() {
         >
           <UploadIcon />
           <CardBody
-            title="Upload Your Material List"
+            top="Upload Your"
+            bottom="Material List"
             subtitle="Get best prices & quick quotes"
           />
         </Link>
