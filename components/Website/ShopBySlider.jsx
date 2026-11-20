@@ -109,16 +109,14 @@ function UploadIcon() {
   );
 }
 
-/* title      = full title (shown on md+)
-   shortTitle = compact title (shown on phone)
-   subtitle   = hidden on phone, shown on md+ */
-function CardBody({ title, shortTitle, subtitle }) {
+/* title    = same full title on every screen (wraps to 2 lines on phone)
+   subtitle = hidden on phone, shown on md+ */
+function CardBody({ title, subtitle }) {
   return (
     <>
-      <div className="min-w-0 md:flex-1">
-        <h3 className="text-[11px] font-bold leading-tight text-gray-900 md:truncate md:text-lg">
-          <span className="md:hidden">{shortTitle}</span>
-          <span className="hidden md:inline">{title}</span>
+      <div className="min-w-0 w-full md:w-auto md:flex-1">
+        <h3 className="text-[10.5px] min-[380px]:text-[11px] font-bold leading-tight text-gray-900 break-words md:truncate md:text-lg">
+          {title}
         </h3>
         <p className="mt-0.5 hidden truncate text-sm text-gray-500 md:block">
           {subtitle}
@@ -151,7 +149,6 @@ export default function BookingSection() {
           <WhatsAppIcon />
           <CardBody
             title="Book via WhatsApp"
-            shortTitle="WhatsApp"
             subtitle="Chat with our team"
           />
         </a>
@@ -164,7 +161,6 @@ export default function BookingSection() {
           <CallIcon />
           <CardBody
             title="Book via Call"
-            shortTitle="Call Now"
             subtitle="Talk to our experts"
           />
         </a>
@@ -177,7 +173,6 @@ export default function BookingSection() {
           <UploadIcon />
           <CardBody
             title="Upload Your Material List"
-            shortTitle="Upload List"
             subtitle="Get best prices & quick quotes"
           />
         </Link>
