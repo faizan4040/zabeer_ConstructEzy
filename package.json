@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node server.js",
     "devz": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "node server.js"
   },
   "dependencies": {
