@@ -82,7 +82,7 @@ export default function ProjectEnquiryPage() {
         />
         <div className="absolute inset-0 bg-linear-to-r from-[#0b2a3a] via-[#0b2a3a]/80 to-transparent" />
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:px-8 lg:pb-28">
+        <div className="relative mx-auto max-w-360 px-4 pb-24 pt-6 sm:px-6 lg:px-8 lg:pb-28">
           <nav className="flex items-center gap-1.5 text-sm text-white/80">
             <Link href="/" className="hover:text-white">Home</Link>
             <ChevronRight className="h-3.5 w-3.5" />
@@ -120,7 +120,7 @@ export default function ProjectEnquiryPage() {
       </section>
 
       {/* ───────────── CONTENT ───────────── */}
-      <div className="relative z-10 mx-auto -mt-16 grid max-w-7xl grid-cols-1 gap-6 px-4 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:px-8">
+      <div className="relative z-10 mx-auto -mt-16 grid max-w-360 grid-cols-1 gap-6 px-4 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:px-8">
         {/* FORM */}
         <section className="h-fit rounded-2xl bg-white p-5 shadow-lg ring-1 ring-black/5 sm:p-8">
           <h2 className="text-2xl font-extrabold text-[#0b1b3f] sm:text-3xl">Submit Your Project Enquiry</h2>
