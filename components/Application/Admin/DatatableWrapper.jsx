@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { ThemeProvider, useTheme } from '@mui/material'
+import { ThemeProvider } from '@mui/material'
+// next-themes (not MUI) knows whether the dashboard is in light or dark mode
+import { useTheme } from 'next-themes'
 import { darkTheme, lightTheme } from '@/lib/materialTheme'
 import Datatable from './Datatable'
 

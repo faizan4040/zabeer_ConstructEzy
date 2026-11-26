@@ -54,6 +54,7 @@ export const WEBSITE_PRICE_BEAT_PROMISE = "/price_beat_promise"
 
 export const WEBSITE_ABOUT = "/AboutUs"
 export const WEBSITE_CAREERS = "/career"
+export const WEBSITE_CAREER_APPLY = (jobId) => `/career/${jobId}`
 export const WEBSITE_PRIVACY_POLICY = "/PrivacyPolicy"
 export const WEBSITE_TERMS_CONDITIONS = "/terms_conditions"
 export const WEBSITE_COOKIE_POLICY = "/cookie_policy"

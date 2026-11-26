@@ -20,6 +20,10 @@ const supportTicketSchema = new mongoose.Schema({
     default: "open",
   },
 
+  // Admin's response — shown to the shop owner under "My Tickets"
+  adminReply: { type: String, default: "" },
+  repliedAt: { type: Date, default: null },
+
   deletedAt: { type: Date, default: null },
 }, { timestamps: true })
 

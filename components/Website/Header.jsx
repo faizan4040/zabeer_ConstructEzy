@@ -485,12 +485,11 @@ export default function Header() {
               <div className="relative shrink-0" ref={profileRef}>
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 cursor-pointer hover:opacity-75 transition-opacity"
-                  aria-label="Profile"
+                  className="flex items-center gap-2 cursor-pointer rounded-lg border-2 border-[#0B8457] bg-white hover:bg-emerald-50 px-2.5 sm:px-4 py-2 transition-colors whitespace-nowrap"
+                  aria-label="List Your Business"
                 >
-                  {accountVisual}
-                  <span className="hidden sm:inline text-sm font-semibold text-gray-900">Account</span>
-                  <ChevronDown size={15} className={`hidden sm:block text-gray-900 transition-transform ${profileOpen ? "rotate-180" : ""}`} />
+                  <Store size={20} strokeWidth={1.8} className="text-gray-900 shrink-0" />
+                  <span className="hidden sm:inline text-sm font-semibold text-gray-900">List Your Business</span>
                 </button>
 
                 {profileOpen && (

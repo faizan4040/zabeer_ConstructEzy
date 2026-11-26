@@ -93,3 +93,13 @@ export const ADMIN_ORDER_BY_USER = "/admin/order-by-user";
 // Supplier & logistics sheets
 export const ADMIN_VENDOR_LIST = '/admin/vendors'
 export const ADMIN_LOGISTIC_PARTNERS = '/admin/logistic-partners'
+
+// Recruitment (job posts + candidates)
+export const ADMIN_RECRUITMENT = '/admin/recruitment'
+
+
+// Project enquiries (website "Get a Project Quote" form)
+export const ADMIN_PROJECT_ENQUIRIES = "/admin/project-enquiries"
+
+// Shop owner support tickets
+export const ADMIN_SUPPORT_TICKETS = "/admin/support-tickets"

@@ -24,7 +24,14 @@ const PRO_TYPES = ['Individual Professional', 'Company / Team']
 const RATINGS = [4.5, 4, 3.5, 3]
 const MAX_PRICE = 50000
 const PAGE_SIZE = 12
-const SHOW_EXTRA_FILTERS = true // Service Type / Availability / Professional Type (abhi sirf UI)
+// Service Type / Availability / Professional Type: ServiceListing me in fields ka data nahi hai,
+// isliye ye filters kuch filter nahi karte — backend support aane tak hidden.
+const SHOW_EXTRA_FILTERS = false
+const FAVS_KEY = 'ce_service_favs'
+
+// "electricians" / "Electrician" / "electrician" sab same category maan lo (home page cards plural slug bhejte the)
+const norm = (s = '') => s.toLowerCase().replace(/-/g, ' ').replace(/e?s$/, '').trim()
+const sameSlug = (a, b) => a === b || norm(a) === norm(b)
 const EMPTY = { location: '', serviceTypes: [], minPrice: 0, maxPrice: MAX_PRICE, rating: '', today: false, week: false, date: '', proTypes: [] }
 
 const STEPS = [
@@ -290,13 +297,27 @@ const ServicesPage = () => {
   useEffect(() => { setPage(1) }, [active, sort, filters, q])
 
   const go = (slug) => router.push(slug === 'all' ? WEBSITE_SERVICES : `${WEBSITE_SERVICES}?category=${slug}`, { scroll: false })
-  const activeTop = useMemo(() => tree.find((c) => c.slug === active || c.children?.some((s) => s.slug === active)), [tree, active])
+  const activeTop = useMemo(
+    () => (active === 'all' ? undefined : tree.find((c) => sameSlug(c.slug, active) || sameSlug(c.name, active) || c.children?.some((s) => sameSlug(s.slug, active)))),
+    [tree, active]
+  )
+
+  // Wishlist (heart) — browser me save, refresh ke baad bhi rahe
+  useEffect(() => {
+    try { setFavs(JSON.parse(localStorage.getItem(FAVS_KEY) || '{}')) } catch {}
+  }, [])
+  const toggleFav = (id) => setFavs((f) => {
+    const next = { ...f }
+    if (next[id]) delete next[id]; else next[id] = true
+    try { localStorage.setItem(FAVS_KEY, JSON.stringify(next)) } catch {}
+    return next
+  })
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const today = new Date().toISOString().slice(0, 10)
   const pMin = (draft.minPrice / MAX_PRICE) * 100
   const pMax = (draft.maxPrice / MAX_PRICE) * 100
   const heading = active === 'all' ? 'Recommended Services'
-    : `${activeTop?.name || 'Services'}${activeTop && activeTop.slug !== active ? ' › ' + (activeTop.children.find((s) => s.slug === active)?.name || '') : ''}`
+    : `${activeTop?.name || 'Services'}${activeTop && !sameSlug(activeTop.slug, active) && !sameSlug(activeTop.name, active) ? ' › ' + (activeTop.children?.find((s) => sameSlug(s.slug, active))?.name || '') : ''}`
   const activeFilterCount = [filters.location, filters.rating, filters.minPrice > 0, filters.maxPrice < MAX_PRICE].filter(Boolean).length
 
   const setQ = (k) => (e) => setQuote({ ...quote, [k]: e.target.value })
@@ -365,15 +386,15 @@ const ServicesPage = () => {
                   </button>
                   {on && c.children?.length > 0 && (
                     <div className="ml-6 mt-0.5 hidden border-l border-emerald-200 pl-2 md:block">
-                      {c.children.map((s) => <button key={s._id} onClick={() => go(s.slug)} className={`block w-full rounded px-2 py-1.5 text-left text-xs ${active === s.slug ? 'font-semibold text-emerald-700' : 'text-slate-600 hover:text-emerald-700'}`}>{s.name}</button>)}
+                      {c.children.map((s) => <button key={s._id} onClick={() => go(s.slug)} className={`block w-full rounded px-2 py-1.5 text-left text-xs ${sameSlug(s.slug, active) ? 'font-semibold text-emerald-700' : 'text-slate-600 hover:text-emerald-700'}`}>{s.name}</button>)}
                     </div>
                   )}
                 </div>
               )
             })}
           </nav>
-          {catState === 'error' && <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">Categories load nahi hui. /api/service-category check karo.</p>}
-          {catState === 'ok' && !tree.length && <p className="mt-2 px-1 text-xs text-gray-500">Admin ne abhi koi category add nahi ki.</p>}
+          {catState === 'error' && <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">Couldn&apos;t load categories. Please refresh the page.</p>}
+          {catState === 'ok' && !tree.length && <p className="mt-2 px-1 text-xs text-gray-500">No categories available yet.</p>}
 
           <button onClick={() => setShowFilters((s) => !s)} aria-expanded={showFilters} className="sv-filter-toggle mt-3 flex w-full items-center justify-center gap-2 rounded-lg border bg-white py-2.5 text-sm font-semibold text-slate-700">
             {showFilters ? <FaTimes size={13} /> : <FaFilter size={13} />}{showFilters ? 'Hide Filters' : 'Show Filters'}
@@ -462,7 +483,7 @@ const ServicesPage = () => {
 
             {!loading && items.length > 0 && (
               <div className="space-y-3.5">
-                {items.map((s) => <ServiceCard key={s._id} s={s} liked={!!favs[s._id]} onLike={() => setFavs((f) => ({ ...f, [s._id]: !f[s._id] }))} />)}
+                {items.map((s) => <ServiceCard key={s._id} s={s} liked={!!favs[s._id]} onLike={() => toggleFav(s._id)} />)}
               </div>
             )}
 

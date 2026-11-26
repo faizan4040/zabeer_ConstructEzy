@@ -80,4 +80,4 @@ next-env.d.ts
  
 # SMTP_FROM_NAME="Homify"
 # NEXT_PUBLIC_STORE_NAME="Homify"
- 
+ /storage

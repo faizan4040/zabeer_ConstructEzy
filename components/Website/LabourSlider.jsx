@@ -12,14 +12,14 @@ import { WEBSITE_SERVICES } from "@/routes/ServiceRoute"
 const serviceUrl = (slug) => `${WEBSITE_SERVICES}?category=${slug}`
 
 const SERVICES = [
-  { id: 1, title: "Electrician", slug: "electricians", image: IMAGES?.Electrician },
-  { id: 2, title: "Plumber", slug: "plumbers", image: IMAGES?.Plumber },
-  { id: 3, title: "Carpenter", slug: "carpenters", image: IMAGES?.Carpenter },
-  { id: 4, title: "Mason", slug: "masons", image: IMAGES?.Mason },
-  { id: 5, title: "Painter", slug: "painters", image: IMAGES?.Painter },
-  { id: 6, title: "Welder", slug: "welders", image: IMAGES?.Welder },
+  { id: 1, title: "Electrician", slug: "electrician", image: IMAGES?.Electrician },
+  { id: 2, title: "Plumber", slug: "plumber", image: IMAGES?.Plumber },
+  { id: 3, title: "Carpenter", slug: "carpenter", image: IMAGES?.Carpenter },
+  { id: 4, title: "Mason", slug: "mason", image: IMAGES?.Mason },
+  { id: 5, title: "Painter", slug: "painter", image: IMAGES?.Painter },
+  { id: 6, title: "Welder", slug: "welder", image: IMAGES?.Welder },
   { id: 7, title: "AC Technician", slug: "ac-technician", image: IMAGES?.Ac_Technician },
-  { id: 8, title: "Tile Fixer", slug: "tile-fixers", image: IMAGES?.Tile_Fixer },
+  { id: 8, title: "Tile Fixer", slug: "tile-fixer", image: IMAGES?.Tile_Fixer },
 ]
 
 const LaborSlider = () => {

@@ -10,6 +10,6 @@ export async function POST(request) {
     cookieStore.delete('access_token')
     return response(true, 200, 'Logout successfull.')
   } catch(error){
-    catchError(error)
+    return catchError(error)
   }
 }

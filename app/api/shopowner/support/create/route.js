@@ -4,6 +4,7 @@ import { catchError, response } from "@/lib/helperfunction"
 import { sendMail } from "@/lib/sendMail"
 import SupportTicketModel from "@/models/SupportTicket.model"
 import UserModel from "@/models/User.model"
+import NotificationModel from "@/models/Notification.model"
 import z from "zod"
 
 const CATEGORIES = ["payment", "inventory", "account", "ads_promotions", "instant_cash", "other"]
@@ -39,6 +40,24 @@ export async function POST(request) {
       subject: validated.data.subject,
       description: validated.data.description,
     })
+
+    // ── Admin bell notification ──
+    try {
+      const admins = await UserModel.find({ role: "admin", deletedAt: null }).select("_id").lean()
+      if (admins.length) {
+        await NotificationModel.insertMany(
+          admins.map((a) => ({
+            user: a._id,
+            type: "general",
+            title: "New Support Ticket",
+            message: `${user.name} • ${validated.data.subject}`,
+            link: "/admin/support-tickets",
+          }))
+        )
+      }
+    } catch (err) {
+      console.error("Support ticket notification failed:", err.message)
+    }
 
     // ── Email to support/ops team — needs SUPPORT_EMAIL in .env ──
     const supportHtml = `

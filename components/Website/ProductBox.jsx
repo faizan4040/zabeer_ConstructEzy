@@ -66,7 +66,7 @@ const ProductBox = ({ product }) => {
         </div>
         <p className="flex items-center gap-1 text-[10px] text-gray-500">
           <Truck size={11} className="text-green-600" />
-          Free Delivery on orders above ₹500
+          Free Delivery on orders above ₹2000
         </p>
 
         <button className="cursor-pointer hover:bg-orange-500 mt-1 w-full bg-black text-white text-xs sm:text-sm py-1 rounded-md transition">

@@ -89,14 +89,14 @@ export const IMAGES = {
 
   construction: "/assets/images/construction.jpg",
 
-  Ac_Technician: "/assets/images/Ac_Technician.jpg",
-  Carpenter: "/assets/images/Carpenter.jpg",
-  Electrician: "/assets/images/Electrician.jpg",
-  Mason: "/assets/images/Mason.jpg",
-  Painter: "/assets/images/Painter.jpg",
-  Plumber: "/assets/images/Plumber.jpg",
-  Tile_Fixer: "/assets/images/Tile_Fixer.jpg",
-  Welder: "/assets/images/Welder.jpg",
+  Ac_Technician: "/assets/images/Ac_Technician.webp",
+  Carpenter: "/assets/images/Carpenter.webp",
+  Electrician: "/assets/images/Electrician.webp",
+  Mason: "/assets/images/Mason.webp",
+  Painter: "/assets/images/Painter.webp",
+  Plumber: "/assets/images/Plumber.webp",
+  Tile_Fixer: "/assets/images/Tile_Fixer.webp",
+  Welder: "/assets/images/Welder.webp",
 
   House_Construction: "/assets/images/House_Construction.jpg",
   Home_Renovation: "/assets/images/Home_Renovation.jpg",

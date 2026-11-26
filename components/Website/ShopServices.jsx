@@ -180,7 +180,7 @@ const ShopServicesSection = () => {
         <article className="group relative flex min-h-[260px] flex-col overflow-hidden rounded-2xl border border-sky-100 bg-linear-to-br from-sky-50 via-blue-50/80 to-indigo-100/60 p-5 shadow-sm transition-shadow hover:shadow-xl sm:min-h-[270px] sm:p-7">
           {/* Worker image */}
           {/* Phone: image upar ke hisse tak limited (checklist se overlap nahi) */}
-          <div className="pointer-events-none absolute right-0 top-3 h-[165px] w-[42%] sm:bottom-0 sm:top-0 sm:right-[8%] sm:h-auto sm:w-[50%] lg:right-[10%]">
+          <div className="pointer-events-none absolute right-0 top-3 h-[165px] w-[42%] sm:bottom-12 sm:top-0 sm:right-[4%] sm:h-auto sm:w-[50%]">
             <Image
               src={IMAGES.book_services}
               alt="Verified ConstructEzy professional"
@@ -204,25 +204,12 @@ const ShopServicesSection = () => {
             </div>
           </div>
 
-          {/* Checklist panel (right) */}
-          <ul className="absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 space-y-3 rounded-xl bg-white/80 px-4 py-4 shadow-md ring-1 ring-black/5 backdrop-blur-sm lg:block xl:right-4">
+          {/* Points: button ke neeche ek row (Shop Products card ki feature row jaisa) */}
+          <ul className="relative z-10 mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-5 sm:gap-x-6">
             {SERVICE_POINTS.map((p, i) => (
               <li
                 key={p}
-                className="flex items-center gap-2.5 text-[11px] font-medium text-slate-700 xl:text-xs"
-              >
-                <CheckCircle tone={i === 2 ? "teal" : "emerald"} />
-                {p}
-              </li>
-            ))}
-          </ul>
-
-          {/* Mobile / tablet: compact checklist at bottom */}
-          <ul className="relative z-10 mt-auto grid grid-cols-2 gap-x-3 gap-y-2 pt-5 lg:hidden">
-            {SERVICE_POINTS.map((p, i) => (
-              <li
-                key={p}
-                className="flex items-center gap-2 text-[11px] font-semibold text-slate-700 sm:text-xs"
+                className="flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold text-[#0b1b3f] sm:text-sm"
               >
                 <CheckCircle tone={i === 2 ? "teal" : "emerald"} />
                 {p}

@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { Suspense, useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
+import { useSearchParams } from 'next/navigation'
 import {
   CreditCard, Boxes, UserCircle, Megaphone, Wallet, HelpCircle,
   Loader2, ArrowLeft, Send, Ticket, Clock,
@@ -19,26 +20,29 @@ const breadcrumbData = [
 ]
 
 const CATEGORIES = [
-  { key: 'payment', label: 'Payment', icon: CreditCard, color: '#3b82f6', bg: '#eff6ff' },
-  { key: 'inventory', label: 'Inventory', icon: Boxes, color: '#f59e0b', bg: '#fffbeb' },
-  { key: 'account', label: 'Account', icon: UserCircle, color: '#8b5cf6', bg: '#f5f3ff' },
-  { key: 'ads_promotions', label: 'Advertisements & Promotions', icon: Megaphone, color: '#ec4899', bg: '#fdf2f8' },
-  { key: 'instant_cash', label: 'Instant Cash', icon: Wallet, color: '#10b981', bg: '#ecfdf5' },
-  { key: 'other', label: 'Other', icon: HelpCircle, color: '#6b7280', bg: '#f9fafb' },
+  // card = tile background, iconCls = icon colour (Tailwind classes so dark mode works)
+  { key: 'payment', label: 'Payment', icon: CreditCard, card: 'bg-blue-50 border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20', iconCls: 'text-blue-500' },
+  { key: 'inventory', label: 'Inventory', icon: Boxes, card: 'bg-amber-50 border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20', iconCls: 'text-amber-500' },
+  { key: 'account', label: 'Account', icon: UserCircle, card: 'bg-violet-50 border-violet-100 dark:bg-violet-500/10 dark:border-violet-500/20', iconCls: 'text-violet-500' },
+  { key: 'ads_promotions', label: 'Advertisements & Promotions', icon: Megaphone, card: 'bg-pink-50 border-pink-100 dark:bg-pink-500/10 dark:border-pink-500/20', iconCls: 'text-pink-500' },
+  { key: 'instant_cash', label: 'Instant Cash', icon: Wallet, card: 'bg-emerald-50 border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20', iconCls: 'text-emerald-500' },
+  { key: 'other', label: 'Other', icon: HelpCircle, card: 'bg-gray-50 border-gray-100 dark:bg-white/5 dark:border-white/10', iconCls: 'text-gray-500 dark:text-gray-400' },
 ]
 
 const STATUS_META = {
-  open:        { label: 'Open',        color: '#f97316', bg: '#fff7ed' },
-  in_progress: { label: 'In Progress', color: '#3b82f6', bg: '#eff6ff' },
-  resolved:    { label: 'Resolved',    color: '#10b981', bg: '#ecfdf5' },
-  closed:      { label: 'Closed',      color: '#6b7280', bg: '#f9fafb' },
+  open:        { label: 'Open',        cls: 'bg-orange-50 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400' },
+  in_progress: { label: 'In Progress', cls: 'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400' },
+  resolved:    { label: 'Resolved',    cls: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400' },
+  closed:      { label: 'Closed',      cls: 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300' },
 }
 
 // ── Categories where an Order ID is commonly relevant ──
 const ORDER_RELATED = ['payment', 'inventory', 'instant_cash']
 
 const ShopSupportPage = () => {
-  const [activeTab, setActiveTab] = useState('help')
+  // ?tab=ticket (from a "support replied" notification) opens My Ticket directly
+  const searchParams = useSearchParams()
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'ticket' ? 'ticket' : 'help')
   const [selectedCategory, setSelectedCategory] = useState(null)
 
   const [subject, setSubject] = useState('')
@@ -146,13 +150,9 @@ const ShopSupportPage = () => {
                       <button
                         key={cat.key}
                         onClick={() => setSelectedCategory(cat)}
-                        className="text-left rounded-2xl border p-4 hover:shadow-md transition-all"
-                        style={{ background: cat.bg, borderColor: cat.bg }}
+                        className={`text-left rounded-2xl border p-4 hover:shadow-md transition-all ${cat.card}`}
                       >
-                        <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 bg-white"
-                          style={{ color: cat.color, boxShadow: `0 0 0 1px ${cat.color}22` }}
-                        >
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 bg-white dark:bg-white/10 shadow-sm ${cat.iconCls}`}>
                           <Icon size={18} />
                         </div>
                         <p className="text-sm font-semibold text-gray-800">{cat.label}</p>
@@ -171,10 +171,7 @@ const ShopSupportPage = () => {
                 </button>
 
                 <div className="flex items-center gap-3 mb-6">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: selectedCategory.bg, color: selectedCategory.color }}
-                  >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${selectedCategory.card} ${selectedCategory.iconCls}`}>
                     <selectedCategory.icon size={18} />
                   </div>
                   <h3 className="font-semibold text-gray-900">{selectedCategory.label}</h3>
@@ -262,11 +259,17 @@ const ShopSupportPage = () => {
                         <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
                           <Clock size={11} /> {new Date(t.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </p>
+                        {t.adminReply && (
+                          <div className="mt-3 rounded-xl border-l-4 border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-2">
+                            <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                              ConstructEzy Support replied
+                              {t.repliedAt && ` · ${new Date(t.repliedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}`}
+                            </p>
+                            <p className="text-sm whitespace-pre-line mt-0.5">{t.adminReply}</p>
+                          </div>
+                        )}
                       </div>
-                      <span
-                        className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap"
-                        style={{ background: status.bg, color: status.color }}
-                      >
+                      <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${status.cls}`}>
                         {status.label}
                       </span>
                     </div>
@@ -281,4 +284,11 @@ const ShopSupportPage = () => {
   )
 }
 
-export default ShopSupportPage
+// useSearchParams needs a Suspense boundary in the App Router
+export default function ShopSupportPageWrapper() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>}>
+      <ShopSupportPage />
+    </Suspense>
+  )
+}

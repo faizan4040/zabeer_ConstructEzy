@@ -1,7 +1,9 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { usePanelNotifications } from "@/components/Application/Admin/PanelNotifications"
 
 import {
   Sidebar,
@@ -28,43 +30,26 @@ import { TbLayoutSidebarLeftExpandFilled } from "react-icons/tb"
 import { shopOwnerSidebarMenu } from "@/lib/shopOwnerSidebarMenu"
 import { IMAGES } from "@/routes/AllImages"
 
-// ── Notification bell — text format "Notifications (N)" with live count ──
-// Polls /api/shopowner/notifications/orders/count every 30s.
+// ── "Notifications (N)" — same unread count as the header bell (shared store) ──
 const NotificationBell = () => {
-  const [count, setCount] = useState(0)
-
-  useEffect(() => {
-    let isMounted = true
-
-    const fetchCount = async () => {
-      try {
-        const res = await fetch("/api/shopowner/notifications/orders/count", {
-          credentials: "include",
-        })
-        if (!res.ok) return
-        const data = await res.json()
-        if (isMounted) setCount(data?.count ?? 0)
-      } catch {
-        // fail silently, keep last known count
-      }
-    }
-
-    fetchCount()
-    const interval = setInterval(fetchCount, 30000)
-
-    return () => {
-      isMounted = false
-      clearInterval(interval)
-    }
-  }, [])
+  const { totalUnseen } = usePanelNotifications()
+  const pathname = usePathname()
+  const active = pathname?.startsWith("/shop/notifications")
 
   return (
     <Link
       href="/shop/notifications"
-      className="inline-flex items-center gap-1.5 text-gray-300 hover:text-white text-xs font-medium"
+      className={`inline-flex items-center gap-1.5 text-xs font-medium hover:text-white ${active ? "text-white" : "text-gray-300"}`}
     >
       <Bell className="h-4 w-4 text-yellow-400" />
-      <span>Notifications ({count})</span>
+      <span>Notifications</span>
+      <span
+        className={`rounded-full px-1.5 text-[10px] font-bold ${
+          totalUnseen > 0 ? "bg-red-500 text-white" : "bg-gray-700 text-gray-300"
+        }`}
+      >
+        {totalUnseen > 99 ? "99+" : totalUnseen}
+      </span>
     </Link>
   )
 }
