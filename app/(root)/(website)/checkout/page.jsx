@@ -39,6 +39,7 @@ import { IMAGES } from '@/routes/AllImages'
 import { z } from 'zod'
 import Script from 'next/script'
 import { useRouter } from 'next/navigation'
+import { checkServiceArea, NOT_SERVICEABLE_MESSAGE } from '@/lib/serviceArea'
 
 
 /* ---------------- HELPERS ---------------- */
@@ -294,9 +295,9 @@ useEffect(() => {
 
 
 //get order id
-const getOrderId = async (amount) => {
+const getOrderId = async (amount, extra = {}) => {
    try{
-       const { data: orderIdData } = await axios.post('/api/payment/get-order-id',{ amount })
+       const { data: orderIdData } = await axios.post('/api/payment/get-order-id',{ amount, ...extra })
        if(!orderIdData.success) {
          throw new Error(orderIdData.message)
        }
@@ -305,12 +306,22 @@ const getOrderId = async (amount) => {
 
 
    } catch(error){
-      return { success: false, message: error.message }
+      return { success: false, message: error?.response?.data?.message || error.message }
    }
 }
 
 // place order — online (Razorpay) ya COD, dono handle karta hai
 const placeOrder = async (formData) => {
+  // Service area ke bahar (abhi sirf Jaipur) — order hi mat lo
+  const area = checkServiceArea({
+    lat: customerLocation?.lat ?? null,
+    lng: customerLocation?.lng ?? null,
+    city: formData.city,
+  })
+  if (area.serviceable === false) {
+    showToast('error', NOT_SERVICEABLE_MESSAGE)
+    return
+  }
   if (hasPaidDelivery && !deliveryReady) {
     showToast('error', 'Please share your delivery location to calculate the delivery charge.')
     return
@@ -373,7 +384,7 @@ const placeOrder = async (formData) => {
 
   // ── Online flow — waisa hi jaisa pehले tha ──
   try {
-    const generateOrderId = await getOrderId(totalAmount)
+    const generateOrderId = await getOrderId(totalAmount, { city: formData.city, customerLocation: customerLocation || null })
     if (!generateOrderId.success) {
       throw new Error(generateOrderId.message)
     }

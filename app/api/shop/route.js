@@ -2,6 +2,7 @@ import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
 import CategoryModel from "@/models/Category.model";
 import ProductModel from "@/models/Product.model";
+import { sanitizeProductForBuyer } from "@/lib/delivery";
 
 
 export async function GET(request) {
@@ -108,6 +109,8 @@ export async function GET(request) {
              mrp: 1,
              sellingPrice: 1,
              discountPercentage: 1,
+             deliveryType: 1,
+             deliveryRatePerKm: 1,
              media: {
                _id: 1,
                secure_url: 1,
@@ -130,7 +133,8 @@ export async function GET(request) {
         products.pop()
      }
 
-     return response(true, 200, 'Product data found', { products, nextPage })
+     // deliveryType buyer ko nahi bhejte — sirf { mode, ratePerKm }
+     return response(true, 200, 'Product data found', { products: products.map(sanitizeProductForBuyer), nextPage })
 
     } catch(error){
         return catchError(error)

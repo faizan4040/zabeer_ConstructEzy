@@ -2,6 +2,7 @@ import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
 import { zSchema } from "@/lib/zodSchema";
 import Razorpay from "razorpay";
+import { checkServiceArea, NOT_SERVICEABLE_MESSAGE } from "@/lib/serviceArea";
 
 export async function POST(request) {
     try{
@@ -18,6 +19,13 @@ export async function POST(request) {
         }
 
         const {amount} = validate.data
+
+        // Payment lene se pehle hi service area check — bahar ke shehar ka paisa capture na ho
+        const loc = payload?.customerLocation
+        const area = checkServiceArea({ lat: loc?.lat ?? null, lng: loc?.lng ?? null, city: payload?.city })
+        if (area.serviceable === false) {
+            return response(false, 400, NOT_SERVICEABLE_MESSAGE)
+        }
 
         const razInstance = new Razorpay({
             key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,

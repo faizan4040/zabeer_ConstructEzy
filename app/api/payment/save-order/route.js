@@ -71,6 +71,7 @@ export async function POST(request) {
     const prepared = await prepareOrderItems({
         products: validateData.products,
         customerLocation: validateData.customerLocation,
+        city: validateData.city,
         addressString: fullAddress,
         strict: false,
     })

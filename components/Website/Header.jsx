@@ -10,6 +10,16 @@ import { IMAGES } from "@/routes/AllImages"
 import { useRouter } from "next/navigation"
 import { IoSearchOutline } from "react-icons/io5"
 import MobileSidebar, { MobileMenuToggle } from "./MobileSidebar"
+import { checkServiceArea, SERVICE_CITY_NAMES } from "@/lib/serviceArea"
+
+// Buyer ki chuni hui location browser me yaad rakhte hain (sirf convenience)
+const LOCATION_STORAGE_KEY = "ce_delivery_location"
+function readSavedLocation() {
+  try { return JSON.parse(localStorage.getItem(LOCATION_STORAGE_KEY) || "null") } catch { return null }
+}
+function saveLocation(loc) {
+  try { localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(loc)) } catch {}
+}
 
 /* ------------------------------------------------------------------ */
 /*  VOICE MIC BUTTON (browser ka built-in Web Speech API, free)        */
@@ -136,6 +146,9 @@ export default function Header() {
   const [locStatus, setLocStatus] = useState({ msg: "", type: "" })
   const [nearestLabor, setNearestLabor] = useState(null)
   const [isLoadingLocation, setIsLoadingLocation] = useState(false)
+  // true = hum deliver karte hain, false = coming soon, null = abhi pata nahi
+  const [serviceable, setServiceable] = useState(null)
+  const [hideComingSoonBar, setHideComingSoonBar] = useState(false)
 
   // Avatar image load-failure fallback
   const [avatarFailed, setAvatarFailed] = useState(false)
@@ -155,6 +168,17 @@ export default function Header() {
     }
     document.addEventListener("pointerdown", handler)
     return () => document.removeEventListener("pointerdown", handler)
+  }, [])
+
+  // Pehli visit pe location poochho; warna saved location wapas lagao
+  useEffect(() => {
+    const saved = readSavedLocation()
+    if (saved?.name) {
+      setLocationName(saved.name)
+      setServiceable(checkServiceArea(saved).serviceable)
+    } else {
+      setLocationModal(true)
+    }
   }, [])
 
   useEffect(() => {
@@ -197,12 +221,24 @@ export default function Header() {
 
   /* ── Location Handlers ── */
   const applyLocation = useCallback((name, latitude, longitude, city) => {
+    const loc = { name, lat: latitude ?? null, lng: longitude ?? null, city: city || name }
+    const { serviceable: ok } = checkServiceArea(loc)
+    saveLocation(loc)
     setLocationName(name)
-    setLocationModal(false)
+    setServiceable(ok)
+    setHideComingSoonBar(false)
     setManualInput("")
-    setLocStatus({ msg: "", type: "" })
     setIsLoadingLocation(false)
 
+    if (ok === false) {
+      // Panel khula rakho taaki "coming soon" message dikhe
+      setLocStatus({ msg: "", type: "" })
+      setLocationModal(true)
+      return
+    }
+
+    setLocationModal(false)
+    setLocStatus({ msg: "", type: "" })
     if (latitude && longitude) {
       fetchNearestLabor(latitude, longitude, city)
     }
@@ -256,12 +292,31 @@ export default function Header() {
     )
   }, [applyLocation])
 
-  const confirmManual = useCallback(() => {
-    if (!manualInput.trim()) {
+  const confirmManual = useCallback(async () => {
+    const text = manualInput.trim()
+    if (!text) {
       setLocStatus({ msg: "Please enter a location first.", type: "error" })
       return
     }
-    applyLocation(manualInput.trim(), null, null, null)
+    // Typed area/pincode ko lat-lng me badlo taaki service area sahi check ho
+    setIsLoadingLocation(true)
+    setLocStatus({ msg: "Checking your area…", type: "loading" })
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&countrycodes=in&format=json&limit=1&addressdetails=1`
+      )
+      const [hit] = await res.json()
+      if (hit) {
+        const addr = hit.address || {}
+        const city = addr.city || addr.town || addr.state_district || text
+        applyLocation(text, Number(hit.lat), Number(hit.lon), city)
+        return
+      }
+    } catch (error) {
+      console.error("Geocoding error:", error)
+    }
+    // Geocode nahi hua → sirf naam se check
+    applyLocation(text, null, null, text)
   }, [manualInput, applyLocation])
 
   /* ── Status text color ── */
@@ -332,6 +387,18 @@ export default function Header() {
           Confirm Location
         </button>
       </div>
+
+      {serviceable === false && (
+        <div className="px-5 sm:px-6 py-5 bg-amber-50 border-b border-amber-100 text-center">
+          <p className="text-3xl mb-1">🚧</p>
+          <p className="font-bold text-gray-900 text-base">We're coming soon to your area!</p>
+          <p className="text-sm text-gray-600 mt-1">
+            We don't deliver to <span className="font-semibold">{locationName}</span> yet.
+            Right now we serve only <span className="font-semibold text-[#0B8457]">{SERVICE_CITY_NAMES}</span>.
+          </p>
+          <p className="text-xs text-gray-500 mt-2">You can still browse products, or change your location above.</p>
+        </div>
+      )}
 
       {locStatus.msg && (
         <div className={`px-5 sm:px-6 py-4 ${locStatus.type === "error" ? "bg-rose-50" : locStatus.type === "success" ? "bg-emerald-50" : "bg-emerald-50/60"}`}>
@@ -607,6 +674,31 @@ export default function Header() {
           </span>
         </button>
       </header>
+
+      {/* ─── COMING SOON BAR (location service area ke bahar) ─── */}
+      {serviceable === false && !hideComingSoonBar && (
+        <div className="bg-amber-50 border-b border-amber-200 text-amber-900 px-4 py-2 text-xs sm:text-sm flex items-center justify-center gap-2 text-center">
+          <MapPin size={14} className="shrink-0" />
+          <span>
+            We're coming soon to your area! Right now we deliver only in <b>{SERVICE_CITY_NAMES}</b>.{" "}
+            <button
+              type="button"
+              onClick={() => { setLocationModal(true); setLocStatus({ msg: "", type: "" }) }}
+              className="underline font-semibold cursor-pointer"
+            >
+              Change location
+            </button>
+          </span>
+          <button
+            type="button"
+            onClick={() => setHideComingSoonBar(true)}
+            className="shrink-0 p-1 rounded hover:bg-amber-100 cursor-pointer"
+            aria-label="Dismiss"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* ─── MOBILE LEFT SIDEBAR MENU (phone only) ─── */}
       <MobileSidebar open={menuOpen} onClose={closeMenu} auth={auth} />
