@@ -1,3 +1,4 @@
+import { mergeAttributes } from "@/lib/mergeAttributes";
 import { isAuthenticated } from "@/lib/authentication";
 import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
@@ -84,7 +85,7 @@ export async function PUT(request) {
     getCategory.slug = slug.trim().toLowerCase();
     getCategory.parent = parent;
     // attributes sirf sub-category ke liye hote hain
-    getCategory.attributes = parent ? attributes : [];
+    getCategory.attributes = parent ? mergeAttributes(attributes) : []; // same-label attributes merged
     await getCategory.save();
 
     return response(true, 200, "Category updated successfully.");

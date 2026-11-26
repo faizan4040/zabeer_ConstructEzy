@@ -4,6 +4,7 @@ import { isAuthenticated } from "@/lib/authentication"
 import UserModel from "@/models/User.model"
 import ProductModel from "@/models/Product.model"
 import CategoryModel from "@/models/Category.model"
+import { mergeAttributes } from "@/lib/mergeAttributes"
 
 export async function GET(request) {
     try {
@@ -39,7 +40,8 @@ export async function GET(request) {
 
         return response(true, 200, 'Attributes fetched.', {
             categoryName: category.name,
-            attributes: category.attributes || [],
+            // same-label attributes (e.g. "kg" twice) merged into one
+            attributes: mergeAttributes(category.attributes),
         })
 
     } catch (error) {

@@ -1,3 +1,4 @@
+import { mergeAttributes } from "@/lib/mergeAttributes";
 import { isAuthenticated } from "@/lib/authentication";
 import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
@@ -25,7 +26,7 @@ export async function POST(request) {
             name: data.name,
             slug: data.slug,
             parent: data.parent || null,
-            attributes: data.parent ? data.attributes : [], // top-level categories don't need attributes
+            attributes: data.parent ? mergeAttributes(data.attributes) : [], // top-level categories don't need attributes; same-label attributes merged
         })
 
         await newCategory.save()

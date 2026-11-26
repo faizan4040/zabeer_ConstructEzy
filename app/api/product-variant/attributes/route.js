@@ -2,7 +2,8 @@ import { isAuthenticated } from "@/lib/authentication";
 import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
 import ProductModel from "@/models/Product.model";
-import CategoryModel from "@/models/Category.model";
+import CategoryModel from "@/models/Category.model"
+import { mergeAttributes } from "@/lib/mergeAttributes";
 
 export async function GET(request) {
     try {
@@ -32,7 +33,8 @@ export async function GET(request) {
 
         return response(true, 200, 'Attributes fetched.', {
             categoryName: category.name,
-            attributes: category.attributes || [],
+            // same-label attributes (e.g. "kg" twice) merged into one
+            attributes: mergeAttributes(category.attributes),
         })
 
     } catch (error) {

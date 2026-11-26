@@ -81,10 +81,19 @@ const VariantRowsEditor = ({ templates, rows, setRows, productName }) => {
   // every combination of the picked values (cartesian product)
   const combos = useMemo(() => {
     if (templates.some((t) => !(picked[t.label]?.size > 0))) return []
-    return templates.reduce(
+    // each label only once (guards against a category that repeats a label)
+    const uniqueLabels = templates.filter((t, i) => templates.findIndex((x) => x.label === t.label) === i)
+    const all = uniqueLabels.reduce(
       (acc, t) => acc.flatMap((c) => [...picked[t.label]].map((v) => ({ ...c, [t.label]: v }))),
       [{}]
     )
+    const seen = new Set()
+    return all.filter((c) => {
+      const k = comboKey(c, uniqueLabels)
+      if (seen.has(k)) return false
+      seen.add(k)
+      return true
+    })
   }, [picked, templates])
 
   const generateRows = () => {
@@ -95,7 +104,13 @@ const VariantRowsEditor = ({ templates, rows, setRows, productName }) => {
       )
       const existing = new Set(kept.map((r) => comboKey(r.attrs, templates)))
       const added = combos
-        .filter((c) => !existing.has(comboKey(c, templates)))
+        .filter((c) => {
+          // skip combos already in the table AND repeats inside this same batch
+          const k = comboKey(c, templates)
+          if (existing.has(k)) return false
+          existing.add(k)
+          return true
+        })
         .map((c) => ({ ...emptyRow(c), sku: makeSku(productName, c) }))
       return [...kept, ...added]
     })
