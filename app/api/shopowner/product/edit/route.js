@@ -7,6 +7,7 @@ import UserModel from "@/models/User.model";
 import ShopModel from "@/models/Shop.model";
 import { listingOptionsSchema, pickListingOptions } from "@/lib/listingOptions";
 import { shopCoords } from "@/lib/delivery";
+import { uniqueSlug } from "@/lib/uniqueSlug";
 
 export async function PUT(request) {
   try {
@@ -55,10 +56,12 @@ export async function PUT(request) {
     }
 
     Object.assign(product, validatedData.data, options.data);
+    // slug kisi aur product ka ho to -2, -3 … (apna khud ka slug as-is rehta hai)
+    product.slug = await uniqueSlug(ProductModel, validatedData.data.slug, product._id);
     await product.save();
 
     return response(true, 200, "Product updated successfully.", product);
   } catch (error) {
-    return catchError(error);
+    return catchError(error, "Failed to update product");
   }
 }

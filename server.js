@@ -56,10 +56,48 @@ const ChatRoom = mongoose.models.ChatRoom || mongoose.model("ChatRoom", ChatRoom
 
 const onlineUsers = new Map();
 
+// ── CDN safety: never let a CDN cache React Server Component (RSC) payloads ──
+// Next.js serves both HTML and RSC data from the SAME URL and relies on
+// `Vary: rsc, next-router-*` to keep them apart. Hostinger's CDN (hcdn) does not
+// reliably honour that, so a cached RSC payload could be served to a normal page
+// load — the browser then shows raw ":HL[...] 0:{"buildId":...}" text.
+// RSC responses are tiny and per-navigation, so marking them uncacheable is free.
+const NO_STORE = "private, no-cache, no-store, max-age=0, must-revalidate";
+
+function isRscRequest(req, parsedUrl) {
+  const h = req.headers;
+  return (
+    h["rsc"] === "1" ||
+    h["next-router-prefetch"] !== undefined ||
+    h["next-router-segment-prefetch"] !== undefined ||
+    h["next-router-state-tree"] !== undefined ||
+    (parsedUrl.query && parsedUrl.query._rsc !== undefined)
+  );
+}
+
+function forceNoStore(res) {
+  const setHeader = res.setHeader.bind(res);
+  res.setHeader = (name, value) =>
+    String(name).toLowerCase() === "cache-control" ? setHeader(name, NO_STORE) : setHeader(name, value);
+
+  const writeHead = res.writeHead.bind(res);
+  res.writeHead = (status, ...rest) => {
+    const headers = rest.find((a) => a && typeof a === "object");
+    if (headers) {
+      for (const k of Object.keys(headers)) if (k.toLowerCase() === "cache-control") headers[k] = NO_STORE;
+    }
+    return writeHead(status, ...rest);
+  };
+
+  setHeader("Cache-Control", NO_STORE);
+  setHeader("CDN-Cache-Control", "no-store");
+}
+
 // ── Boot ─────────────────────────────────────────────────────────────────────
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
     const parsedUrl = parse(req.url, true);
+    if (isRscRequest(req, parsedUrl)) forceNoStore(res);
     handle(req, res, parsedUrl);
   });
 

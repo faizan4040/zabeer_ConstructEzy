@@ -7,6 +7,7 @@ import ProductModel from "@/models/Product.model"
 import ShopModel from "@/models/Shop.model"
 import { listingOptionsSchema, pickListingOptions } from "@/lib/listingOptions"
 import { shopCoords } from "@/lib/delivery"
+import { uniqueSlug } from "@/lib/uniqueSlug"
 
 export async function POST(request) {
   try {
@@ -51,9 +52,13 @@ export async function POST(request) {
       }
     }
 
+    // Same product can be listed by many shops → slug pehle se ho to -2, -3 … laga do
+    const slug = await uniqueSlug(ProductModel, validatedData.data.slug)
+
     const newProduct = new ProductModel({
       ...validatedData.data,
       ...options.data,
+      slug,
       createdBy: auth.userId,
       shop: user.shop,
     })
@@ -62,7 +67,7 @@ export async function POST(request) {
 
     return response(true, 200, "Product added successfully.", newProduct)
   } catch (error) {
-    return catchError(error)
+    return catchError(error, "Failed to add product")
   }
 }
 
@@ -117,7 +122,7 @@ export async function POST(request) {
 
 //     return response(true, 200, "Product added successfully.", newProduct)
 //   } catch (error) {
-//     return catchError(error)
+//     return catchError(error, "Failed to add product")
 //   }
 // }
 

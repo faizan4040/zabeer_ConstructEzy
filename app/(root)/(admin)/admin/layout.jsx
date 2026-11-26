@@ -6,6 +6,10 @@ import { PanelNotificationsProvider } from '@/components/Application/Admin/Panel
 
 import React from 'react'
 
+// Logged-in, per-user dashboard: render on every request and never let a CDN
+// cache it (prevents raw RSC text showing up on Hostinger's CDN).
+export const dynamic = 'force-dynamic'
+
 const layout = ({ children }) => {
   return (
     <ThemeProvider

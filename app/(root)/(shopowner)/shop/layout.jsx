@@ -4,6 +4,10 @@ import Topbar from '@/components/Application/Admin/Topbar'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { PanelNotificationsProvider } from '@/components/Application/Admin/PanelNotifications'
 
+// Logged-in, per-user dashboard: render on every request and never let a CDN
+// cache it (prevents raw RSC text showing up on Hostinger's CDN).
+export const dynamic = 'force-dynamic'
+
 const layout = ({ children }) => {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
