@@ -20,6 +20,7 @@ import {
   SHOP_OWNER_VARIANT_SHOW,
 } from '@/routes/ShopOwnerPanelRoute'
 import axios from 'axios'
+import { mergeAttributes } from '@/lib/mergeAttributes'
 import Image from 'next/image'
 import React, { useEffect, useRef, useState } from 'react'
 import { PackagePlus, ImagePlus, Boxes, X, Loader2, UploadCloud } from 'lucide-react'
@@ -86,7 +87,8 @@ const AddProductVariant = () => {
       try {
         const { data: res } = await axios.get(`/api/shopowner/product-variant/attributes?productId=${product}`)
         if (cancelled) return
-        setAttributeTemplates(res.success ? res.data.attributes || [] : [])
+        // same-label options ("Kg", "kg", "kg") → one option with all values
+        setAttributeTemplates(res.success ? mergeAttributes(res.data.attributes) : [])
         setCategoryName(res.success ? res.data.categoryName || '' : '')
       } catch {
         if (!cancelled) setAttributeTemplates([])

@@ -12,6 +12,7 @@ import { showToast } from '@/lib/showToast'
 import { buildVariantDocs } from '@/lib/variantBulk'
 import { ADMIN_DASHBOARD, ADMIN_PRODUCT_VARIANT_SHOW } from '@/routes/AdminPanelRoute'
 import axios from 'axios'
+import { mergeAttributes } from '@/lib/mergeAttributes'
 import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
 
@@ -68,7 +69,8 @@ const AddProductVariant = () => {
       try {
         const { data: res } = await axios.get(`/api/product-variant/attributes?productId=${product}`)
         if (cancelled) return
-        setAttributeTemplates(res.success ? res.data.attributes || [] : [])
+        // same-label options ("Kg", "kg", "kg") → one option with all values
+        setAttributeTemplates(res.success ? mergeAttributes(res.data.attributes) : [])
         setCategoryName(res.success ? res.data.categoryName || '' : '')
       } catch {
         if (!cancelled) setAttributeTemplates([])
