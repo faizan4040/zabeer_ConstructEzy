@@ -72,7 +72,7 @@ const CheckOut = () => {
 
   /* ---------------- COUPON STATE ---------------- */
   const [couponCode, setCouponCode] = useState('')
-  const [couponDiscount, setCouponDiscount] = useState(0)
+  const [couponPercent, setCouponPercent] = useState(0) // discount % from server; amount follows the subtotal
   const [couponLoading, setCouponLoading] = useState(false)
   const [isCouponApplied, setIsCouponApplied] = useState(false)
   const [placingOrder, setPlacingOrder] = useState(false)
@@ -167,7 +167,7 @@ const CheckOut = () => {
   }, [cartKey, hasPaidDelivery])
 
   /* ---------------- PRICE CALCULATIONS ---------------- */
-const { subtotal, discount, totalAmount } = useMemo(() => {
+const { subtotal, discount, couponDiscount, totalAmount } = useMemo(() => {
   const products = cart.products || []
 
   const sub = products.reduce(
@@ -180,60 +180,65 @@ const { subtotal, discount, totalAmount } = useMemo(() => {
     0
   )
 
+  // same formula as the server (lib/orderPricing.js)
+  const couponDiscount = Math.min(Math.round(sub * couponPercent) / 100, sub)
   const total = Math.max(sub - couponDiscount, 0) + deliveryCharge
 
   return {
     subtotal: sub,
     discount: disc,
+    couponDiscount,
     totalAmount: total,
   }
-}, [cart.products, couponDiscount, deliveryCharge])
+}, [cart.products, couponPercent, deliveryCharge])
 
   /* ---------------- COUPON FORM ---------------- */
   const couponForm = useForm({
     resolver: zodResolver(
       zSchema.pick({
         code: true,
-        minShoppingAmount: true,
       })
     ),
     defaultValues: {
       code: '',
-      minShoppingAmount: subtotal,
     },
   })
-
-  useEffect(() => {
-    couponForm.setValue('minShoppingAmount', subtotal)
-  }, [subtotal, couponForm])
 
   const applyCoupon = async (values) => {
     setCouponLoading(true)
     try {
-      const { data } = await axios.post('/api/coupon/apply', values)
+      // Server calculates the subtotal from DB prices of these cart items — we only send the code + cart
+      const { data } = await axios.post('/api/coupon/apply', {
+        code: values.code,
+        products: (cart.products || []).map((p) => ({
+          productId: p.productId,
+          variantId: p.variantId,
+          name: p.name,
+          qty: p.qty,
+          isSample: !!p.isSample,
+          customSize: p.customSize || null,
+        })),
+      })
 
       if (!data.success) {
         throw new Error(data.message)
       }
 
-      const discountAmount =
-        (subtotal * data.data.discountPercentage) / 100
-
-      setCouponDiscount(discountAmount)
-      setCouponCode(values.code.toUpperCase())
+      setCouponPercent(data.data.discountPercentage)
+      setCouponCode(data.data.code || values.code.toUpperCase())
       setIsCouponApplied(true)
       couponForm.reset()
 
       showToast('success', data.message)
     } catch (error) {
-      showToast('error', error.message)
+      showToast('error', error?.response?.data?.message || error.message)
     } finally {
       setCouponLoading(false)
     }
   }
 
   const removeCoupon = () => {
-    setCouponDiscount(0)
+    setCouponPercent(0)
     setCouponCode('')
     setIsCouponApplied(false)
     showToast('success', 'Coupon removed')
@@ -295,14 +300,15 @@ useEffect(() => {
 
 
 //get order id
-const getOrderId = async (amount, extra = {}) => {
+const getOrderId = async (orderPayload) => {
    try{
-       const { data: orderIdData } = await axios.post('/api/payment/get-order-id',{ amount, ...extra })
+       const { data: orderIdData } = await axios.post('/api/payment/get-order-id', orderPayload)
        if(!orderIdData.success) {
          throw new Error(orderIdData.message)
        }
 
-       return { success: true, order_id: orderIdData.data }
+       // server decides the amount — data = { order_id, amount (paise), totalAmount, ... }
+       return { success: true, ...orderIdData.data }
 
 
    } catch(error){
@@ -348,7 +354,11 @@ const placeOrder = async (formData) => {
     isSample: !!cartItem.isSample,
     customSize: cartItem.customSize || null,
   }))
-  const deliveryPayload = { deliveryCharge, customerLocation: customerLocation || null }
+  // Only the coupon CODE goes to the server — it validates it and calculates the discount itself
+  const deliveryPayload = {
+    customerLocation: customerLocation || null,
+    couponCode: isCouponApplied ? couponCode : null,
+  }
 
   // ── COD flow: koi Razorpay nahi, seedha order create ──
   if (paymentMethod === 'cod') {
@@ -358,10 +368,6 @@ const placeOrder = async (formData) => {
         ...formData,
         userId: authStore?._id,
         products,
-        subtotal,
-        discount,
-        couponDiscount,
-        totalAmount,
         ...deliveryPayload,
       })
 
@@ -384,7 +390,14 @@ const placeOrder = async (formData) => {
 
   // ── Online flow — waisa hi jaisa pehले tha ──
   try {
-    const generateOrderId = await getOrderId(totalAmount, { city: formData.city, customerLocation: customerLocation || null })
+    const generateOrderId = await getOrderId({
+      products,
+      address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      pincode: formData.pincode,
+      ...deliveryPayload,
+    })
     if (!generateOrderId.success) {
       throw new Error(generateOrderId.message)
     }
@@ -395,7 +408,7 @@ const placeOrder = async (formData) => {
 
     const options = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: Math.round(totalAmount * 100),
+      amount: generateOrderId.amount, // server-calculated, paise
       currency: 'INR',
       name: 'ConstructEzy',
       description: 'Payment for order',
@@ -410,10 +423,6 @@ const placeOrder = async (formData) => {
             ...response,
             userId: authStore?._id,
             products: products,
-            subtotal: subtotal,
-            discount: discount,
-            couponDiscount: couponDiscount,
-            totalAmount: totalAmount,
             ...deliveryPayload,
           })
 

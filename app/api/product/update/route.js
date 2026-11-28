@@ -4,6 +4,7 @@ import { catchError, response } from "@/lib/helperfunction";
 import { zSchema } from "@/lib/zodSchema";
 import ProductModel from "@/models/Product.model";
 import { encode } from "entities";
+import { uniqueSlug } from "@/lib/uniqueSlug";
 
 export async function PUT(request){
     try{
@@ -40,7 +41,7 @@ export async function PUT(request){
       }
 
       getProduct.name = validatedData.name
-      getProduct.slug = validatedData.slug
+      getProduct.slug = await uniqueSlug(ProductModel, validatedData.slug, getProduct._id)
       getProduct.category = validatedData.category
       getProduct.mrp = validatedData.mrp
       getProduct.sellingPrice = validatedData.sellingPrice

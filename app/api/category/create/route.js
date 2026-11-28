@@ -4,6 +4,9 @@ import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
 import { createCategorySchema } from "@/lib/zodSchema";
 import CategoryModel from "@/models/Category.model";
+import { releaseCategorySlug } from "@/lib/releaseCategorySlug";
+
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export async function POST(request) {
     try {
@@ -21,10 +24,31 @@ export async function POST(request) {
         }
 
         const data = validate.data
+        const parent = data.parent || null
+        const name = data.name.trim()
+        const slug = data.slug.trim().toLowerCase()
+
+        // Duplicate check among ACTIVE categories (same parent)
+        const existing = await CategoryModel.findOne({
+            parent,
+            deletedAt: null,
+            $or: [
+                { name: { $regex: `^${escapeRegex(name)}$`, $options: "i" } },
+                { slug },
+            ],
+        }).lean()
+        if (existing) {
+            return response(false, 409, parent
+                ? "A subcategory with this name already exists under the selected category."
+                : "A category with this name already exists.")
+        }
+
+        // Trashed category with same slug still blocks the unique index → free it
+        await releaseCategorySlug(CategoryModel, parent, slug)
 
         const newCategory = new CategoryModel({
-            name: data.name,
-            slug: data.slug,
+            name,
+            slug,
             parent: data.parent || null,
             attributes: data.parent ? mergeAttributes(data.attributes) : [], // top-level categories don't need attributes; same-label attributes merged
         })

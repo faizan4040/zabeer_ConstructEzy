@@ -5,7 +5,8 @@ import { catchError, response } from "@/lib/helperfunction";
 import { sendMail } from "@/lib/sendMail";
 import { zSchema } from "@/lib/zodSchema";
 import OrderModel from "@/models/Order.model";
-import { prepareOrderItems } from "@/lib/orderDelivery";
+import { fullAddressOf, orderProductSchema, priceOrder } from "@/lib/orderPricing";
+import Razorpay from "razorpay";
 import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils";
 import z from "zod";
 
@@ -16,17 +17,6 @@ export async function POST(request) {
     const auth = await isAuthenticated('customer')
     const payload = await request.json()
 
-    const productSchema = z.object({
-        productId: z.string().length(24, 'Invalid product id format'),
-        variantId: z.string().length(24, 'Invalid variant id format'),
-        name: z.string().min(1),
-        qty: z.number().min(1),
-        mrp: z.number().nonnegative(),
-        sellingPrice: z.number().nonnegative(),
-        isSample: z.boolean().optional().default(false),
-        customSize: z.object({ height: z.number(), width: z.number(), unit: z.string().optional() }).optional().nullable()
-    })
-
     const orderSchema = zSchema.pick({
         name: true, email: true, phone: true, address: true, country: true, state: true, city: true,
         pincode: true, landmark:true, ordernote: true
@@ -35,13 +25,9 @@ export async function POST(request) {
         razorpay_payment_id: z.string().min(3, 'Payment id is required.'),
         razorpay_order_id: z.string().min(3, 'Order id is required.'),
         razorpay_signature: z.string().min(3, 'Signature id is required.'),
-        subtotal: z.number().nonnegative(),
-        discount: z.number().nonnegative(),
-        couponDiscount: z.number().nonnegative(),
-        totalAmount: z.number().nonnegative(),
-        deliveryCharge: z.number().nonnegative().optional().default(0),
+        couponCode: z.string().optional().nullable(),
         customerLocation: z.object({ lat: z.number(), lng: z.number() }).optional().nullable(),
-        products: z.array(productSchema)
+        products: z.array(orderProductSchema).min(1)
     })
 
     const validate = orderSchema.safeParse(payload)
@@ -49,36 +35,46 @@ export async function POST(request) {
         return response(false, 400, 'Invalid or missing fields.', {error: validate.error})
     }
 
-
     const validateData = validate.data 
 
-    // payment verification
+    // 1. signature — proves this payment belongs to this Razorpay order
     const verification = validatePaymentVerification({
         order_id: validateData.razorpay_order_id,
         payment_id: validateData.razorpay_payment_id,
     },validateData.razorpay_signature, process.env.RAZORPAY_KEY_SECRET)
-
-    let paymentVerification = false
-    if(verification) {
-        paymentVerification = true
+    if (!verification) {
+        return response(false, 400, 'Payment verification failed.')
     }
 
-    const initialStatus = paymentVerification ? 'on_hold' : 'unverified'
+    // same Razorpay order saved twice (double click / retry) → return the existing order
+    const already = await OrderModel.exists({ order_id: validateData.razorpay_order_id })
+    if (already) return response(true, 200, 'Order placed successfully.')
 
-    // Sample/return rules + server-side delivery charge. Payment ho chuka hai,
-    // isliye strict=false — yahan order kabhi fail nahi karte.
-    const fullAddress = `${validateData.address}, ${validateData.city}, ${validateData.state} ${validateData.pincode}, India`
-    const prepared = await prepareOrderItems({
+    // 2. price the cart on the server (DB prices, server coupon, server delivery)
+    const fullAddress = fullAddressOf(validateData)
+    const priced = await priceOrder({
         products: validateData.products,
         customerLocation: validateData.customerLocation,
         city: validateData.city,
         addressString: fullAddress,
+        couponCode: validateData.couponCode,
         strict: false,
     })
 
-    if (Math.abs((validateData.deliveryCharge || 0) - prepared.deliveryCharge) > 1) {
-        console.warn(`[save-order] delivery charge mismatch for ${validateData.razorpay_order_id}: client=${validateData.deliveryCharge} server=${prepared.deliveryCharge}`)
+    // 3. amount actually paid must match the server total (₹1 tolerance for rounding)
+    const razInstance = new Razorpay({
+        key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET
+    })
+    const rzpOrder = await razInstance.orders.fetch(validateData.razorpay_order_id)
+    const paidRupees = Number(rzpOrder?.amount || 0) / 100
+    if (priced.error || rzpOrder?.currency !== 'INR' || Math.abs(paidRupees - priced.totalAmount) > 1) {
+        console.error(`[save-order] AMOUNT MISMATCH order=${validateData.razorpay_order_id} payment=${validateData.razorpay_payment_id} paid=${paidRupees} server=${priced.totalAmount} error=${priced.error || ''}`)
+        return response(false, 400, `Payment amount did not match your order total. Please contact support with payment id ${validateData.razorpay_payment_id} for a refund.`)
     }
+
+    const initialStatus = 'on_hold'
+    const prepared = priced
 
     const productsWithStatus = prepared.items.map((item) => ({
         ...item,
@@ -98,19 +94,19 @@ export async function POST(request) {
     landmark: validateData.landmark,
     ordernote: validateData.ordernote,
     products: productsWithStatus,
-    subtotal: validateData.subtotal,
-    discount: validateData.discount,
-    couponDiscount: validateData.couponDiscount || 0,  
+    subtotal: priced.subtotal,
+    discount: priced.discount,
+    couponDiscount: priced.couponDiscount,
     deliveryCharge: prepared.deliveryCharge,
-    totalAmount: validateData.totalAmount,
+    totalAmount: priced.totalAmount,
     payment_id: validateData.razorpay_payment_id,
     order_id: validateData.razorpay_order_id,               
     status: initialStatus,
-    paymentStatus: paymentVerification ? 'Paid' : 'Failed'
+    paymentStatus: 'Paid'
     });
 
     // ✅ NEW — nearest-shop assignment (sirf payment-verified orders ke liye)
-    if (paymentVerification) {
+    {
         try {
             const { geocodeAddress } = await import("@/lib/geocode")
             const { assignAllItems } = await import("@/lib/itemAssignment")

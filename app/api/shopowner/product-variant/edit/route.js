@@ -1,8 +1,9 @@
 import connectDB from "@/lib/databaseConnection"
 import { catchError, response } from "@/lib/helperfunction"
 import { isAuthenticated } from "@/lib/authentication"
-import { buildVariantUpdate } from "@/lib/variantBulk"
+import { buildVariantUpdate, releaseSkus } from "@/lib/variantBulk"
 import UserModel from "@/models/User.model"
+import "@/models/Product.model"
 import ProductVariantModel from "@/models/ProductVariant.model"
 
 // Body: { _id, ...only the fields to change } — stock, mrp, sellingPrice, sku, brand,
@@ -29,7 +30,7 @@ export async function PUT(request) {
     }
 
     if (update.sku && update.sku !== variant.sku) {
-      const clash = await ProductVariantModel.findOne({ sku: update.sku, _id: { $ne: _id } }).select("_id").lean()
+      const clash = await releaseSkus(ProductVariantModel, [update.sku], _id)
       if (clash) return response(false, 409, `SKU "${update.sku}" already exists.`)
     }
 

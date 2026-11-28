@@ -2,46 +2,61 @@ import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
 import { zSchema } from "@/lib/zodSchema";
 import Razorpay from "razorpay";
-import { checkServiceArea, NOT_SERVICEABLE_MESSAGE } from "@/lib/serviceArea";
+import z from "zod";
+import { fullAddressOf, orderProductSchema, priceOrder } from "@/lib/orderPricing";
 
+// Razorpay order is created for the SERVER-calculated total (DB prices + server coupon
+// + server delivery charge). The browser never decides how much is charged.
 export async function POST(request) {
     try{
         await connectDB()
         const payload = await request.json()
-        const schema = zSchema.pick({
-            amount: true
+
+        const schema = zSchema.pick({ address: true, state: true, city: true, pincode: true }).extend({
+            products: z.array(orderProductSchema).min(1, 'Your cart is empty.'),
+            couponCode: z.string().optional().nullable(),
+            customerLocation: z.object({ lat: z.number(), lng: z.number() }).optional().nullable(),
         })
 
         const validate = schema.safeParse(payload)
-
         if(!validate.success){
             return response(false, 400, 'Invalid or missing fields.', validate.error)
         }
+        const data = validate.data
 
-        const {amount} = validate.data
+        const priced = await priceOrder({
+            products: data.products,
+            customerLocation: data.customerLocation,
+            city: data.city,
+            addressString: fullAddressOf(data),
+            couponCode: data.couponCode,
+            strict: true,
+        })
+        if (priced.error) return response(false, 400, priced.error)
 
-        // Payment lene se pehle hi service area check — bahar ke shehar ka paisa capture na ho
-        const loc = payload?.customerLocation
-        const area = checkServiceArea({ lat: loc?.lat ?? null, lng: loc?.lng ?? null, city: payload?.city })
-        if (area.serviceable === false) {
-            return response(false, 400, NOT_SERVICEABLE_MESSAGE)
-        }
+        const amountPaise = Math.round(priced.totalAmount * 100)
+        if (amountPaise < 100) return response(false, 400, 'Order amount must be at least ₹1.')
 
         const razInstance = new Razorpay({
             key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
             key_secret: process.env.RAZORPAY_KEY_SECRET
         })
 
-        const razOption = {
-            amount: Math.round(Number(amount) * 100), // paise must be an integer
-            currency: 'INR'
-        }
+        const orderDetail = await razInstance.orders.create({
+            amount: amountPaise,
+            currency: 'INR',
+            notes: { couponCode: priced.couponCode || '' },
+        })
 
-        const orderDetail = await razInstance.orders.create(razOption)
-        const order_id = orderDetail.id
-
-        return response(true, 200, 'Order id generated.', order_id)
-
+        return response(true, 200, 'Order id generated.', {
+            order_id: orderDetail.id,
+            amount: amountPaise,
+            subtotal: priced.subtotal,
+            discount: priced.discount,
+            couponDiscount: priced.couponDiscount,
+            deliveryCharge: priced.deliveryCharge,
+            totalAmount: priced.totalAmount,
+        })
 
     } catch(error) {
        return catchError(error)

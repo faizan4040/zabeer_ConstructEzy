@@ -5,7 +5,7 @@ import { catchError, response } from "@/lib/helperfunction";
 import { sendMail } from "@/lib/sendMail";
 import { zSchema } from "@/lib/zodSchema";
 import OrderModel from "@/models/Order.model";
-import { prepareOrderItems } from "@/lib/orderDelivery";
+import { fullAddressOf, orderProductSchema, priceOrder } from "@/lib/orderPricing";
 import z from "zod";
 
 export async function POST(request) {
@@ -15,31 +15,14 @@ export async function POST(request) {
         const auth = await isAuthenticated('customer')
         const payload = await request.json()
 
-        const productSchema = z.object({
-            productId: z.string().length(24, 'Invalid product id format'),
-            variantId: z.string().length(24, 'Invalid variant id format'),
-            name: z.string().min(1),
-            qty: z.number().min(1),
-            mrp: z.number().nonnegative(),
-            sellingPrice: z.number().nonnegative(),
-            isSample: z.boolean().optional().default(false),
-        customSize: z.object({ height: z.number(), width: z.number(), unit: z.string().optional() }).optional().nullable()
-        })
-
-        // ✅ Razorpay fields (payment_id/order_id/signature) yahan REQUIRED nahi —
-        // COD me koi online-payment-verification hoti hi nahi
         const orderSchema = zSchema.pick({
             name: true, email: true, phone: true, address: true, country: true, state: true, city: true,
             pincode: true, landmark: true, ordernote: true
         }).extend({
             userId: z.string().optional(),
-            subtotal: z.number().nonnegative(),
-            discount: z.number().nonnegative(),
-            couponDiscount: z.number().nonnegative(),
-            totalAmount: z.number().nonnegative(),
-            deliveryCharge: z.number().nonnegative().optional().default(0),
+            couponCode: z.string().optional().nullable(),
             customerLocation: z.object({ lat: z.number(), lng: z.number() }).optional().nullable(),
-            products: z.array(productSchema)
+            products: z.array(orderProductSchema).min(1, 'Your cart is empty.')
         })
 
         const validate = orderSchema.safeParse(payload)
@@ -49,17 +32,16 @@ export async function POST(request) {
 
         const validateData = validate.data
 
-        // ✅ COD me payment-verification step hi nahi hai — seedha 'on_hold' (jaisa
-        // online-payment verified hone par hota tha), kyunki cash baad me collect hoga
         const initialStatus = 'on_hold'
 
-        // Sample price/qty lock, return rules, server-side delivery charge
-        const fullAddress = `${validateData.address}, ${validateData.city}, ${validateData.state} ${validateData.pincode}, India`
-        const prepared = await prepareOrderItems({
+        // Everything priced on the server — DB prices, coupon validated by code, server delivery
+        const fullAddress = fullAddressOf(validateData)
+        const prepared = await priceOrder({
             products: validateData.products,
             customerLocation: validateData.customerLocation,
             city: validateData.city,
             addressString: fullAddress,
+            couponCode: validateData.couponCode,
             strict: true,
         })
         if (prepared.error) return response(false, 400, prepared.error)
@@ -70,11 +52,6 @@ export async function POST(request) {
         }))
 
         // COD me paisa baad me aata hai → total server ke numbers se banao
-        const serverSubtotal = prepared.itemsSubtotal
-        const couponDiscount = Math.min(validateData.couponDiscount || 0, serverSubtotal)
-        const serverTotal = Math.round((Math.max(serverSubtotal - couponDiscount, 0) + prepared.deliveryCharge) * 100) / 100
-
-        // ✅ Unique order_id — Razorpay ki jagah khud generate karna padega
         const codOrderId = `COD${Date.now()}${Math.floor(Math.random() * 1000)}`
 
         const newOrder = await OrderModel.create({
@@ -90,11 +67,11 @@ export async function POST(request) {
             landmark: validateData.landmark,
             ordernote: validateData.ordernote,
             products: productsWithStatus,
-            subtotal: serverSubtotal,
-            discount: validateData.discount,
-            couponDiscount,
+            subtotal: prepared.subtotal,
+            discount: prepared.discount,
+            couponDiscount: prepared.couponDiscount,
             deliveryCharge: prepared.deliveryCharge,
-            totalAmount: serverTotal,
+            totalAmount: prepared.totalAmount,
             payment_id: `COD-${codOrderId}`,  // real payment_id nahi hai, placeholder
             order_id: codOrderId,
             status: initialStatus,

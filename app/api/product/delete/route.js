@@ -75,7 +75,7 @@ export async function DELETE(request) {
         return response(false, 404, 'Data not found.')
        }
 
-       if(!deleteType === 'PD') {
+       if(deleteType !== 'PD') {
         return response(false, 400,  "Invalid delet operation. Delete type should be PD for this route.")
        }
 

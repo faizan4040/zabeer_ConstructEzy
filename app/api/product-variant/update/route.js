@@ -1,7 +1,8 @@
 import { isAuthenticated } from "@/lib/authentication";
 import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
-import { buildVariantUpdate } from "@/lib/variantBulk";
+import { buildVariantUpdate, releaseSkus } from "@/lib/variantBulk";
+import "@/models/Product.model";
 import ProductVariantModel from "@/models/ProductVariant.model";
 
 // Body: { _id, ...only the fields to change } — attributes, brand, sku, stock, mrp,
@@ -24,7 +25,7 @@ export async function PUT(request){
       if (!variant) return response(false, 404, 'Data not found.')
 
       if (update.sku && update.sku !== variant.sku) {
-        const clash = await ProductVariantModel.findOne({ sku: update.sku, _id: { $ne: _id } }).select('_id').lean()
+        const clash = await releaseSkus(ProductVariantModel, [update.sku], _id)
         if (clash) return response(false, 409, `SKU "${update.sku}" already exists.`)
       }
 

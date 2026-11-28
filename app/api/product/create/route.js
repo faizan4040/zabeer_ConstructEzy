@@ -4,6 +4,7 @@ import { catchError, response } from "@/lib/helperfunction";
 import { zSchema } from "@/lib/zodSchema";
 import ProductModel from "@/models/Product.model";
 import { encode } from "entities";
+import { uniqueSlug } from "@/lib/uniqueSlug";
 
 
 export async function POST(request){
@@ -33,6 +34,9 @@ export async function POST(request){
       }
 
       const productData = validate.data
+
+      // Trashed products keep their slug in the DB (unique index) → pick next free slug
+      productData.slug = await uniqueSlug(ProductModel, productData.slug)
 
       const newProduct = new ProductModel({
           name: productData.name,

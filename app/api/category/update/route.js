@@ -4,6 +4,7 @@ import connectDB from "@/lib/databaseConnection";
 import { catchError, response } from "@/lib/helperfunction";
 import { zSchema, categoryAttributeSchema } from "@/lib/zodSchema";
 import CategoryModel from "@/models/Category.model";
+import { releaseCategorySlug } from "@/lib/releaseCategorySlug";
 import { isValidObjectId } from "mongoose";
 import { z } from "zod";
 
@@ -80,6 +81,8 @@ export async function PUT(request) {
           : "A category with this name already exists."
       );
     }
+
+    await releaseCategorySlug(CategoryModel, parent, slug.trim().toLowerCase(), _id);
 
     getCategory.name = name.trim();
     getCategory.slug = slug.trim().toLowerCase();
